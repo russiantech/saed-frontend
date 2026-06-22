@@ -141,6 +141,7 @@ export async function api(path, options = {}) {
     return data;
   } catch (err) {
     if (err instanceof TypeError) {
+      console.log(err);
       throw new Error("Cannot connect to the SAED API. Make sure the backend server is running.");
     }
     throw err;
