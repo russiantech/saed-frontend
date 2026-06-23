@@ -1,5 +1,5 @@
 // import PasswordInput from "@/components/PasswordInput.jsx";
-import { User, GraduationCap } from "lucide-react";
+import { User, GraduationCap, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
@@ -88,7 +88,7 @@ export function FormField({
     <label>
       {label} {required && "*"}
       {type === "password" ? (
-        <div className="password-wrapper">
+        <div className="password-input-wrap">
           <input
             type={showPassword ? "text" : "password"}
             {...inputProps}
@@ -96,10 +96,10 @@ export function FormField({
           />
           <button
             type="button"
-            className="toggle-password"
+            className="password-eye-button"
             onClick={() => setShowPassword((s) => !s)}
           >
-            {showPassword ? "🙈" : "👁️"}
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
       ) : type === "select" ? (

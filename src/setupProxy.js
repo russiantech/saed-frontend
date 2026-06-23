@@ -1,59 +1,14 @@
-// const { createProxyMiddleware } = require("http-proxy-middleware");
-
-// module.exports = function (app) {
-//   app.use(
-//     "/api",
-//     createProxyMiddleware({
-//       target: "http://127.0.0.1:8002",
-//       changeOrigin: true,
-//       cookieDomainRewrite: { "*": "" },
-//       onProxyRes(proxyRes) {
-//         const sc = proxyRes.headers["set-cookie"];
-//         if (sc) {
-//           proxyRes.headers["set-cookie"] = sc.map((c) =>
-//             c.replace(/Domain=[^;]+;?/i, "")
-//           );
-//         }
-//       },
-//     })
-//   );
-// };
-
-
-
-// v2
-// const { createProxyMiddleware } = require("http-proxy-middleware");
-
-// module.exports = function (app) {
-//   app.use(
-//     "/api",
-//     createProxyMiddleware({
-//       target: "http://127.0.0.1:8002",
-//       changeOrigin: true,
-//       cookieDomainRewrite: { "*": "" },
-//       onProxyRes(proxyRes) {
-//         const sc = proxyRes.headers["set-cookie"];
-//         if (sc) {
-//           proxyRes.headers["set-cookie"] = sc.map((c) =>
-//             c.replace(/Domain=[^;]+;?/i, "")
-//           );
-//         }
-//       },
-//     })
-//   );
-// };
-
-
-// v3
 const { createProxyMiddleware } = require("http-proxy-middleware");
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://127.0.0.1:8002";
 
 module.exports = function (app) {
   app.use(
     "/api",
     createProxyMiddleware({
-      target: "http://127.0.0.1:8002",
+      target: BACKEND_URL,
       changeOrigin: true,
-      ws: false,  // disable WebSocket proxying
+      ws: false,
       cookieDomainRewrite: { "*": "" },
       onProxyRes(proxyRes) {
         const sc = proxyRes.headers["set-cookie"];

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import DarkToggle from "components/DarkToggle.jsx";
+import DarkToggle from "components/ui/DarkToggle.jsx";
 
 export default function AuthLayout({ children, backLink = "/", title, subtitle }) {
   return (

@@ -1,40 +1,9 @@
-// // import "./main.jsx";
-
-// // v2
-// export { default as AuthLayout } from "components/auth/AuthLayout.jsx";
-// export { default as AuthError } from "components/auth/AuthError.jsx";
-
-// export {
-//     RoleSelector,
-//     FormField, 
-//     FormRow, 
-//     SubmitButton,
-//     StepIndicator,
-//     TermsCheckbox,
-//  } from "components/forms/FormField.jsx";
-
-// export { default as useAuthForm } from "hooks/useAuthForm.js";
-// export { default as useToggleArray } from "hooks/useToggleArray.js";
-
-// export * from "constants/constants.js";
-// export * from "constants/validators.js";
-
-// export { default as Login } from "./pages/auth/Login.jsx";
-// export { default as Signup } from "./pages/auth/Signup.jsx";
-// export { default as ForgotPassword } from "./pages/auth/ForgotPassword.jsx";
-// export { default as VerifyEmail } from "./pages/auth/VerifyEmail.jsx";
-// export { default as InactiveAccount } from "./pages/auth/InactiveAccount.jsx";
-// export { default as TrainerSignupSuccess } from "./pages/auth/TrainerSignupSuccess.jsx";
-
-
-
-// v2
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import AppShell from "./components/AppShell.jsx";
-import BackHome from "./components/BackHome.jsx";
+import AppShell from "./components/layout/AppShell.jsx";
+import BackHome from "./components/layout/BackHome.jsx";
 import { AuthProvider, useAuth } from "./lib/auth.jsx";
 
 // Auth pages
@@ -45,37 +14,50 @@ import VerifyEmail from "./pages/auth/VerifyEmail.jsx";
 import InactiveAccount from "./pages/auth/InactiveAccount.jsx";
 import TrainerSignupSuccess from "./pages/auth/TrainerSignupSuccess.jsx";
 
-// App pages
-import Dashboard from "./pages/Dashboard.jsx";
-import Applications from "./pages/Applications.jsx";
-import Home from "./pages/Home.jsx";
-import ManageApplications from "./pages/ManageApplications.jsx";
-import ManageUsers from "./pages/ManageUsers.jsx";
-import ProgramEditor from "./pages/ProgramEditor.jsx";
-import Programs from "./pages/Programs.jsx";
-import ProgramDetail from "./pages/ProgramDetail.jsx";
-import Activities from "./pages/Activities.jsx";
-import ActivityDetail from "./pages/ActivityDetail.jsx";
-import Opportunities from "./pages/Opportunities.jsx";
-import FindTrainers from "./pages/FindTrainers.jsx";
-import ConnectTrainer from "./pages/ConnectTrainer.jsx";
-import ConnectionSuccess from "./pages/ConnectionSuccess.jsx";
-import CourseManagement from "./pages/CourseManagement.jsx";
-import CourseDetail from "./pages/CourseDetail.jsx";
-import AdminCourses from "./pages/AdminCourses.jsx";
-import MyTrainers from "./pages/MyTrainers.jsx";
-import MyCorpers from "./pages/MyCorpers.jsx";
-import FastTrackVideos from "./pages/FastTrackVideos.jsx";
-import DunisAdmin from "./pages/DunisAdmin.jsx";
-import AdminLogin from "./pages/AdminLogin.jsx";
-import AdminDashboard from "./pages/AdminDashboard.jsx";
-import SaedQuestionForm from "./pages/SaedQuestionForm.jsx";
-import DunisComplaintForm from "./pages/DunisComplaintForm.jsx";
-import Notifications from "./pages/Notifications.jsx";
-import TraineeFastTrack from "./pages/TraineeFastTrack.jsx";
-import CorperProfile from "./pages/CorperProfile.jsx";
-import EditProfile from "./pages/EditProfile.jsx";
-import Profile from "./pages/Profile.jsx";
+// Public pages
+import Home from "./pages/public/Home.jsx";
+import Activities from "./pages/public/Activities.jsx";
+import ActivityDetail from "./pages/public/ActivityDetail.jsx";
+import Opportunities from "./pages/public/Opportunities.jsx";
+import Programs from "./pages/public/Programs.jsx";
+import ProgramDetail from "./pages/public/ProgramDetail.jsx";
+
+// Dashboard pages
+import Dashboard from "./pages/dashboard/Dashboard.jsx";
+import AdminDashboard from "./pages/dashboard/AdminDashboard.jsx";
+
+// Corper pages
+import Applications from "./pages/corper/Applications.jsx";
+import FindTrainers from "./pages/corper/FindTrainers.jsx";
+import ConnectTrainer from "./pages/corper/ConnectTrainer.jsx";
+import ConnectionSuccess from "./pages/corper/ConnectionSuccess.jsx";
+import MyTrainers from "./pages/corper/MyTrainers.jsx";
+import TraineeFastTrack from "./pages/corper/TraineeFastTrack.jsx";
+
+// Trainer pages
+import MyCorpers from "./pages/trainer/MyCorpers.jsx";
+import CourseManagement from "./pages/trainer/CourseManagement.jsx";
+import CourseDetail from "./pages/trainer/CourseDetail.jsx";
+import FastTrackVideos from "./pages/trainer/FastTrackVideos.jsx";
+import CorperProfile from "./pages/trainer/CorperProfile.jsx";
+
+// Admin pages
+import AdminLogin from "./pages/admin/AdminLogin.jsx";
+import ManageUsers from "./pages/admin/ManageUsers.jsx";
+import ManageApplications from "./pages/admin/ManageApplications.jsx";
+import ProgramEditor from "./pages/admin/ProgramEditor.jsx";
+import AdminCourses from "./pages/admin/AdminCourses.jsx";
+import DunisAdmin from "./pages/admin/DunisAdmin.jsx";
+
+// Form pages
+import SaedQuestionForm from "./pages/forms/SaedQuestionForm.jsx";
+import DunisComplaintForm from "./pages/forms/DunisComplaintForm.jsx";
+
+// Profile pages
+import Notifications from "./pages/profile/Notifications.jsx";
+import EditProfile from "./pages/profile/EditProfile.jsx";
+import Profile from "./pages/profile/Profile.jsx";
+
 import "./styles.css";
 
 // Apply saved or system preference theme immediately
