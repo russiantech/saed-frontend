@@ -1,3 +1,15 @@
+// Dashboard.jsx — v3
+// KEY FIX: The useEffect guard on `isAuthenticated` was already correct in v2,
+// but logout() was being called on 401 which destroyed the Django session before
+// the redirect. Now that api.js suppresses auth errors during hydration and
+// auth.jsx's onAuthError only acts post-hydration, the guard here simply needs
+// to not call logout() itself — the global handler in auth.jsx takes care of it.
+//
+// Removed: explicit `logout()` call inside the catch block.
+// The `onAuthError` handler in AuthProvider already clears the user, which
+// triggers the Router's protected-route redirect. Calling logout() here as well
+// was making a redundant POST /auth/logout/ that destroyed the live session.
+
 import { BookOpen, Users, UserCheck, Clock3, CheckCircle2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,7 +20,7 @@ import DunisAdmin from "./DunisAdmin.jsx";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [messageType, setMessageType] = useState("");
@@ -19,28 +31,55 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+    // Don't fetch until we know the session is established.
+    if (!isAuthenticated) return;
+
+    let cancelled = false;
+
     api("/dashboard/")
-      .then(setData)
+      .then((res) => {
+        if (!cancelled) setData(res);
+      })
       .catch((err) => {
+        if (cancelled) return;
         if (err.status === 401) {
+          // The global onAuthError handler in AuthProvider already clears the
+          // user and the Router will redirect to /login. Don't call logout()
+          // here — that issues a redundant POST that wipes the Django session.
           navigate("/login", { replace: true });
           return;
         }
         showMsg(err.message, "error");
       });
-  }, [navigate]);
 
-  if (error) return (
-    <div className={`inline-message inline-message--${messageType || "error"}`}>
-      {error}
-      <button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button>
-    </div>
-  );
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, isAuthenticated]);
+
+  if (error) {
+    return (
+      <div
+        className={`inline-message inline-message--${messageType || "error"}`}
+      >
+        {error}
+        <button
+          type="button"
+          className="inline-message-close"
+          onClick={() => showMsg("")}
+        >
+          <X size={16} />
+        </button>
+      </div>
+    );
+  }
+
   if (!data) return <div className="empty-state">Loading dashboard...</div>;
 
   const stats = data.stats || {};
   const isCorpsMember = user?.role === "corps_member";
-  const isAdmin = user?.role === "saed_admin" || user?.role === "dunis_admin";
+  const isAdmin =
+    user?.role === "saed_admin" || user?.role === "dunis_admin";
   const isTrainer = user?.role === "trainer";
   const isDunisAdmin = user?.role === "dunis_admin";
 
@@ -50,14 +89,26 @@ export default function Dashboard() {
         <>
           <section className="panel lga-widget">
             <div className="panel-heading">
-              <h2><UserCheck size={18} /> Your Profile</h2>
+              <h2>
+                <UserCheck size={18} /> Your Profile
+              </h2>
             </div>
             <div className="lga-info">
-              <div className="lga-detail"><span>Skill Interest</span><strong>{user?.skillInterest || "—"}</strong></div>
-              <div className="lga-detail"><span>LGA</span><strong>{user?.lgaOfDeployment || "—"}</strong></div>
-              <div className="lga-detail"><span>State Code</span><strong>{user?.nyscStateCode || "—"}</strong></div>
+              <div className="lga-detail">
+                <span>Skill Interest</span>
+                <strong>{user?.skillInterest || "—"}</strong>
+              </div>
+              <div className="lga-detail">
+                <span>LGA</span>
+                <strong>{user?.lgaOfDeployment || "—"}</strong>
+              </div>
+              <div className="lga-detail">
+                <span>State Code</span>
+                <strong>{user?.nyscStateCode || "—"}</strong>
+              </div>
             </div>
           </section>
+
           <section className="stat-grid">
             <article className="stat-card">
               <BookOpen size={22} />
@@ -80,15 +131,24 @@ export default function Dashboard() {
               <strong>{stats.connections || 0}</strong>
             </article>
           </section>
+
           <section className="panel">
             <div className="panel-heading">
               <h2>Quick Actions</h2>
             </div>
             <div className="quick-actions">
-              <Link className="primary-button" to="/app/profile">View Profile</Link>
-              <Link className="primary-button" to="/app/my-trainers">Browse Trainers</Link>
-              <Link className="primary-button" to="/app/programs">Browse Programs</Link>
-              <Link className="primary-button" to="/app/applications">My Applications</Link>
+              <Link className="primary-button" to="/app/profile">
+                View Profile
+              </Link>
+              <Link className="primary-button" to="/app/my-trainers">
+                Browse Trainers
+              </Link>
+              <Link className="primary-button" to="/app/programs">
+                Browse Programs
+              </Link>
+              <Link className="primary-button" to="/app/applications">
+                My Applications
+              </Link>
             </div>
           </section>
         </>
@@ -113,15 +173,26 @@ export default function Dashboard() {
               <strong>{stats.programs || 0}</strong>
             </article>
           </section>
+
           <section className="panel">
             <div className="panel-heading">
               <h2>Quick Actions</h2>
             </div>
             <div className="quick-actions">
-              <Link className="primary-button" to="/app/profile">View Profile</Link>
-              <Link className="primary-button" to="/app/course-management">Manage Courses</Link>
-              <Link className="primary-button" to="/app/my-corpers">View Corps Members</Link>
-              {user?.canUploadFastTrack && <Link className="primary-button" to="/app/fast-track-videos">Fast Track Courses</Link>}
+              <Link className="primary-button" to="/app/profile">
+                View Profile
+              </Link>
+              <Link className="primary-button" to="/app/course-management">
+                Manage Courses
+              </Link>
+              <Link className="primary-button" to="/app/my-corpers">
+                View Corps Members
+              </Link>
+              {user?.canUploadFastTrack && (
+                <Link className="primary-button" to="/app/fast-track-videos">
+                  Fast Track Courses
+                </Link>
+              )}
             </div>
           </section>
         </>
@@ -148,15 +219,24 @@ export default function Dashboard() {
               <strong>{stats.totalCorpers || 0}</strong>
             </article>
           </section>
+
           <section className="panel">
             <div className="panel-heading">
               <h2>Quick Actions</h2>
             </div>
             <div className="quick-actions">
-              <Link className="primary-button" to="/app/profile">View Profile</Link>
-              <Link className="primary-button" to="/app/users">Manage Trainers</Link>
-              <Link className="primary-button" to="/app/program-editor">Manage Programs</Link>
-              <Link className="primary-button" to="/app/admin-courses">Manage Courses</Link>
+              <Link className="primary-button" to="/app/profile">
+                View Profile
+              </Link>
+              <Link className="primary-button" to="/app/users">
+                Manage Trainers
+              </Link>
+              <Link className="primary-button" to="/app/program-editor">
+                Manage Programs
+              </Link>
+              <Link className="primary-button" to="/app/admin-courses">
+                Manage Courses
+              </Link>
             </div>
           </section>
         </>
@@ -164,3 +244,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
