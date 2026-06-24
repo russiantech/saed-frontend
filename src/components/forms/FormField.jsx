@@ -1,63 +1,6 @@
-// import PasswordInput from "@/components/PasswordInput.jsx";
 import { User, GraduationCap, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-
-// FormField
-/*
-export function FormField({
-  label,
-  name,
-  type = "text",
-  value,
-  onChange,
-  error,
-  placeholder,
-  required = false,
-  options = null,
-  rows = 3,
-  accept = null,
-  minLength,
-  ...props
-}) {
-  const inputProps = {
-    value,
-    onChange: (e) => onChange(name, e.target.type === "checkbox" ? e.target.checked : e.target.value),
-    placeholder,
-    required,
-    ...props,
-  };
-
-  return (
-    <label>
-      {label} {required && "*"}
-      {type === "password" ? (
-        <PasswordInput {...inputProps} minLength={minLength} />
-      ) : type === "select" ? (
-        <select {...inputProps}>
-          <option value="">{placeholder || "Select..."}</option>
-          {options?.map((opt) =>
-            typeof opt === "string" ? (
-              <option key={opt} value={opt}>{opt}</option>
-            ) : (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            )
-          )}
-        </select>
-      ) : type === "textarea" ? (
-        <textarea {...inputProps} rows={rows} />
-      ) : type === "file" ? (
-        <input type="file" accept={accept} onChange={(e) => onChange(name, e.target.files?.[0] || null)} />
-      ) : type === "checkbox" ? (
-        <input type="checkbox" checked={value} onChange={(e) => onChange(name, e.target.checked)} />
-      ) : (
-        <input type={type} {...inputProps} />
-      )}
-      {error && <span className="field-error">{error}</span>}
-    </label>
-  );
-}
-*/
 
 export function FormField({
   label,
