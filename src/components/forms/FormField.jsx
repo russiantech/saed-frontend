@@ -181,9 +181,8 @@ export function TermsCheckbox({ checked, onChange }) {
   return (
     <label className="checkbox-label agree-label">
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} required />
-      I agree to the{" "}
-      <Link to="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{" "}and{" "}
-      <Link to="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>
+      <span className="checkbox-custom"></span>
+      <span>I agree to the <Link to="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link> and <Link to="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link></span>
     </label>
   );
 }

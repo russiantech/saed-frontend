@@ -526,6 +526,7 @@ const INITIAL_CORPS_FORM = {
     nyscStateCode: "",
     lgaOfDeployment: "",
     skillInterest: "",
+    skillInterests: [],
 };
 
 const INITIAL_TRAINER_FORM = {
@@ -656,8 +657,9 @@ export default function Signup() {
 
     function validateCorpsStep2() {
         const errors = {};
-        const skillErr = validateRequired(activeForm.form.skillInterest, MESSAGES.SKILL_REQUIRED);
-        if (skillErr) errors.skillInterest = MESSAGES.SKILL_REQUIRED;
+        if (!activeForm.form.skillInterests || activeForm.form.skillInterests.length === 0) {
+            errors.skillInterest = MESSAGES.SKILL_REQUIRED;
+        }
         return errors;
     }
 
@@ -777,7 +779,8 @@ export default function Signup() {
             await signup({ 
                 ...activeForm.form, 
                 role: "corps_member", 
-                stateOfDeployment: "Lagos" 
+                stateOfDeployment: "Lagos",
+                skillInterests: activeForm.form.skillInterests || [],
             });
             navigate("/app");
         } catch (err) {
@@ -954,17 +957,30 @@ function CorpsStep1({ form }) {
 }
 
 function CorpsStep2({ form }) {
+    function toggleSkill(skill) {
+        const current = form.form.skillInterests || [];
+        const next = current.includes(skill)
+            ? current.filter((s) => s !== skill)
+            : [...current, skill];
+        form.update("skillInterests", next);
+        if (next.length > 0) {
+            form.update("skillInterest", next[0]);
+        } else {
+            form.update("skillInterest", "");
+        }
+    }
+
     return (
         <>
             <div className="form-section-title">SELECT YOUR SKILL INTEREST</div>
-            <p className="section-hint">Choose one skill area (required)</p>
+            <p className="section-hint">Choose one or more skill areas (required)</p>
             <div className="skill-grid">
                 {SKILL_AREAS.map((skill) => (
                     <button
                         key={skill}
                         type="button"
-                        className={`skill-card ${form.form.skillInterest === skill ? "selected" : ""}`}
-                        onClick={() => form.update("skillInterest", skill)}
+                        className={`skill-card ${(form.form.skillInterests || []).includes(skill) ? "selected" : ""}`}
+                        onClick={() => toggleSkill(skill)}
                     >
                         {skill}
                     </button>
@@ -1041,14 +1057,13 @@ function TrainerFields({ form, lgas, toggleLga }) {
                 <FormField
                     label="Years of Experience"
                     name="yearsExperience"
-                    type="select"
+                    type="number"
                     value={form.form.yearsExperience}
                     onChange={form.update}
-                    placeholder="Select"
-                    options={EXPERIENCE_YEARS.map((y) => ({ 
-                        value: String(y), 
-                        label: `${y} year${y > 1 ? "s" : ""}` 
-                    }))}
+                    placeholder="e.g. 5"
+                    min="0"
+                    max="50"
+                    required
                 />
                 <FormField
                     label="Company Name"
@@ -1059,8 +1074,9 @@ function TrainerFields({ form, lgas, toggleLga }) {
                 />
             </FormRow>
 
-            <label className="form-label">
-                Local Government Area *
+            <label className="form-label lga-label">
+                <span>Local Government Area *</span>
+                <span className="section-hint">select one or more</span>
                 <div className="lga-checkboxes">
                     {LAGOS_LGAS.map((lga) => (
                         <label key={lga} className="checkbox-label">
