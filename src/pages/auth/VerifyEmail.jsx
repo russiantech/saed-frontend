@@ -46,7 +46,7 @@ export default function VerifyEmail() {
   }
 
   return (
-    <AuthLayout backLink="/login" title="Email Verification">
+    <AuthLayout  title="Email Verification">
       <div className="verify-status">
         {status === "verifying" && (
           <>

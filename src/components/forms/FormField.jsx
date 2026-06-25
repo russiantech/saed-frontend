@@ -62,6 +62,21 @@ export function FormField({
         <input type="file" accept={accept} onChange={(e) => onChange(name, e.target.files?.[0] || null)} />
       ) : type === "checkbox" ? (
         <input type="checkbox" checked={value} onChange={(e) => onChange(name, e.target.checked)} />
+      ) : type === "phone" ? (
+        <div className="phone-input-wrap">
+          <span className="phone-prefix">+234</span>
+          <input
+            type="tel"
+            value={(value || "").replace(/\D/g, "").replace(/^234/, "").slice(0, 10)}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, "").replace(/^234/, "");
+              if (digits.length <= 10) onChange(name, digits);
+            }}
+            placeholder={placeholder || "8012345678"}
+            maxLength={10}
+            inputMode="numeric"
+          />
+        </div>
       ) : (
         <input type={type} {...inputProps} />
       )}
@@ -122,11 +137,13 @@ export function SubmitButton({ loading, children, disabled = false }) {
 // TermsCheckbox
 export function TermsCheckbox({ checked, onChange }) {
   return (
-    <label className="checkbox-label agree-label">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} required />
-      <span className="checkbox-custom"></span>
+    <div className="agree-label">
+      <label className="checkbox-clickable">
+        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} required />
+        <span className="checkbox-custom"></span>
+      </label>
       <span>I agree to the <Link to="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link> and <Link to="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link></span>
-    </label>
+    </div>
   );
 }
 

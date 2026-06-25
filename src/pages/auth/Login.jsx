@@ -117,7 +117,6 @@ export default function Login() {
 
   return (
     <AuthLayout
-      backLink="/"
       title="Welcome Back"
       subtitle="Login to access your account"
     >
@@ -153,17 +152,20 @@ export default function Login() {
         />
 
         <div className="form-row">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={form.remember}
-              onChange={(e) =>
-                update(
-                  "remember",
-                  e.target.checked
-                )
-              }
-            />
+          <label className="remember-label">
+            <span className="checkbox-clickable">
+              <input
+                type="checkbox"
+                checked={form.remember}
+                onChange={(e) =>
+                  update(
+                    "remember",
+                    e.target.checked
+                  )
+                }
+              />
+              <span className="checkbox-custom"></span>
+            </span>
             Remember me
           </label>
 

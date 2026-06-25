@@ -108,7 +108,7 @@ export default function ForgotPassword() {
 
   if (step === STEPS.SUCCESS) {
     return (
-      <AuthLayout backLink="/login" title="Password Reset Successful">
+      <AuthLayout title="Password Reset Successful">
         <div className="success-message">
           <p>Your password has been reset successfully.</p>
           <Link to="/login" className="primary-button">Login Now</Link>
@@ -119,7 +119,6 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout
-      backLink="/login"
       title={step === STEPS.RESET ? "Set New Password" : "Forgot Password?"}
       subtitle={
         step === STEPS.EMAIL

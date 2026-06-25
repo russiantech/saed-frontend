@@ -6,8 +6,7 @@ export const SKILL_AREAS = [
   "Delivery & Logistics",
   "Culinary & Catering",
   "Cleaning Services",
-  "Green Energy",
-  "Satellite & Security Technology",
+  "Green Energy & Satellite Security",
   "ICT",
   "Cosmetology",
   "Education",
@@ -17,7 +16,7 @@ export const EXPERIENCE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
 
 export const VALIDATION = {
   EMAIL: /^\S+@\S+\.\S+$/,
-  PHONE: /^[0-9]{10,15}$/,
+  PHONE: /^[0-9]{10}$/,
   NYSC_CODE: /^LA\/\d{2}[A-Z]\/\d{4}$/,
   MIN_PASSWORD: 8,
 };

@@ -5,12 +5,7 @@ import { UserPlus, CheckCircle, ChevronRight } from "lucide-react";
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import { NIGERIAN_STATES } from "../../data/nigerianStates.js";
-
-const SKILL_AREAS = [
-  "Creative Industry", "Automobile", "Construction", "Agro-Allied",
-  "Delivery & Logistics", "Culinary & Catering", "Cleaning Services",
-  "Green Energy", "Satellite & Security Technology", "ICT", "Cosmetology", "Education",
-];
+import { SKILL_AREAS } from "../../constants/constants.js";
 
 export default function FindTrainers() {
   const { user } = useAuth();

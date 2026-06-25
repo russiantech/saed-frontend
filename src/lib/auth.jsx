@@ -125,8 +125,13 @@ export function AuthProvider({ children }) {
   if (loading) {
     return (
       <div className="auth-loading-screen">
-        <div className="spinner" />
-        <p>Loading session…</p>
+        <div className="loader-ring" />
+        <p className="loader-text">
+          Loading session
+          <span className="loader-dots">
+            <span /><span /><span />
+          </span>
+        </p>
       </div>
     );
   }

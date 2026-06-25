@@ -3,7 +3,7 @@ import AuthLayout from "components/auth/AuthLayout.jsx";
 
 export default function TrainerSignupSuccess() {
   return (
-    <AuthLayout backLink="/" title="Application Submitted">
+    <AuthLayout  title="Application Submitted">
       <div className="success-message">
         <div className="success-icon">✓</div>
         <h2>Thank You for Applying!</h2>

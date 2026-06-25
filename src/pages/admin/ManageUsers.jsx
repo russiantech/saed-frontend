@@ -6,12 +6,7 @@ import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import PasswordInput from "../../components/ui/PasswordInput.jsx";
 import { LAGOS_LGAS } from "../../data/nigerianStates.js";
-
-const SKILL_AREAS = [
-  "Creative Industry", "Automobile", "Construction", "Agro-Allied",
-  "Delivery & Logistics", "Culinary & Catering", "Cleaning Services",
-  "Green Energy", "Satellite & Security Technology", "ICT", "Cosmetology", "Education",
-];
+import { SKILL_AREAS } from "../../constants/constants.js";
 
 const emptyCreateForm = {
   fullName: "", email: "", phone: "", password: "", confirmPassword: "",
@@ -360,7 +355,10 @@ export default function ManageUsers() {
                 </div>
                 <div className="form-grid-2">
                   <label>Phone Number *
-                    <input value={createForm.phone} onChange={(e) => updateCreate("phone", e.target.value)} placeholder="+234 012 345 6789" />
+                    <div className="phone-input-wrap">
+                      <span className="phone-prefix">+234</span>
+                      <input value={(createForm.phone || "").replace(/\D/g, "").replace(/^234/, "").slice(0, 10)} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").replace(/^234/, ""); if (d.length <= 10) updateCreate("phone", d); }} placeholder="8012345678" maxLength={10} inputMode="numeric" />
+                    </div>
                   </label>
                   {createFields.phone && <span className="field-error">{createFields.phone}</span>}
                   <label>Specialization / Skill Area *
@@ -512,7 +510,10 @@ export default function ManageUsers() {
                   </label>
                   {editFields.fullName && <span className="field-error">{editFields.fullName}</span>}
                   <label>Phone
-                    <input value={editForm.phone} onChange={(e) => updateEdit("phone", e.target.value)} />
+                    <div className="phone-input-wrap">
+                      <span className="phone-prefix">+234</span>
+                      <input value={(editForm.phone || "").replace(/\D/g, "").replace(/^234/, "").slice(0, 10)} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").replace(/^234/, ""); if (d.length <= 10) updateEdit("phone", d); }} placeholder="8012345678" maxLength={10} inputMode="numeric" />
+                    </div>
                   </label>
                 </div>
                 <div className="form-grid-2">

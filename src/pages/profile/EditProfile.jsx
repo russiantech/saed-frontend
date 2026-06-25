@@ -5,12 +5,7 @@ import { ArrowLeft, X, Camera, User, Briefcase, MapPin, FileText, Image } from "
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import { LAGOS_LGAS } from "../../data/nigerianStates.js";
-
-const SKILL_AREAS = [
-  "Creative Industry", "Automobile", "Construction", "Agro-Allied",
-  "Delivery & Logistics", "Culinary & Catering", "Cleaning Services",
-  "Green Energy", "Satellite & Security Technology", "ICT", "Cosmetology", "Education",
-];
+import { SKILL_AREAS } from "../../constants/constants.js";
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -221,7 +216,10 @@ export default function EditProfile() {
                 <input value={form.fullName} onChange={(e) => update("fullName", e.target.value)} required />
               </label>
               <label>Phone
-                <input value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="08012345678" />
+                <div className="phone-input-wrap">
+                  <span className="phone-prefix">+234</span>
+                  <input value={(form.phone || "").replace(/\D/g, "").replace(/^234/, "").slice(0, 10)} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").replace(/^234/, ""); if (d.length <= 10) update("phone", d); }} placeholder="8012345678" maxLength={10} inputMode="numeric" />
+                </div>
               </label>
             </div>
           </div>

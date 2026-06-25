@@ -15,7 +15,8 @@ export function validateEmail(email) {
 
 export function validatePhone(phone) {
   if (!phone?.trim()) return MESSAGES.PHONE_REQUIRED;
-  if (!VALIDATION.PHONE.test(phone.replace(/\D/g, ""))) return MESSAGES.PHONE_INVALID;
+  const digits = phone.replace(/\D/g, "").replace(/^234/, "");
+  if (!/^[0-9]{10}$/.test(digits)) return MESSAGES.PHONE_INVALID;
   return null;
 }
 
