@@ -9,7 +9,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!user) {
-      navigate("/admin", { replace: true });
+      navigate("/login", { replace: true });
       return;
     }
     if (user.role === "saed_admin") {
