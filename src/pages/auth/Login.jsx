@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "lib/auth.jsx";
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
-import { RoleSelector, FormField, SubmitButton } from "components/forms/FormField.jsx";
+import { FormField, SubmitButton } from "components/forms/FormField.jsx";
 import AuthError from "components/auth/AuthError.jsx";
 import useAuthForm from "hooks/useAuthForm.js";
 
@@ -25,7 +25,6 @@ export default function Login() {
   } = useAuthForm({
     email: "",
     password: "",
-    role: "corps_member",
     remember: false,
   });
 
@@ -60,7 +59,6 @@ export default function Login() {
       const user = await login({
         email: form.email.trim(),
         password: form.password,
-        role: form.role,
         remember: form.remember,
       });
 
@@ -120,11 +118,6 @@ export default function Login() {
       title="Welcome Back"
       subtitle="Login to access your account"
     >
-      <RoleSelector
-        value={form.role}
-        onChange={(role) => update("role", role)}
-      />
-
       <form
         className="auth-form"
         onSubmit={handleSubmit}
