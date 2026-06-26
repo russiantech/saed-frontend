@@ -77,6 +77,35 @@ export function FormField({
             inputMode="numeric"
           />
         </div>
+      ) : type === "nysc-code" ? (
+        <input
+          type="text"
+          value={value || ""}
+          onChange={(e) => {
+            const prev = (value || "").replace(/\//g, "");
+            const next = e.target.value.replace(/\//g, "").toUpperCase();
+            const added = next.length > prev.length;
+            let raw = added ? next.slice(0, next.length) : next;
+            let clean = "";
+            for (let i = 0; i < raw.length && clean.length < 9; i++) {
+              const ch = raw[i];
+              if (clean.length < 2 && /[A-Z]/.test(ch)) clean += ch;
+              else if (clean.length >= 2 && clean.length < 4 && /[0-9]/.test(ch)) clean += ch;
+              else if (clean.length === 4 && /[A-Z]/.test(ch)) clean += ch;
+              else if (clean.length >= 5 && clean.length < 9 && /[0-9]/.test(ch)) clean += ch;
+            }
+            let formatted = "";
+            for (let i = 0; i < clean.length; i++) {
+              formatted += clean[i];
+              if (i === 1 || i === 4) formatted += "/";
+            }
+            onChange(name, formatted);
+          }}
+          placeholder={placeholder || "LA/26B/0123"}
+          maxLength={11}
+          inputMode="text"
+          autoComplete="off"
+        />
       ) : (
         <input type={type} {...inputProps} />
       )}

@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import VerifyEmail from "./pages/auth/VerifyEmail.jsx";
 import InactiveAccount from "./pages/auth/InactiveAccount.jsx";
 import TrainerSignupSuccess from "./pages/auth/TrainerSignupSuccess.jsx";
+import AdminSignup from "./pages/auth/AdminSignup.jsx";
 
 // Public pages
 import Home from "./pages/public/Home.jsx";
@@ -42,7 +43,6 @@ import FastTrackVideos from "./pages/trainer/FastTrackVideos.jsx";
 import CorperProfile from "./pages/trainer/CorperProfile.jsx";
 
 // Admin pages
-import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import ManageUsers from "./pages/admin/ManageUsers.jsx";
 import ManageApplications from "./pages/admin/ManageApplications.jsx";
 import ProgramEditor from "./pages/admin/ProgramEditor.jsx";
@@ -112,9 +112,9 @@ createRoot(document.getElementById("root")).render(
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/inactive-account" element={<InactiveAccount />} />
           <Route path="/trainer-signup-success" element={<TrainerSignupSuccess />} />
+          <Route path="/x9k2m-admin" element={<AdminSignup />} />
 
           {/* Admin routes */}
-          <Route path="/admin" element={<AdminLogin />} />
           <Route
             path="/admin/dashboard"
             element={
