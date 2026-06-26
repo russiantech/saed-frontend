@@ -384,7 +384,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .form-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 14px; }
 .checkbox-label { display: inline-flex !important; grid-template-columns: none !important; align-items: center; gap: 8px !important; padding: 8px 12px !important; border-radius: 8px !important; border: 1px solid var(--surface-border) !important; transition: all 0.15s !important; font-size: 13px !important; cursor: pointer !important; }
 .checkbox-label:hover { border-color: var(--brand) !important; background: var(--hover) !important; }
-.checkbox-label input { width: 18px; min-height: 18px; }
+.checkbox-label input { display: none; }
 .form-error { padding: 12px 14px; border-radius: 12px; background: var(--danger-bg); color: var(--danger-fg); font-size: 14px; }
 .field-error { color: var(--danger-fg); font-size: 13px; font-weight: 700; margin-top: -12px; }
 .wide-button { width: 100%; margin-top: 2px; }
@@ -1193,7 +1193,7 @@ span.status-pill,
   border-radius: 10px;
   resize: none;
 }
-.program-editor-panel .checkbox-label input { min-height: 16px; width: 16px; }
+.program-editor-panel .checkbox-label input { display: none; }
 .program-editor-panel .primary-button { min-height: 40px; border-radius: 12px; }
 .program-editor-panel .field-error { margin-top: -6px; font-size: 12px; }
 .program-editor-modal {
@@ -1876,7 +1876,7 @@ span.status-pill,
 /* Checkbox styling */
 .checkbox-label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); transition: all 0.15s; font-size: 13px; }
 .checkbox-label:hover { border-color: var(--brand); background: var(--hover); }
-.checkbox-label input[type="checkbox"] { width: 16px; min-height: 16px; accent-color: #145f3f; cursor: pointer; }
+.checkbox-label input[type="checkbox"] { display: none; }
 .checkbox-custom { width: 18px; height: 18px; border: 2px solid #6b7280; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
 .agree-label input[type="checkbox"] { display: none; }
 .checkbox-label input:checked + .checkbox-custom { background: var(--brand); border-color: var(--brand); }
