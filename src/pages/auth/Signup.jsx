@@ -427,7 +427,6 @@ function TrainerStep2({ form, fields, update, lgas, toggleLga }) {
                                 checked={lgas.includes(lga)}
                                 onChange={() => toggleLga(lga)}
                             />
-                            <span className="checkbox-custom" />
                             {lga}
                         </label>
                     ))}
