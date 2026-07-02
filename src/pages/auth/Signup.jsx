@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "lib/auth.jsx";
+import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
 import { RoleSelector, FormField, FormRow, SubmitButton, StepIndicator, TermsCheckbox } from "components/forms/FormField.jsx";
@@ -98,34 +99,25 @@ export default function Signup() {
 
             startSubmit();
             try {
-                const res = await fetch("/api/auth/validate-signup/", {
+                const data = await api("/auth/validate-signup/", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
+                    body: {
                         fullName: formData.fullName,
                         username: formData.username,
                         email: formData.email,
                         phone: formData.phone,
-                    }),
+                    },
                 });
-
-                if (!res.ok) {
-                    let serverFields = {};
-                    try {
-                        const errData = await res.json();
-                        serverFields = errData.fields || {};
-                    } catch {}
-                    if (Object.keys(serverFields).length > 0) {
-                        setFieldErrors(serverFields);
-                        const fieldMessages = Object.values(serverFields).join(". ");
-                        setSubmitError(new Error(fieldMessages));
-                    }
-                    return;
-                }
 
                 setStep(2);
             } catch (err) {
-                setSubmitError(err);
+                if (err.data?.fields) {
+                    setFieldErrors(err.data.fields);
+                    const fieldMessages = Object.values(err.data.fields).join(". ");
+                    setSubmitError(new Error(fieldMessages));
+                } else {
+                    setSubmitError(err);
+                }
             } finally {
                 endSubmit();
             }
@@ -155,32 +147,13 @@ export default function Signup() {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-                const res = await fetch("/api/auth/trainer-signup/", {
+                const data = await api("/auth/trainer-signup/", {
                     method: "POST",
                     body: fd,
-                    credentials: "include",
                     signal: controller.signal,
                 });
 
                 clearTimeout(timeoutId);
-
-                if (!res.ok) {
-                    let serverFields = {};
-                    let errorMessage = "Request failed";
-                    try {
-                        const errData = await res.json();
-                        errorMessage = errData.error || errorMessage;
-                        serverFields = errData.fields || {};
-                    } catch {}
-                    if (Object.keys(serverFields).length > 0) {
-                        setFieldErrors(serverFields);
-                        const fieldMessages = Object.values(serverFields).join(". ");
-                        errorMessage = fieldMessages || errorMessage;
-                    }
-                    throw new Error(errorMessage);
-                }
-
-                const data = await res.json();
 
                 if (!data.user) {
                     throw new Error("Invalid response from server. Please try again.");

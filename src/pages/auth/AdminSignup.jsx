@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "lib/auth.jsx";
+import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
 import { FormField, FormRow, SubmitButton } from "components/forms/FormField.jsx";
@@ -46,27 +47,16 @@ export default function AdminSignup() {
 
         form.startSubmit();
         try {
-            const res = await fetch("/api/auth/admin-signup/", {
+            const data = await api("/auth/admin-signup/", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+                body: {
                     fullName: form.form.fullName,
                     username: form.form.username,
                     email: form.form.email,
                     phone: form.form.phone,
                     password: form.form.password,
-                }),
-                credentials: "include",
+                },
             });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                if (data.fields) {
-                    form.setFieldErrors(data.fields);
-                }
-                throw new Error(data.error || "Signup failed.");
-            }
 
             if (data.user) {
                 await login(data.user);
