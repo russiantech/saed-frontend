@@ -146,7 +146,7 @@ export default function Login() {
 
         <div className="form-row">
           <label className="remember-label">
-            <span className="checkbox-clickable">
+            <label className="checkbox-clickable">
               <input
                 type="checkbox"
                 checked={form.remember}
@@ -158,7 +158,7 @@ export default function Login() {
                 }
               />
               <span className="checkbox-custom"></span>
-            </span>
+            </label>
             Remember me
           </label>
 
