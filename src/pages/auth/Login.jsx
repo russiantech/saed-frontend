@@ -107,6 +107,10 @@ export default function Login() {
         replace: true,
       });
     } catch (err) {
+      if (err.status === 403 && err.data?.email_not_verified) {
+        navigate(`/verify-email?email=${encodeURIComponent(err.data.email || form.email.trim())}`, { replace: true });
+        return;
+      }
       setSubmitError(err);
     } finally {
       endSubmit();

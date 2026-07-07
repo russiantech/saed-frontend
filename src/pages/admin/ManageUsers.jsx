@@ -1,18 +1,11 @@
-import { Save, UserPlus, ShieldCheck, ShieldOff, Trash2, X, ChevronUp, ChevronDown, Eye, Edit, CheckCircle, Search } from "lucide-react";
+import { Save, ShieldCheck, ShieldOff, Trash2, X, ChevronUp, ChevronDown, Eye, Edit, CheckCircle, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
-import PasswordInput from "../../components/ui/PasswordInput.jsx";
 import { LAGOS_LGAS } from "../../data/nigerianStates.js";
 import { SKILL_AREAS } from "../../constants/constants.js";
-
-const emptyCreateForm = {
-  fullName: "", email: "", phone: "", password: "", confirmPassword: "",
-  specialization: "", yearsExperience: "", companyName: "", bio: "", numberTrained: "",
-  partnerLgas: [],
-};
 
 const emptyEditForm = {
   fullName: "", phone: "", specialization: "", yearsExperience: "",
@@ -33,13 +26,6 @@ export default function ManageUsers() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
-
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState(emptyCreateForm);
-  const [createFields, setCreateFields] = useState({});
-  const [createPartnershipLetter, setCreatePartnershipLetter] = useState(null);
-  const [createAgree, setCreateAgree] = useState(false);
-  const [creating, setCreating] = useState(false);
 
   const [viewUser, setViewUser] = useState(null);
   const [editUser, setEditUser] = useState(null);
@@ -67,72 +53,13 @@ export default function ManageUsers() {
     }).finally(() => setLoading(false));
   }, [navigate]);
 
-  function updateCreate(key, value) { setCreateForm((c) => ({ ...c, [key]: value })); }
   function updateEdit(key, value) { setEditForm((c) => ({ ...c, [key]: value })); }
-
-  function toggleCreateLga(lga) {
-    setCreateForm((c) => ({
-      ...c,
-      partnerLgas: c.partnerLgas.includes(lga) ? c.partnerLgas.filter((l) => l !== lga) : [...c.partnerLgas, lga],
-    }));
-  }
 
   function toggleEditLga(lga) {
     setEditForm((c) => ({
       ...c,
       partnerLgas: c.partnerLgas.includes(lga) ? c.partnerLgas.filter((l) => l !== lga) : [...c.partnerLgas, lga],
     }));
-  }
-
-  function validateCreate() {
-    const next = {};
-    if (createForm.fullName.trim().split(/\s+/).length < 2) next.fullName = "Enter first and last name.";
-    if (!/^\S+@\S+\.\S+$/.test(createForm.email)) next.email = "Enter a valid email address.";
-    if (!createForm.phone.trim()) next.phone = "Phone number is required.";
-    if (!createForm.specialization) next.specialization = "Select a specialization.";
-    if (!createForm.password) next.password = "Password is required.";
-    else if (createForm.password.length < 8) next.password = "Use at least 8 characters.";
-    if (createForm.password !== createForm.confirmPassword) next.confirmPassword = "Passwords do not match.";
-    if (!createForm.bio.trim()) next.bio = "Bio is required.";
-    else if (createForm.bio.trim().length < 20) next.bio = "Bio must be at least 20 characters.";
-    if (!createAgree) next.agree = "You must agree to the terms.";
-    setCreateFields(next);
-    return Object.keys(next).length === 0;
-  }
-
-  async function handleCreate(e) {
-    e.preventDefault();
-    showMsg("");
-    if (!validateCreate()) return;
-    setCreating(true);
-    try {
-      const fd = new FormData();
-      fd.append("fullName", createForm.fullName);
-      fd.append("email", createForm.email);
-      fd.append("phone", createForm.phone);
-      fd.append("role", "trainer");
-      fd.append("password", createForm.password);
-      fd.append("specialization", createForm.specialization);
-      fd.append("yearsExperience", createForm.yearsExperience || "0");
-      fd.append("companyName", createForm.companyName);
-      fd.append("bio", createForm.bio);
-      fd.append("numberTrained", createForm.numberTrained || "0");
-      fd.append("partnerLgas", JSON.stringify(createForm.partnerLgas));
-      if (createPartnershipLetter) fd.append("partnershipLetter", createPartnershipLetter);
-      await api("/manage/users/", { method: "POST", body: fd });
-      setShowCreateModal(false);
-      setCreateForm(emptyCreateForm);
-      setCreatePartnershipLetter(null);
-      setCreateAgree(false);
-      setCreateFields({});
-      await load();
-      showMsg("Trainer created successfully.", "success");
-    } catch (err) {
-      setCreateFields(err.data?.fields || {});
-      showMsg(err.message, "error");
-    } finally {
-      setCreating(false);
-    }
   }
 
   function openEdit(user) {
@@ -235,9 +162,6 @@ export default function ManageUsers() {
           <h2>Trainer Management</h2>
           <p>Review, approve, decline, or remove trainer registrations.</p>
         </div>
-        <button className="primary-button" onClick={() => setShowCreateModal(true)} type="button">
-          <UserPlus size={16} /> Add Trainer
-        </button>
       </div>
 
       {message && (
@@ -330,113 +254,6 @@ export default function ManageUsers() {
           )}
         </>
       ) : null}
-
-      {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-content modal-trainer-form" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Create Trainer Account</h2>
-              <p>Register a new trainer and help corps members learn new skills.</p>
-              <button className="modal-close" onClick={() => setShowCreateModal(false)}><X size={24} strokeWidth={2.5} /></button>
-            </div>
-
-            <form onSubmit={handleCreate}>
-              <div className="modal-form-section">
-                <h3>Account Information</h3>
-                <div className="form-grid-2">
-                  <label>Full Name *
-                    <input value={createForm.fullName} onChange={(e) => updateCreate("fullName", e.target.value)} placeholder="Enter full name" />
-                  </label>
-                  {createFields.fullName && <span className="field-error">{createFields.fullName}</span>}
-                  <label>Email Address *
-                    <input type="email" value={createForm.email} onChange={(e) => updateCreate("email", e.target.value)} placeholder="you@example.com" />
-                  </label>
-                  {createFields.email && <span className="field-error">{createFields.email}</span>}
-                </div>
-                <div className="form-grid-2">
-                  <label>Phone Number *
-                    <div className="phone-input-wrap">
-                      <span className="phone-prefix">+234</span>
-                      <input value={(createForm.phone || "").replace(/\D/g, "").replace(/^234/, "").slice(0, 10)} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").replace(/^234/, ""); if (d.length <= 10) updateCreate("phone", d); }} placeholder="8012345678" maxLength={10} inputMode="numeric" />
-                    </div>
-                  </label>
-                  {createFields.phone && <span className="field-error">{createFields.phone}</span>}
-                  <label>Specialization / Skill Area *
-                    <select value={createForm.specialization} onChange={(e) => updateCreate("specialization", e.target.value)}>
-                      <option value="">Select your Skill Area</option>
-                      {SKILL_AREAS.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </label>
-                  {createFields.specialization && <span className="field-error">{createFields.specialization}</span>}
-                </div>
-                <div className="form-grid-2">
-                  <label>Years of Experience
-                    <input type="number" min="0" max="50" value={createForm.yearsExperience} onChange={(e) => updateCreate("yearsExperience", e.target.value)} placeholder="e.g. 5" />
-                  </label>
-                  <label>Company Name
-                    <input value={createForm.companyName} onChange={(e) => updateCreate("companyName", e.target.value)} placeholder="Enter your company" />
-                  </label>
-                </div>
-              </div>
-
-              <div className="modal-form-section">
-                <h3>Partner Local Government Areas</h3>
-                <div className="lga-checkbox-grid">
-                  {LAGOS_LGAS.map((l) => (
-                    <label key={l} className="checkbox-label">
-                      <input type="checkbox" checked={createForm.partnerLgas.includes(l)} onChange={() => toggleCreateLga(l)} />
-                      <span className="checkbox-custom" />
-                      {l}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="modal-form-section">
-                <h3>Additional Details</h3>
-                <label>About Me / Bio *
-                  <textarea value={createForm.bio} onChange={(e) => updateCreate("bio", e.target.value)} placeholder="Tell us about yourself (250 characters)" rows={3} maxLength={250} />
-                </label>
-                {createFields.bio && <span className="field-error">{createFields.bio}</span>}
-                <div className="form-grid-2">
-                  <label>Number of Trained
-                    <input type="number" min="0" value={createForm.numberTrained} onChange={(e) => updateCreate("numberTrained", e.target.value)} placeholder="Enter Number of Trained Student" />
-                  </label>
-                  <label>Partnership Letter
-                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setCreatePartnershipLetter(e.target.files?.[0] || null)} />
-                  </label>
-                </div>
-                {createPartnershipLetter && <span className="form-hint">{createPartnershipLetter.name}</span>}
-              </div>
-
-              <div className="modal-form-section">
-                <h3>Security</h3>
-                <div className="form-grid-2">
-                  <label>Password *
-                    <PasswordInput value={createForm.password} onChange={(e) => updateCreate("password", e.target.value)} placeholder="Create a password" />
-                  </label>
-                  {createFields.password && <span className="field-error">{createFields.password}</span>}
-                  <label>Confirm Password *
-                    <PasswordInput value={createForm.confirmPassword} onChange={(e) => updateCreate("confirmPassword", e.target.value)} placeholder="Confirm password" />
-                  </label>
-                  {createFields.confirmPassword && <span className="field-error">{createFields.confirmPassword}</span>}
-                </div>
-              </div>
-
-              <label className="checkbox-label" style={{ marginBottom: 16 }}>
-                <input type="checkbox" checked={createAgree} onChange={(e) => setCreateAgree(e.target.checked)} />
-                <span className="checkbox-custom" />
-                I agree to the Terms and Services
-              </label>
-              {createFields.agree && <span className="field-error">{createFields.agree}</span>}
-
-              <button className="primary-button create-trainer-btn" type="submit" disabled={creating}>
-                <CheckCircle size={18} /> {creating ? "Creating..." : "Create Trainer Account"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
       {viewUser && (
         <div className="modal-overlay" onClick={() => setViewUser(null)}>

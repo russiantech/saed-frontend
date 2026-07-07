@@ -417,7 +417,7 @@ function TrainerStep2({ form, fields, update, lgas, toggleLga }) {
             </FormRow>
 
             <label className="form-label lga-label">
-                <span>Local Government Area *</span>
+                <span>Select Your Approved LGAs *</span>
                 <span className="section-hint">select one or more</span>
                 <div className="lga-checkboxes">
                     {LAGOS_LGAS.map((lga) => (
