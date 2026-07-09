@@ -855,7 +855,7 @@
 
 
 
-// v3
+
 // api.js — v3
 // KEY FIXES:
 // 1. Adds suppressAuthErrors(bool) so auth.jsx can mute 401 broadcasts during
