@@ -286,7 +286,8 @@ export default function ManageUsers() {
                   }
                 </div>
               )}
-              {viewUser.partnershipLetter && (
+
+              {/* {viewUser.partnershipLetter && (
                 <div className="view-field"><span>Partnership Letter</span>
                   <div className="letter-viewer">
                     {viewUser.partnershipLetter.match(/\.(pdf)$/i) ? (
@@ -301,6 +302,27 @@ export default function ManageUsers() {
                   </div>
                 </div>
               )}
+ */}
+                {viewUser.partnershipLetter && (
+                  <div className="view-field"><span>Partnership Letter</span>
+                    <div className="letter-viewer">
+                      {viewUser.partnershipLetter.match(/\.(pdf)$/i) ? (
+                        <iframe src={viewUser.partnershipLetter} title="Partnership Letter" className="letter-iframe" />
+                      ) : viewUser.partnershipLetter.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                        <img src={viewUser.partnershipLetter} alt="Partnership Letter" className="letter-image" />
+                      ) : viewUser.partnershipLetter.match(/\.(docx?|doc)$/i) ? (
+                        <iframe
+                          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(viewUser.partnershipLetter)}`}
+                          title="Partnership Letter"
+                          className="letter-iframe"
+                        />
+                      ) : (
+                        <a href={viewUser.partnershipLetter} target="_blank" rel="noopener noreferrer">View Letter</a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
               {viewUser.partnerLgas?.length > 0 && (
                 <div className="view-field"><span>Partner LGAs</span>
                   <div className="lga-tags">{viewUser.partnerLgas.map((l) => <span key={l} className="lga-tag">{l}</span>)}</div>
@@ -375,10 +397,15 @@ export default function ManageUsers() {
                 <label>Partnership Letter
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setEditPartnershipLetter(e.target.files?.[0] || null)} />
                 </label>
-                {editPartnershipLetter && <span className="form-hint">{editPartnershipLetter.name}</span>}
+
+                {/* {editPartnershipLetter && <span className="form-hint">{editPartnershipLetter.name}</span>}
                 {editUser.partnershipLetter && !editPartnershipLetter && (
                   <span className="form-hint">Current: <a href={editUser.partnershipLetter} target="_blank" rel="noopener noreferrer">View uploaded letter</a></span>
-                )}
+                )} */}
+
+                {editUser.partnershipLetter && !editPartnershipLetter && ( <span className="form-hint">Current: <a href={editUser.partnershipLetter} target="_blank" rel="noopener noreferrer">View uploaded letter</a></span> )}
+                
+
               </div>
 
               <div className="modal-actions">
