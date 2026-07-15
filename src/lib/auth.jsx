@@ -1,3 +1,6 @@
+
+
+// // v2
 // import {
 //   createContext,
 //   useContext,
@@ -6,7 +9,7 @@
 //   useState,
 //   useCallback,
 // } from "react";
-// import { api, onAuthError, suppressAuthErrors } from "./api.js";
+// import { api, onAuthError, suppressAuthErrors, primeCsrfToken } from "./api.js";
 
 // const AuthContext = createContext(null);
 
@@ -18,6 +21,7 @@
 //   const sessionReadyRef = useRef(false);
 
 //   // ─── Initial session hydration ────────────────────────────────────────────
+//   /*
 //   useEffect(() => {
 //     let cancelled = false;
 
@@ -44,6 +48,35 @@
 //       cancelled = true;
 //       // If the component unmounts before hydration finishes (e.g. HMR),
 //       // make sure we re-enable auth errors so nothing is permanently stuck.
+//       suppressAuthErrors(false);
+//     };
+//   }, []);
+// */
+
+//   // import { api, onAuthError, suppressAuthErrors, primeCsrfToken } from "./api.js";
+
+//   // ─── Initial session hydration ────────────────────────────────────────────
+//   useEffect(() => {
+//     let cancelled = false;
+//     suppressAuthErrors(true);
+
+//     Promise.all([primeCsrfToken(), api("/auth/me/")])
+//       .then(([, data]) => {
+//         if (!cancelled) setUser(data?.user ?? null);
+//       })
+//       .catch(() => {
+//         if (!cancelled) setUser(null);
+//       })
+//       .finally(() => {
+//         if (!cancelled) {
+//           setLoading(false);
+//           sessionReadyRef.current = true;
+//           suppressAuthErrors(false);
+//         }
+//       });
+
+//     return () => {
+//       cancelled = true;
 //       suppressAuthErrors(false);
 //     };
 //   }, []);
@@ -88,6 +121,13 @@
 //     return userData;
 //   }, []);
 
+//   const trainerSignup = useCallback(async (payload) => {
+//     const data = await api("/auth/trainer-signup/", { method: "POST", body: payload });
+//     const userData = data?.user ?? null;
+//     setUser(userData);
+//     return userData;
+//   }, []);
+
 //   const logout = useCallback(async () => {
 //     // Clear state immediately so the UI reflects logout without waiting for
 //     // the network round-trip (which may itself 401 if session is already gone).
@@ -117,6 +157,7 @@
 //     refreshUser,
 //     login,
 //     signup,
+//     trainerSignup,
 //     logout,
 //     requestPasswordReset,
 //     confirmPasswordReset,
@@ -153,7 +194,25 @@
 
 
 
+
+
+
+
+
+
+
+
 // v2
+// auth.jsx — v3
+// KEY FIX (this revision):
+// The initial session-hydration effect now also calls primeCsrfToken()
+// alongside /auth/me/, via Promise.all. This guarantees the CSRF cookie is
+// fetched and cached exactly once, at app startup, before any page renders
+// — so every subsequent POST across the app (login, signup, validate-signup,
+// etc.) has a fresh token available on its *first* attempt, instead of
+// depending on whichever call site happens to fire first. This is the fix
+// for the "some endpoints work, some don't" CSRF inconsistency.
+
 import {
   createContext,
   useContext,
@@ -162,7 +221,7 @@ import {
   useState,
   useCallback,
 } from "react";
-import { api, onAuthError, suppressAuthErrors } from "./api.js";
+import { api, onAuthError, suppressAuthErrors, primeCsrfToken } from "./api.js";
 
 const AuthContext = createContext(null);
 
@@ -180,8 +239,12 @@ export function AuthProvider({ children }) {
     // Tell api.js to hold off on broadcasting auth errors until we're done.
     suppressAuthErrors(true);
 
-    api("/auth/me/")
-      .then((data) => {
+    // Prime the CSRF cookie/token and hydrate the session in parallel. Both
+    // are needed before the app is usable: primeCsrfToken() ensures any
+    // POST made anywhere in the app has a valid token on its first try;
+    // /auth/me/ tells us who (if anyone) is logged in.
+    Promise.all([primeCsrfToken(), api("/auth/me/")])
+      .then(([, data]) => {
         if (!cancelled) setUser(data?.user ?? null);
       })
       .catch(() => {
