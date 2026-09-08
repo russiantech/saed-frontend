@@ -860,7 +860,7 @@ export async function api(path, options = {}) {
     if (error instanceof TypeError) {
       console.error("API Network Error:", error);
       throw new Error(
-        "Unable to connect to the server. Please verify that the backend is running and accessible."
+        "We're having trouble connecting. Please check your internet connection and try again."
       );
     }
     throw error;
