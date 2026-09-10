@@ -17,7 +17,7 @@ const activities = [
     id: "swearing-in",
     title: "Swearing In Ceremony",
     image: "/activities/swearing-in.jpg",
-    description: "The swearing in ceremony takes places immediately registration closes on the parade ground. Every corper is expected to take an oath by repeating some statements after the coordinating officer. This is followed by the awareness of do's and don'ts on camp.",
+    description: "The swearing in ceremony takes place immediately registration closes on the parade ground. Every corper is expected to take an oath by repeating some statements after the coordinating officer. This is followed by the awareness of do's and don'ts on camp.",
     images: [
       "/activities/swearing-in/1.jpg",
       "/activities/swearing-in/2.jpg",
@@ -31,7 +31,7 @@ const activities = [
     id: "morning-meditation",
     title: "Morning Meditation",
     image: "/activities/morning-meditation.jpg",
-    description: "This is done every morning by 4:30am. Every corps member is expected to be at the parade ground before this time. The first thing that happens is the singing of the national anthem while other things follows.",
+    description: "This is done every morning by 4:30am. Every corps member is expected to be at the parade ground before this time. The first thing that happens is the singing of the national anthem while other things follow.",
     images: [
       "/activities/morning-meditation/1.jpg",
       "/activities/morning-meditation/2.jpg",
@@ -100,9 +100,9 @@ const activities = [
   },
   {
     id: "religion",
-    title: "Religion Activities",
+    title: "Religious Activities",
     image: "/activities/religion.jpg",
-    description: "Honouring God in journey of life is very key. There are daily activities that goes on at the Christian Chapel and at the mosque. Please click on the explore menu to see direction to the venues.",
+    description: "Honouring God in journey of life is very key. There are daily activities that goes on at the Christian Chapel and at the mosque. Please click on the explore menu to see directions to the venues.",
     images: [
       "/activities/religion/1.jpg",
       "/activities/religion/2.jpg",

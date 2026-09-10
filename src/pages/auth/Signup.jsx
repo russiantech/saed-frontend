@@ -450,12 +450,12 @@ function TrainerStep2({ form, fields, update, lgas, toggleLga }) {
             />
 
             <FormField
-                label="Number of Trained"
+                label="Number of Trainees"
                 name="numberTrained"
                 type="number"
                 value={form.numberTrained}
                 onChange={update}
-                placeholder="Enter No of Trained Student"
+                placeholder="e.g. 50"
             />
 
             <FormField
