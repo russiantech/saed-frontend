@@ -46,7 +46,7 @@ export default function AdminSignup() {
 
         form.startSubmit();
         try {
-            const data = await api("/auth/admin-signup/", {
+            const data = await api("/auth/saed-admin-signup/", {
                 method: "POST",
                 body: {
                     fullName: form.form.fullName,
