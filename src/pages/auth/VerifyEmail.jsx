@@ -72,7 +72,7 @@ export default function VerifyEmail() {
           <>
             <div className="success-icon">✓</div>
             <p>{message}</p>
-            <Link to="/app" className="primary-button">OK</Link>
+            <Link to="/login" className="primary-button">OK</Link>
           </>
         )}
         {status === "error" && (

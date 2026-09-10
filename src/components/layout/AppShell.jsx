@@ -185,6 +185,11 @@ export default function AppShell() {
             </NavLink>
           )}
           {isAdmin && (
+            <NavLink to="/app/admin-courses" onClick={closeNav}>
+              <BookOpen size={18} /> Courses
+            </NavLink>
+          )}
+          {isAdmin && (
             <NavLink to="/app/program-editor" onClick={closeNav}>
               <Settings size={18} /> Programs
             </NavLink>
