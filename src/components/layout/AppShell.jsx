@@ -105,7 +105,7 @@ export default function AppShell() {
       // ignore
     }
     setNavOpen(false);
-    navigate("/");
+    navigate("/login", { replace: true });
   }
 
   function closeNav() {

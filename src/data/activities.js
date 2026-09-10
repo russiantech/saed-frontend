@@ -3,7 +3,7 @@ const activities = [
     id: "registration",
     title: "Registration",
     image: "/activities/registration.jpg",
-    description: "Registration is the first step when you get to the NYSC Orientation Camp. It starts at the entrance gate. You present your call-up letter and your statement of result, after which you will have your bags searched. Ensure you don't come to the camp with, Laptops, extensions, cigarettes, etc. After being passed, you move straight to the registration hall inside the camp. Please check explore menu for directions.",
+    description: "Registration is the first step when you get to the NYSC Orientation Camp. It starts at the entrance gate. You present your call-up letter and your statement of result, after which you will have your bags searched. Ensure you don't come to the camp with, Laptops, extensions, cigarettes, etc. After being passed, you move straight to the registration hall inside the camp.",
     images: [
       "/activities/registration/1.jpg",
       "/activities/registration/2.jpg",
