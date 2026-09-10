@@ -44,7 +44,7 @@ export default function TraineeFastTrack() {
   }, [navigate]);
 
   async function loadVideos(course) {
-    if (coursePrice(course) > 0 && !course.isEnrolled) {
+    if (coursePrice(course) > 0 && !course.isEnrolled && !course.isPending && course.enrollmentStatus !== "pending") {
       setShowPayModal(course);
       return;
     }

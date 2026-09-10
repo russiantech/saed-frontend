@@ -192,6 +192,7 @@ export default function ConnectTrainer() {
               const price = Number(course.price);
               const isFree = price === 0;
               const isPaid = course.isPaid;
+              const isPending = course.isPending || course.enrollmentStatus === "pending";
               return (
                 <article key={course.id} className="program-row">
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -204,6 +205,8 @@ export default function ConnectTrainer() {
                       <span className="status-pill status-approved">Free</span>
                     ) : isPaid ? (
                       <span className="status-pill status-approved"><CheckCircle size={14} /> Paid</span>
+                    ) : isPending ? (
+                      <span className="status-pill status-pending">Pending Confirmation</span>
                     ) : payingCourseId === course.id && payRef ? (
                       <div className="course-pay-flow">
                         <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600 }}>
