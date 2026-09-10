@@ -17,7 +17,7 @@ const INITIAL_FORM = {
     secret: "",
 };
 
-export default function AdminSignup() {
+export default function DunisAdminSignup() {
     const navigate = useNavigate();
     const form = useAuthForm(INITIAL_FORM);
 
@@ -46,7 +46,7 @@ export default function AdminSignup() {
 
         form.startSubmit();
         try {
-            const data = await api("/auth/admin-signup/", {
+            const data = await api("/auth/dunis-admin-signup/", {
                 method: "POST",
                 body: {
                     fullName: form.form.fullName,
@@ -59,7 +59,7 @@ export default function AdminSignup() {
             });
 
             if (data.user) {
-                navigate("/app");
+                navigate("/app/dunis-admin");
             }
         } catch (err) {
             form.setSubmitError(err);
@@ -69,7 +69,7 @@ export default function AdminSignup() {
     }
 
     return (
-        <AuthLayout title="Admin Account Setup" subtitle="Create a hidden admin account">
+        <AuthLayout title="Dunis Admin Setup" subtitle="Create a Dunis admin account">
             <form className="auth-form" onSubmit={handleSubmit}>
                 <FormField
                     label="Full Name"
@@ -150,7 +150,7 @@ export default function AdminSignup() {
                     required
                 />
 
-                <SubmitButton loading={form.submitting}>Create Admin Account</SubmitButton>
+                <SubmitButton loading={form.submitting}>Create Dunis Admin</SubmitButton>
             </form>
         </AuthLayout>
     );

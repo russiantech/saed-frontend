@@ -15,6 +15,7 @@ import InactiveAccount from "./pages/auth/InactiveAccount.jsx";
 import TrainerSignupSuccess from "./pages/auth/TrainerSignupSuccess.jsx";
 import CheckInbox from "./pages/auth/CheckInbox.jsx";
 import AdminSignup from "./pages/auth/AdminSignup.jsx";
+import DunisAdminSignup from "./pages/auth/DunisAdminSignup.jsx";
 
 // Public pages
 import Home from "./pages/public/Home.jsx";
@@ -115,6 +116,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/trainer-signup-success" element={<TrainerSignupSuccess />} />
           <Route path="/check-inbox" element={<CheckInbox />} />
           <Route path="/x9k2m-admin" element={<AdminSignup />} />
+          <Route path="/d9x7k-admin" element={<DunisAdminSignup />} />
 
           {/* Admin routes */}
           <Route
