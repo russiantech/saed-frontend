@@ -31,7 +31,7 @@ export default function ConnectTrainer() {
     async function loadTrainer() {
       try {
         const data = await api(`/trainers/${trainerId}/`);
-        setTrainer(data.trainer);
+        setTrainer(data);
         setCourses(data.courses || []);
         setConnectionStatus(data.connectionStatus);
       } catch (err) {
@@ -84,12 +84,12 @@ export default function ConnectTrainer() {
       });
       setCourses((prev) =>
         prev.map((c) =>
-          c.id === payingCourseId ? { ...c, isPaid: true, isEnrolled: true } : c
+          c.id === payingCourseId ? { ...c, isPending: true, isEnrolled: true, enrollmentStatus: "pending" } : c
         )
       );
       setPayRef(null);
       setPayingCourseId(null);
-      showMsg("Payment confirmed. You now have access to this course.", "success");
+      showMsg("Payment submitted. Waiting for trainer confirmation.", "success");
     } catch (err) {
       showMsg(err.message || "Failed to verify payment.", "error");
     } finally {
@@ -158,7 +158,7 @@ export default function ConnectTrainer() {
           <p>{trainer.email}</p>
         </div>
 
-        {connectionStatus === null ? (
+        {connectionStatus === "none" ? (
           <button className="primary-button connect-button" onClick={handleConnect} disabled={connecting}>
             <UserPlus size={16} /> {connecting ? "Sending Request..." : "Connect with Trainer"}
           </button>

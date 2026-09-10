@@ -82,13 +82,99 @@ export function FormField({
           type="text"
           value={value || ""}
           onChange={(e) => {
-            const prev = (value || "").replace(/\//g, "");
-            const next = e.target.value.replace(/\//g, "").toUpperCase();
-            const added = next.length > prev.length;
-            let raw = added ? next.slice(0, next.length) : next;
+            const raw = e.target.value.replace(/\//g, "").toUpperCase();
             let clean = "";
             for (let i = 0; i < raw.length && clean.length < 9; i++) {
               const ch = raw[i];
+              if (clean.length < 2 && /[A-Z]/.test(ch)) clean += ch;
+              else if (clean.length >= 2 && clean.length < 4 && /[0-9]/.test(ch)) clean += ch;
+              else if (clean.length === 4 && /[A-Z]/.test(ch)) clean += ch;
+              else if (clean.length >= 5 && clean.length < 9 && /[0-9]/.test(ch)) clean += ch;
+            }
+            let formatted = "";
+            for (let i = 0; i < clean.length; i++) {
+              formatted += clean[i];
+              if (i === 1 || i === 4) formatted += "/";
+            }
+            onChange(name, formatted);
+            const pos = e.target.selectionStart;
+            const slashesBefore = (formatted.slice(0, pos).match(/\//g) || []).length;
+            const rawPos = pos - slashesBefore;
+            requestAnimationFrame(() => {
+              const newPos = Math.min(
+                Math.min(rawPos, clean.length) +
+                (clean.length >= 2 && rawPos >= 2 ? 1 : 0) +
+                (clean.length >= 5 && rawPos >= 5 ? 1 : 0),
+                formatted.length
+              );
+              e.target.setSelectionRange(newPos, newPos);
+            });
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Backspace" || e.key === "Delete") {
+              e.preventDefault();
+              const raw = (value || "").replace(/\//g, "");
+              const pos = e.target.selectionStart;
+              const slashesBefore = (value || "").slice(0, pos).split("/").length - 1;
+              const rawPos = pos - slashesBefore;
+              let newRaw;
+              if (e.key === "Backspace") {
+                if (rawPos === 0) return;
+                newRaw = raw.slice(0, rawPos - 1) + raw.slice(rawPos);
+              } else {
+                if (rawPos >= raw.length) return;
+                newRaw = raw.slice(0, rawPos) + raw.slice(rawPos + 1);
+              }
+              let formatted = "";
+              for (let i = 0; i < newRaw.length; i++) {
+                formatted += newRaw[i];
+                if (i === 1 || i === 4) formatted += "/";
+              }
+              onChange(name, formatted);
+              const newPos = e.key === "Backspace" ? rawPos - 1 : rawPos;
+              requestAnimationFrame(() => {
+                const adjusted = newPos +
+                  (newPos >= 2 && newRaw.length >= 2 ? 1 : 0) +
+                  (newPos >= 5 && newRaw.length >= 5 ? 1 : 0);
+                e.target.setSelectionRange(adjusted, adjusted);
+              });
+              return;
+            }
+            if (e.key.length > 1) return;
+            e.preventDefault();
+            const input = e.target;
+            const raw = (value || "").replace(/\//g, "");
+            const pos = input.selectionStart;
+            const slashesBefore = (value || "").slice(0, pos).split("/").length - 1;
+            const rawPos = pos - slashesBefore;
+            if (raw.length >= 9) return;
+            const ch = e.key.toUpperCase();
+            if (rawPos < 2 && !/[A-Z]/.test(ch)) return;
+            if (rawPos >= 2 && rawPos < 4 && !/[0-9]/.test(ch)) return;
+            if (rawPos === 4 && !/[A-Z]/.test(ch)) return;
+            if (rawPos >= 5 && !/[0-9]/.test(ch)) return;
+            const newRaw = raw.slice(0, rawPos) + ch + raw.slice(rawPos);
+            let formatted = "";
+            for (let i = 0; i < newRaw.length; i++) {
+              formatted += newRaw[i];
+              if (i === 1 || i === 4) formatted += "/";
+            }
+            onChange(name, formatted);
+            const newPos = rawPos + 1;
+            requestAnimationFrame(() => {
+              const adjusted = newPos +
+                (newPos >= 2 && newRaw.length >= 2 ? 1 : 0) +
+                (newPos >= 5 && newRaw.length >= 5 ? 1 : 0);
+              input.setSelectionRange(adjusted, adjusted);
+            });
+          }}
+          onPaste={(e) => {
+            e.preventDefault();
+            const text = (e.clipboardData.getData("text") || "").replace(/\//g, "").toUpperCase();
+            const raw = (value || "").replace(/\//g, "");
+            let clean = "";
+            for (let i = 0; i < text.length && clean.length < 9; i++) {
+              const ch = text[i];
               if (clean.length < 2 && /[A-Z]/.test(ch)) clean += ch;
               else if (clean.length >= 2 && clean.length < 4 && /[0-9]/.test(ch)) clean += ch;
               else if (clean.length === 4 && /[A-Z]/.test(ch)) clean += ch;

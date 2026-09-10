@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import VerifyEmail from "./pages/auth/VerifyEmail.jsx";
 import InactiveAccount from "./pages/auth/InactiveAccount.jsx";
 import TrainerSignupSuccess from "./pages/auth/TrainerSignupSuccess.jsx";
+import CheckInbox from "./pages/auth/CheckInbox.jsx";
 import AdminSignup from "./pages/auth/AdminSignup.jsx";
 
 // Public pages
@@ -112,6 +113,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/inactive-account" element={<InactiveAccount />} />
           <Route path="/trainer-signup-success" element={<TrainerSignupSuccess />} />
+          <Route path="/check-inbox" element={<CheckInbox />} />
           <Route path="/x9k2m-admin" element={<AdminSignup />} />
 
           {/* Admin routes */}

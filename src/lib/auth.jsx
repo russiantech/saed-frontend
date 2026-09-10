@@ -439,9 +439,7 @@ export function AuthProvider({ children }) {
 
   const signup = useCallback(async (payload) => {
     const data = await api("/auth/signup/", { method: "POST", body: payload });
-    const userData = data?.user ?? null;
-    setUser(userData);
-    return userData;
+    return data?.user ?? null;
   }, []);
 
   const trainerSignup = useCallback(async (payload) => {

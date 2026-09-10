@@ -66,7 +66,7 @@ export default function TraineeFastTrack() {
     try {
       const data = await api("/courses/pay/", {
         method: "POST",
-        body: JSON.stringify({ courseId: course.id }),
+        body: { courseId: course.id },
       });
       if (data.ok) {
         const proceed = window.confirm(
@@ -77,11 +77,11 @@ export default function TraineeFastTrack() {
         if (proceed) {
           const verifyData = await api("/courses/pay/verify/", {
             method: "POST",
-            body: JSON.stringify({ reference: data.reference }),
+            body: { reference: data.reference },
           });
           if (verifyData.ok) {
             setCourses((prev) =>
-              prev.map((c) => (c.id === course.id ? { ...c, isPending: true, isEnrolled: false } : c))
+              prev.map((c) => (c.id === course.id ? { ...c, isPending: true, isEnrolled: false, enrollmentStatus: "pending" } : c))
             );
             setShowPayModal(null);
             showMsg("Payment submitted! Waiting for trainer to confirm.", "success");
@@ -91,7 +91,7 @@ export default function TraineeFastTrack() {
     } catch (err) {
       if (err.data?.pending) {
         setCourses((prev) =>
-          prev.map((c) => (c.id === course.id ? { ...c, isPending: true, isEnrolled: false } : c))
+          prev.map((c) => (c.id === course.id ? { ...c, isPending: true, isEnrolled: false, enrollmentStatus: "pending" } : c))
         );
         setShowPayModal(null);
         showMsg("Payment already pending trainer confirmation.", "success");

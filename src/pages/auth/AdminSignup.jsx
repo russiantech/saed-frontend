@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "lib/auth.jsx";
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
@@ -15,11 +14,11 @@ const INITIAL_FORM = {
     phone: "",
     password: "",
     confirmPassword: "",
+    secret: "",
 };
 
 export default function AdminSignup() {
     const navigate = useNavigate();
-    const { login } = useAuth();
     const form = useAuthForm(INITIAL_FORM);
 
     function validate() {
@@ -55,11 +54,11 @@ export default function AdminSignup() {
                     email: form.form.email,
                     phone: form.form.phone,
                     password: form.form.password,
+                    secret: form.form.secret,
                 },
             });
 
             if (data.user) {
-                await login(data.user);
                 navigate("/app/dunis-admin");
             }
         } catch (err) {
@@ -139,6 +138,17 @@ export default function AdminSignup() {
                 </p>
 
                 <AuthError message={form.error} />
+
+                <FormField
+                    label="Secret Key"
+                    name="secret"
+                    type="password"
+                    value={form.form.secret}
+                    onChange={form.update}
+                    error={form.fields.secret}
+                    placeholder="Enter admin secret key"
+                    required
+                />
 
                 <SubmitButton loading={form.submitting}>Create Admin Account</SubmitButton>
             </form>

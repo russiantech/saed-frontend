@@ -192,8 +192,20 @@ export default function CourseManagement() {
                       <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600, color: "var(--heading)" }}>Skill Area / Category</label>
                       <select style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                         <option value="">Select category</option>
-                        {["Creative Industry", "Automobile", "Construction", "Agro-Allied", "Delivery & Logistics", "Culinary & Catering", "Cleaning Services", "Green Energy", "Satellite & Security Technology", "ICT", "Cosmetology", "Education"].map((s) => (
-                          <option key={s} value={s}>{s}</option>
+                        {[
+                          ["creative_industry", "Creative Industry"],
+                          ["automobile", "Automobile"],
+                          ["construction", "Construction"],
+                          ["agro_allied", "Agro-Allied"],
+                          ["delivery_logistics", "Delivery & Logistics"],
+                          ["culinary_catering", "Culinary & Catering"],
+                          ["cleaning_services", "Cleaning Services"],
+                          ["green_energy_satellite_security", "Green Energy & Satellite Security"],
+                          ["ict", "ICT"],
+                          ["cosmetology", "Cosmetology"],
+                          ["education", "Education"],
+                        ].map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
                         ))}
                       </select>
                     </div>

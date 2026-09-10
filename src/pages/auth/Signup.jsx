@@ -161,13 +161,16 @@ export default function Signup() {
 
                 navigate("/trainer-signup-success");
             } else {
-                await signup({
-                    ...formData,
-                    role: "corps_member",
-                    stateOfDeployment: "Lagos",
-                    skillInterests: formData.skillInterests || [],
+                await api("/auth/signup/", {
+                    method: "POST",
+                    body: {
+                        ...formData,
+                        role: "corps_member",
+                        stateOfDeployment: "Lagos",
+                        skillInterests: formData.skillInterests || [],
+                    },
                 });
-                navigate("/app");
+                navigate(`/check-inbox?email=${encodeURIComponent(formData.email)}`);
             }
         } catch (err) {
             if (err.name === "AbortError") {
