@@ -227,7 +227,7 @@ export default function ManageUsers() {
                     <ShieldOff size={16} /> <span>Decline</span>
                   </button>
                 )}
-                {user.authorizationStatus !== "removed" && currentUser?.role !== "saed_admin" && (
+                {user.authorizationStatus !== "removed" && currentUser?.role === "saed_admin" && (
                   <button className="icon-action" disabled={user.id === currentUser?.id}
                     onClick={() => updateUser(user, { authorizationStatus: "removed", isAuthorized: false, isActive: false })} type="button">
                     <Trash2 size={16} /> <span>Remove</span>

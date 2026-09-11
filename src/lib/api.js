@@ -858,7 +858,7 @@ export async function api(path, options = {}) {
     return data;
   } catch (error) {
     if (error instanceof TypeError) {
-      console.error("API Network Error:", error);
+      if (process.env.NODE_ENV === "development") console.error("API Network Error:", error);
       throw new Error(
         "We're having trouble connecting. Please check your internet connection and try again."
       );
