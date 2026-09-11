@@ -194,6 +194,11 @@ export default function AppShell() {
               <Settings size={18} /> Programs
             </NavLink>
           )}
+          {isAdmin && (
+            <NavLink to="/app/admin-refunds" onClick={closeNav}>
+              <CreditCard size={18} /> Refunds
+            </NavLink>
+          )}
 
           {isDunisAdmin && (
             <NavLink to="/app/dunis-admin" onClick={closeNav}>

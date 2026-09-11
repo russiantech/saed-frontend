@@ -49,6 +49,7 @@ import ManageUsers from "./pages/admin/ManageUsers.jsx";
 import ManageApplications from "./pages/admin/ManageApplications.jsx";
 import ProgramEditor from "./pages/admin/ProgramEditor.jsx";
 import AdminCourses from "./pages/admin/AdminCourses.jsx";
+import AdminRefunds from "./pages/admin/AdminRefunds.jsx";
 import DunisAdmin from "./pages/admin/DunisAdmin.jsx";
 
 // Form pages
@@ -162,6 +163,7 @@ createRoot(document.getElementById("root")).render(
             {/* Admin routes inside app */}
             <Route path="manage-applications" element={<ProtectedRoute roles={["saed_admin", "dunis_admin", "trainer"]}><ManageApplications /></ProtectedRoute>} />
             <Route path="admin-courses" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><AdminCourses /></ProtectedRoute>} />
+            <Route path="admin-refunds" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><AdminRefunds /></ProtectedRoute>} />
             <Route path="program-editor" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><ProgramEditor /></ProtectedRoute>} />
             <Route path="users" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><ManageUsers /></ProtectedRoute>} />
             <Route path="dunis-admin" element={<ProtectedRoute roles={["dunis_admin"]}><DunisAdmin /></ProtectedRoute>} />
