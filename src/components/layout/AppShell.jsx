@@ -153,6 +153,11 @@ export default function AppShell() {
             </NavLink>
           )}
           {isCorpsMember && (
+            <NavLink to="/app/my-courses" onClick={closeNav}>
+              <BookOpen size={18} /> My Courses
+            </NavLink>
+          )}
+          {isCorpsMember && (
             <NavLink to="/app/trainee-fast-track" onClick={closeNav}>
               <Video size={18} /> Fast Track
             </NavLink>

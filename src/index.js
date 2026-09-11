@@ -31,10 +31,10 @@ import AdminDashboard from "./pages/dashboard/AdminDashboard.jsx";
 
 // Corper pages
 import Applications from "./pages/corper/Applications.jsx";
-import FindTrainers from "./pages/corper/FindTrainers.jsx";
 import ConnectTrainer from "./pages/corper/ConnectTrainer.jsx";
 import ConnectionSuccess from "./pages/corper/ConnectionSuccess.jsx";
 import MyTrainers from "./pages/corper/MyTrainers.jsx";
+import MyCourses from "./pages/corper/MyCourses.jsx";
 import TraineeFastTrack from "./pages/corper/TraineeFastTrack.jsx";
 
 // Trainer pages
@@ -149,7 +149,7 @@ createRoot(document.getElementById("root")).render(
             {/* Corps member routes */}
             <Route path="applications" element={<ProtectedRoute roles={["corps_member"]}><Applications /></ProtectedRoute>} />
             <Route path="my-trainers" element={<ProtectedRoute roles={["corps_member"]}><MyTrainers /></ProtectedRoute>} />
-            <Route path="find-trainers" element={<ProtectedRoute roles={["corps_member"]}><FindTrainers /></ProtectedRoute>} />
+            <Route path="my-courses" element={<ProtectedRoute roles={["corps_member"]}><MyCourses /></ProtectedRoute>} />
             <Route path="connect-trainer/:trainerId" element={<ProtectedRoute roles={["corps_member"]}><ConnectTrainer /></ProtectedRoute>} />
             <Route path="connection-success" element={<ProtectedRoute roles={["corps_member"]}><ConnectionSuccess /></ProtectedRoute>} />
             <Route path="trainee-fast-track" element={<ProtectedRoute roles={["corps_member"]}><TraineeFastTrack /></ProtectedRoute>} />
