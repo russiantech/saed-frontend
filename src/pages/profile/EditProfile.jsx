@@ -39,6 +39,7 @@ export default function EditProfile() {
       yearsExperience: user.yearsExperience || "",
     });
   }, [user]);
+  
   const [profilePicture, setProfilePicture] = useState(null);
   const [partnershipLetter, setPartnershipLetter] = useState(null);
   const [saving, setSaving] = useState(false);

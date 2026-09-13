@@ -91,7 +91,7 @@ export default function ProgramEditor() {
       setForm({ ...data.program, trainerId: data.program.trainerId || "" });
       setFields({});
       setEditorOpen(false);
-      showMsg("Program saved.", "success");
+      showMsg("Program/Course saved.", "success");
     } catch (err) {
       setFields(err.data?.fields || {});
       showMsg(err.message, "error");
@@ -104,7 +104,7 @@ export default function ProgramEditor() {
     try {
       await api(`/manage/programs/${program.id}/${action}/`, { method: "POST" });
       await load();
-      showMsg(`Program ${action}ed successfully.`, "success");
+      showMsg(`Program/Course ${action}ed successfully.`, "success");
     } catch (err) {
       showMsg(err.message || `Failed to ${action} program`, "error");
     }
@@ -114,10 +114,10 @@ export default function ProgramEditor() {
     <section className="panel full-panel program-editor-panel">
       <div className="panel-heading">
         <div>
-          <h2>Programs</h2>
-          <p>Create new SAED programs and edit existing training records.</p>
+          <h2>Programs(Courses)</h2>
+          <p>Create new SAED program(Course) and edit existing trainer's records.</p>
         </div>
-        <button className="primary-button" onClick={() => chooseProgram("new")} type="button"><PlusCircle size={16} /> New Program</button>
+        <button className="primary-button" onClick={() => chooseProgram("new")} type="button"><PlusCircle size={16} /> New Course(Program)</button>
       </div>
 
       {message && (

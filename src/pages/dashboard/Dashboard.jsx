@@ -235,7 +235,7 @@ export default function Dashboard() {
                 Manage Programs
               </Link>
               <Link className="primary-button" to="/app/admin-courses">
-                Manage Courses
+                Browse Courses
               </Link>
             </div>
           </section>
