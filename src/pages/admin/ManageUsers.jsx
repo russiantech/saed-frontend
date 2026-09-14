@@ -512,6 +512,7 @@ export default function ManageUsers() {
 
   async function load() {
     const data = await api("/manage/users/");
+    console.log("Loaded users:", data);
     setUsers(data.users || []);
   }
 
