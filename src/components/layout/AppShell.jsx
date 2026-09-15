@@ -56,7 +56,7 @@ export default function AppShell() {
 
   useEffect(() => {
     if (user && user.role === "trainer" && (!user.isAuthorized || !user.isActive)) {
-      navigate("/inactive-account", { replace: true });
+      navigate("/app/inactive-account", { replace: true });
     }
   }, [user, navigate]);
 
@@ -139,12 +139,12 @@ export default function AppShell() {
 
           {isCorpsMember && (
             <NavLink to="/app/programs" onClick={closeNav}>
-              <BookOpen size={18} /> Programs
+              <BookOpen size={18} /> Courses
             </NavLink>
           )}
           {isCorpsMember && (
             <NavLink to="/app/applications" onClick={closeNav}>
-              <ClipboardList size={18} /> My Applications
+              <ClipboardList size={18} /> My Enrollments
             </NavLink>
           )}
           {isCorpsMember && (
@@ -170,7 +170,7 @@ export default function AppShell() {
           )}
           {isTrainer && (
             <NavLink to="/app/manage-applications" onClick={closeNav}>
-              <ClipboardList size={18} /> Applications
+              <ClipboardList size={18} /> Enrollments
             </NavLink>
           )}
           {isTrainer && user.canUploadFastTrack && (
@@ -186,7 +186,7 @@ export default function AppShell() {
           )}
           {isAdmin && (
             <NavLink to="/app/program-editor" onClick={closeNav}>
-              <Settings size={18} /> Programs
+              <Settings size={18} /> Courses
             </NavLink>
           )}
 

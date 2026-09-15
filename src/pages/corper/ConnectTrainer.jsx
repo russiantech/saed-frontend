@@ -7,7 +7,7 @@ import { useAuth } from "../../lib/auth.jsx";
 
 export default function ConnectTrainer() {
   const { trainerId } = useParams();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [trainer, setTrainer] = useState(null);
   const [courses, setCourses] = useState([]);
@@ -44,6 +44,12 @@ export default function ConnectTrainer() {
   }, [trainerId]);
 
   async function handleConnect() {
+    const activeUser = await refreshUser();
+    if (!activeUser) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
     setConnecting(true);
     showMsg("");
     try {
@@ -64,9 +70,7 @@ export default function ConnectTrainer() {
         method: "POST",
         body: { courseId: course.id },
       });
-      setPayRef(data.reference);
-      setPayAmount(data.amount);
-      setPayCourseTitle(data.courseTitle);
+      window.location.assign(data.authorization_url);
     } catch (err) {
       showMsg(err.message || "Failed to initialize payment.", "error");
       setPayingCourseId(null);
@@ -105,11 +109,11 @@ export default function ConnectTrainer() {
   }
 
   if (loading) return <div className="page-container"><p>Loading trainer profile...</p></div>;
-  if (!trainer) return <div className="page-container"><p>Trainer not found.</p><Link to="/app/find-trainers"><ChevronLeft size={16} /> Back to search</Link></div>;
+  if (!trainer) return <div className="page-container"><p>Trainer not found.</p><Link to="/app/my-trainers"><ChevronLeft size={16} /> Back to Trainers</Link></div>;
 
   return (
     <div className="page-container">
-      <Link to="/app/find-trainers" className="back-link"><ChevronLeft size={16} /> Back to Trainers</Link>
+      <Link to="/app/my-trainers" className="back-link"><ChevronLeft size={16} /> Back to Trainers</Link>
 
       <div className="trainer-profile">
         <div className="trainer-profile-header">
@@ -187,13 +191,13 @@ export default function ConnectTrainer() {
           <div className="panel-heading">
             <h2><BookOpen size={18} /> Courses by {trainer.fullName}</h2>
           </div>
-          <div className="program-list">
+          <div className="course-list">
             {courses.map((course) => {
               const price = Number(course.price);
               const isFree = price === 0;
               const isPaid = course.isPaid;
               return (
-                <article key={course.id} className="program-row">
+                <article key={course.id} className="course-row">
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <strong>{course.title}</strong>
                     <span>{course.category} · {course.durationWeeks} weeks · {course.hasFastTrack ? "Fast Track" : "Standard"}</span>

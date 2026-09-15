@@ -1,6 +1,6 @@
 import { CreditCard, ShieldCheck, CheckCircle, X, Video, Users, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
 
@@ -110,11 +110,11 @@ export default function DunisAdmin() {
             <span>Total Trainers</span>
             <strong>{stats.totalTrainers || 0}</strong>
           </article>
-          <Link to="/app/dunis-admin" className="stat-card" onClick={() => setTab("payments")}>
+          <button type="button" className="stat-card" onClick={() => setTab("payments")}>
             <CreditCard size={22} />
             <span>Pending Activation Fee</span>
             <strong>{stats.pendingPayments || 0}</strong>
-          </Link>
+          </button>
           <article className="stat-card">
             <CheckCircle size={22} />
             <span>Approved Trainers</span>
@@ -125,11 +125,11 @@ export default function DunisAdmin() {
             <span>Activated Trainers</span>
             <strong>{stats.paidTrainers || 0}</strong>
           </article>
-          <Link to="/app/dunis-admin" className="stat-card" onClick={() => setTab("fasttrack")}>
+          <button type="button" className="stat-card" onClick={() => setTab("fasttrack")}>
             <Video size={22} />
             <span>Fast Track Enabled</span>
             <strong>{stats.fastTrackEnabled || 0}</strong>
-          </Link>
+          </button>
         </div>
       )}
 

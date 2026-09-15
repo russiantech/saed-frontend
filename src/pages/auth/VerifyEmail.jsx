@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { api } from "lib/api.js";
@@ -10,6 +10,8 @@ export default function VerifyEmail() {
   const [status, setStatus] = useState("verifying"); // verifying | success | error
   const [message, setMessage] = useState("");
   const [resending, setResending] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const verificationStartedRef = useRef(false);
 
   const token = searchParams.get("token");
   const email = searchParams.get("email");
@@ -21,7 +23,13 @@ export default function VerifyEmail() {
       return;
     }
 
-    api("/auth/verify-email/", { method: "POST", body: { token } })
+    // React Strict Mode re-runs effects in development. A verification link
+    // is a one-time action, so never send the same token twice.
+    if (verificationStartedRef.current) return;
+    verificationStartedRef.current = true;
+
+    const controller = new AbortController();
+    api("/auth/verify-email/", { method: "POST", body: { token }, signal: controller.signal })
       .then(() => {
         setStatus("success");
         setMessage("Your email has been verified successfully!");

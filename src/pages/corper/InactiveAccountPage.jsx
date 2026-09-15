@@ -34,7 +34,7 @@ export default function InactiveAccountPage() {
         method: "POST",
         body: { email: user.email, amount: Number(process.env.REACT_APP_PAYSTACK_DEFAULT_AMOUNT) || 50000 },
       });
-      showMsg(`Payment reference: ${data.reference}. Complete payment to activate your account.`, "success");
+      window.location.assign(data.authorization_url);
     } catch (err) {
       showMsg(err.message, "error");
     } finally {

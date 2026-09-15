@@ -44,7 +44,7 @@ export default function CourseManagement() {
       const data = await api("/manage/courses/");
       setCourses(data.courses || []);
     } catch (err) {
-      console.error("Failed to load courses");
+      showMsg(err.message || "Failed to load courses.", "error");
     } finally {
       setLoading(false);
     }
@@ -108,6 +108,14 @@ export default function CourseManagement() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!form.startDate || !form.endDate) {
+      showMsg("Start date and end date are required.", "error");
+      return;
+    }
+    if (new Date(form.endDate) < new Date(form.startDate)) {
+      showMsg("End date must be after start date.", "error");
+      return;
+    }
     setSubmitting(true);
     try {
       const body = {
@@ -124,7 +132,7 @@ export default function CourseManagement() {
       setShowForm(false);
       loadCourses();
     } catch (err) {
-      alert(err.message || "Failed to save course");
+      showMsg(err.message || "Failed to save course.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +144,7 @@ export default function CourseManagement() {
       await api(`/manage/courses/${id}/`, { method: "DELETE" });
       loadCourses();
     } catch (err) {
-      alert("Failed to delete course");
+      showMsg(err.message || "Failed to delete course.", "error");
     }
   }
 
@@ -213,11 +221,11 @@ export default function CourseManagement() {
                     <div className="form-grid-2">
                       <div>
                         <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600, color: "var(--heading)" }}>Start Date</label>
-                        <input type="date" style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+                        <input type="date" required style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
                       </div>
                       <div>
                         <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600, color: "var(--heading)" }}>End Date</label>
-                        <input type="date" style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+                        <input type="date" required style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
                       </div>
                     </div>
                     <div>

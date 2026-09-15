@@ -5,7 +5,7 @@ import { ArrowLeft, X, Camera, User, Briefcase, MapPin, FileText, Image } from "
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import { LAGOS_LGAS } from "../../data/nigerianStates.js";
-import { SKILL_AREAS } from "../../constants/constants.js";
+import { SKILL_AREAS, SKILL_AREA_OPTIONS } from "../../constants/constants.js";
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -214,7 +214,7 @@ export default function EditProfile() {
             <h3><User size={16} /> Personal Information</h3>
             <div className="edit-profile-grid">
               <label>Full Name *
-                <input value={form.fullName} onChange={(e) => update("fullName", e.target.value)} required />
+                <input value={form.fullName} onChange={(e) => update("fullName", e.target.value)} placeholder="e.g. John Doe (first name first)" required />
               </label>
               <label>Phone
                 <div className="phone-input-wrap">
@@ -256,7 +256,7 @@ export default function EditProfile() {
                   <label>Specialization
                     <select value={form.skillInterest} onChange={(e) => update("skillInterest", e.target.value)}>
                       <option value="">-- Select Specialization --</option>
-                      {SKILL_AREAS.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {SKILL_AREA_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                   </label>
                   <label>Years of Experience

@@ -12,7 +12,7 @@ function categoryLabel(programCategory) {
 }
 
 const DESCRIPTION_FALLBACK =
-  "No description has been provided for this program yet. Check back soon for more details.";
+  "No description has been provided for this course yet. Check back soon for more details.";
 
 const DESCRIPTION_CLAMP_CHARS = 280;
 
@@ -23,16 +23,16 @@ function normalizeDescription(raw) {
 
 export default function ProgramDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const inApp = !!useMatch({ path: "/app/*" });
-  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const { user, loading: authLoading, refreshUser } = useAuth();
 
   const [program, setProgram] = useState(null);
-  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
 
   function showMsg(text, type) {
     setMessage(text);
@@ -43,6 +43,7 @@ export default function ProgramDetail() {
     setDescriptionExpanded(false);
   }, [id]);
 
+  const isCorpsMember = user?.role === "corps_member";
   const isTrainer = user?.role === "trainer";
   const canManage = ["saed_admin", "dunis_admin", "trainer"].includes(user?.role);
   const staffProgramView = inApp && canManage;
@@ -59,7 +60,7 @@ export default function ProgramDetail() {
         const match = (data.programs || []).find((item) => String(item.id) === String(id));
         setProgram(match || null);
       } catch (err) {
-        if (active) showMsg(err.message || "Failed to load program.", "error");
+        if (active) showMsg(err.message || "Failed to load course.", "error");
       } finally {
         if (active) setLoading(false);
       }
@@ -71,47 +72,16 @@ export default function ProgramDetail() {
     };
   }, [id, inApp, isTrainer]);
 
-  useEffect(() => {
-    if (!user) {
-      setApplications([]);
-      return;
-    }
-    let active = true;
-    async function loadApps() {
-      try {
-        const endpoint = canManage ? "/manage/applications/" : "/applications/";
-        const data = await api(endpoint);
-        if (active) setApplications(data.applications || []);
-      } catch (err) {
-        if (err.status === 401) {
-          navigate("/login", { replace: true });
-          return;
-        }
-        if (active) setApplications([]);
-      }
-    }
-    loadApps();
-    return () => {
-      active = false;
-    };
-  }, [user, canManage, navigate]);
-
-  const appliedProgramIds = new Set(applications.map((item) => item.program.id));
-  const applied = program ? appliedProgramIds.has(program.id) : false;
-  const programStudents = program
-    ? applications.filter((item) => item.program.id === program.id).map((item) => item.applicant)
-    : [];
-
   const backHref = inApp ? "/app/programs" : "/programs";
 
-  async function apply() {
+  async function handleEnroll() {
     if (!program) return;
     if (authLoading) {
       showMsg("Checking your account...");
       return;
     }
 
-    if (!user) {
+    const redirectToLogin = () => {
       navigate("/login", {
         state: {
           pendingProgramId: program.id,
@@ -119,26 +89,40 @@ export default function ProgramDetail() {
           role: "corps_member",
         },
       });
+    };
+
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
+
+    const activeUser = await refreshUser();
+    if (!activeUser) {
+      redirectToLogin();
       return;
     }
 
     showMsg("");
+    setEnrolling(true);
     try {
+      const price = Number(program.price);
+
+      if (price > 0) {
+        const data = await api("/courses/pay/", {
+          method: "POST",
+          body: { courseId: program.id },
+        });
+        if (data.authorization_url) {
+          window.location.assign(data.authorization_url);
+          return;
+        }
+      }
+
       await api("/applications/create/", {
         method: "POST",
-        body: { programId: program.id, motivation: "I want to gain practical skills through SAED." },
+        body: { programId: program.id },
       });
-      // refresh applications so the button reflects the new state
-      try {
-        const data = await api(canManage ? "/manage/applications/" : "/applications/");
-        setApplications(data.applications || []);
-      } catch (err) {
-        // ignore
-      }
-      showMsg("Application submitted.", "success");
-      if (!inApp) {
-        navigate("/app");
-      }
+      showMsg("Enrollment submitted. Awaiting trainer confirmation.", "success");
     } catch (err) {
       if (err.status === 401) {
         navigate("/login", {
@@ -151,17 +135,19 @@ export default function ProgramDetail() {
         });
         return;
       }
-      showMsg(err.message, "error");
+      showMsg(err.message || "Failed to enroll.", "error");
+    } finally {
+      setEnrolling(false);
     }
   }
 
   if (loading) {
     const loader = (
-      <section className="program-detail-page">
+      <section className="course-detail-page">
         <Link className="back-link" to={backHref}>
-          <ArrowLeft size={16} /> Back to Programs
+          <ArrowLeft size={16} /> Back to Courses
         </Link>
-        <div className="screen-loader">Loading program...</div>
+        <div className="screen-loader">Loading course...</div>
       </section>
     );
     if (inApp) return loader;
@@ -175,13 +161,13 @@ export default function ProgramDetail() {
 
   if (!program) {
     const notFound = (
-      <section className="program-detail-page">
+      <section className="course-detail-page">
         <Link className="back-link" to={backHref}>
-          <ArrowLeft size={16} /> Back to Programs
+          <ArrowLeft size={16} /> Back to Courses
         </Link>
         <div className="section-heading">
-          <h2>Program not found</h2>
-          <p>The program you are looking for does not exist or is no longer available.</p>
+          <h2>Course not found</h2>
+          <p>The course you are looking for does not exist or is no longer available.</p>
         </div>
       </section>
     );
@@ -194,14 +180,17 @@ export default function ProgramDetail() {
     );
   }
 
+  const price = Number(program.price);
+  const isFree = price === 0;
+
   const body = (
-    <section className="program-detail-page">
+    <section className="course-detail-page">
       <Link className="back-link" to={backHref}>
-        <ArrowLeft size={16} /> Back to Programs
+        <ArrowLeft size={16} /> Back to Courses
       </Link>
 
-      <div className="program-detail-hero">
-        <div className="program-detail-hero-body">
+      <div className="course-detail-hero">
+        <div className="course-detail-hero-body">
           <span className="category-label">{categoryLabel(program.category)}</span>
           <h1>{program.title}</h1>
           {(() => {
@@ -210,12 +199,12 @@ export default function ProgramDetail() {
             const tooLong = description.length > DESCRIPTION_CLAMP_CHARS;
             const visibleText = hasDescription
               ? tooLong && !descriptionExpanded
-                ? `${description.slice(0, DESCRIPTION_CLAMP_CHARS).trimEnd()}…`
+                ? `${description.slice(0, DESCRIPTION_CLAMP_CHARS).trimEnd()}\u2026`
                 : description
               : DESCRIPTION_FALLBACK;
 
             return (
-              <div className={`program-detail-description${hasDescription ? "" : " is-empty"}${tooLong ? " is-clamped" : ""}`}>
+              <div className={`course-detail-description${hasDescription ? "" : " is-empty"}${tooLong ? " is-clamped" : ""}`}>
                 {visibleText.split("\n").map((line, index, arr) => (
                   <span key={index}>
                     {line}
@@ -238,18 +227,18 @@ export default function ProgramDetail() {
         </div>
       </div>
 
-      <dl className="program-detail-facts">
+      <dl className="course-detail-facts">
         <div>
           <dt>Trainer</dt>
-          <dd>{program.trainerName || "—"}</dd>
+          <dd>{program.trainerName || "\u2014"}</dd>
         </div>
         <div>
           <dt>Location</dt>
-          <dd>{program.location || "—"}</dd>
+          <dd>{program.location || "\u2014"}</dd>
         </div>
         <div>
-          <dt>Slots left</dt>
-          <dd>{program.availableSlots}</dd>
+          <dt>Price</dt>
+          <dd>{isFree ? "Free" : `\u20a6${price.toLocaleString()}`}</dd>
         </div>
         <div>
           <dt>Duration</dt>
@@ -260,36 +249,47 @@ export default function ProgramDetail() {
           <dd>{program.capacity}</dd>
         </div>
         <div>
-          <dt>Status</dt>
-          <dd>{program.isActive ? "Active" : "Inactive"}</dd>
+          <dt>Slots Left</dt>
+          <dd>{program.availableSlots}</dd>
         </div>
       </dl>
 
-      {staffProgramView ? (
-        <section className="program-students">
-          <header className="program-students-heading">
+      {program.startDate && (
+        <div className="course-detail-section">
+          <h4>Start Date</h4>
+          <p>{new Date(program.startDate).toLocaleDateString()}</p>
+        </div>
+      )}
+
+      {program.isRestricted && (
+        <div className="inline-message inline-message--error" style={{ marginTop: 16 }}>
+          This course is restricted. Only approved applicants can enroll.
+        </div>
+      )}
+
+      {program.trainerName && (
+        <div className="course-students">
+          <header className="course-students-heading">
+            <h4>Trainer</h4>
+          </header>
+          <ul className="course-students-list">
+            <li className="course-student-item">
+              <div className="course-student-name">{program.trainerName}</div>
+            </li>
+          </ul>
+        </div>
+      )}
+
+      {staffProgramView && program.enrolledCount > 0 && (
+        <section className="course-students">
+          <header className="course-students-heading">
             <h4>Enrolled Students</h4>
-            <span className="program-students-count">
-              {programStudents.length} {programStudents.length === 1 ? "student" : "students"}
+            <span className="course-students-count">
+              {program.enrolledCount} {program.enrolledCount === 1 ? "student" : "students"}
             </span>
           </header>
-          {programStudents.length ? (
-            <ul className="program-students-list">
-              {programStudents.map((student) => (
-                <li className="program-student-item" key={student.id}>
-                  <div className="program-student-name">{student.fullName}</div>
-                  <div className="program-student-meta">
-                    <span>{student.email}</span>
-                    {student.phone ? <span>{" · "}{student.phone}</span> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="program-students-empty">No students have applied for this program yet.</p>
-          )}
         </section>
-      ) : null}
+      )}
 
       {message ? (
         <div className={`inline-message inline-message--${messageType || "error"}`}>
@@ -298,15 +298,15 @@ export default function ProgramDetail() {
         </div>
       ) : null}
 
-      {staffProgramView ? null : (
-        <div className="program-detail-footer">
+      {isCorpsMember && !staffProgramView && !program.isRestricted && (
+        <div className="course-detail-footer">
           <button
             className="primary-button"
-            disabled={applied}
-            onClick={apply}
+            disabled={enrolling}
+            onClick={handleEnroll}
             type="button"
           >
-            {applied ? "Applied" : "Apply Now"}
+            {enrolling ? "Enrolling..." : isFree ? "Enroll Now" : `Pay \u20a6${price.toLocaleString()} & Enroll`}
           </button>
         </div>
       )}

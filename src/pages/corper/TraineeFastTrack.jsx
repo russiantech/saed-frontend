@@ -69,24 +69,8 @@ export default function TraineeFastTrack() {
         body: JSON.stringify({ courseId: course.id }),
       });
       if (data.ok) {
-        const proceed = window.confirm(
-          `Payment initialized for "${course.title}" (₦${coursePrice(course)}).\n\n` +
-          `Reference: ${data.reference}\n\n` +
-          `After making payment, click OK to submit for trainer confirmation.`
-        );
-        if (proceed) {
-          const verifyData = await api("/courses/pay/verify/", {
-            method: "POST",
-            body: JSON.stringify({ reference: data.reference }),
-          });
-          if (verifyData.ok) {
-            setCourses((prev) =>
-              prev.map((c) => (c.id === course.id ? { ...c, isPending: true, isEnrolled: false } : c))
-            );
-            setShowPayModal(null);
-            showMsg("Payment submitted! Waiting for trainer to confirm.", "success");
-          }
-        }
+        window.location.assign(data.authorization_url);
+        return;
       }
     } catch (err) {
       if (err.data?.pending) {

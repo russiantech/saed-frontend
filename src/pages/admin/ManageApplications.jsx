@@ -55,7 +55,7 @@ export default function ManageApplications() {
     try {
       await api(`/manage/applications/${id}/`, { method: "PATCH", body: { status } });
       await load();
-      showMsg("Application updated.", "success");
+      showMsg("Enrollment updated.", "success");
     } catch (err) {
       showMsg(err.message, "error");
     }
@@ -65,8 +65,8 @@ export default function ManageApplications() {
     <section className="panel full-panel">
       <div className="panel-heading">
         <div>
-          <h2>Application Management</h2>
-          <p>Review submitted applications and move them through approval, decline, and completion.</p>
+          <h2>Enrollment Management</h2>
+          <p>Review submitted enrollments and move them through approval, decline, and completion.</p>
         </div>
       </div>
 
@@ -86,15 +86,22 @@ export default function ManageApplications() {
           <button type="button" className={filter === "completed" ? "active" : ""} onClick={() => setFilter("completed")}>Completed</button>
         </div>
       </div>
-      {loading ? <div className="empty-state">Loading applications...</div> : null}
+      {loading ? <div className="empty-state">Loading enrollments...</div> : null}
 
-      {!loading && !applications.length ? <div className="empty-state">No applications have been submitted yet.</div> : null}
+      {!loading && !applications.length ? (
+        <div className="empty-state">
+          <p>{user?.role === "trainer"
+            ? "No enrollments found. Enrollments appear here when corps members enroll in courses you are teaching."
+            : "No enrollments have been submitted yet."
+          }</p>
+        </div>
+      ) : null}
 
       {!loading && applications.length ? (
         <div className="management-table">
           <div className="management-row table-head">
-            <span>Applicant</span>
-            <span>Program</span>
+            <span>Student</span>
+            <span>Course</span>
             <span>Status</span>
             <span>Actions</span>
           </div>

@@ -13,6 +13,8 @@ const blankProgram = {
   trainerId: "",
   trainerName: "",
   location: "",
+  startDate: "",
+  endDate: "",
   isActive: true,
 };
 
@@ -74,6 +76,11 @@ export default function ProgramEditor() {
     if (!form.trainerId) next.trainerId = "Choose a trainer.";
     if (Number(form.durationWeeks) < 1) next.durationWeeks = "Duration must be at least 1 week.";
     if (Number(form.capacity) < 1) next.capacity = "Capacity must be at least 1.";
+    if (!form.startDate) next.startDate = "Start date is required.";
+    if (!form.endDate) next.endDate = "End date is required.";
+    if (form.startDate && form.endDate && new Date(form.endDate) < new Date(form.startDate)) {
+      next.endDate = "End date must be after start date.";
+    }
     setFields(next);
     return Object.keys(next).length === 0;
   }
@@ -91,7 +98,7 @@ export default function ProgramEditor() {
       setForm({ ...data.program, trainerId: data.program.trainerId || "" });
       setFields({});
       setEditorOpen(false);
-      showMsg("Program/Course saved.", "success");
+      showMsg("Course saved.", "success");
     } catch (err) {
       setFields(err.data?.fields || {});
       showMsg(err.message, "error");
@@ -100,24 +107,24 @@ export default function ProgramEditor() {
 
   async function toggleRestrict(program) {
     const action = program.isRestricted ? "unrestrict" : "restrict";
-    if (!confirm(`Are you sure you want to ${action} this program?`)) return;
+    if (!confirm(`Are you sure you want to ${action} this course?`)) return;
     try {
       await api(`/manage/programs/${program.id}/${action}/`, { method: "POST" });
       await load();
-      showMsg(`Program/Course ${action}ed successfully.`, "success");
+      showMsg(`Course ${action}ed successfully.`, "success");
     } catch (err) {
-      showMsg(err.message || `Failed to ${action} program`, "error");
+      showMsg(err.message || `Failed to ${action} course`, "error");
     }
   }
 
   return (
-    <section className="panel full-panel program-editor-panel">
+    <section className="panel full-panel course-editor-panel">
       <div className="panel-heading">
         <div>
-          <h2>Programs(Courses)</h2>
-          <p>Create new SAED program(Course) and edit existing trainer's records.</p>
+          <h2>Courses</h2>
+          <p>Create new SAED courses and edit existing training records.</p>
         </div>
-        <button className="primary-button" onClick={() => chooseProgram("new")} type="button"><PlusCircle size={16} /> New Course(Program)</button>
+        <button className="primary-button" onClick={() => chooseProgram("new")} type="button"><PlusCircle size={16} /> New Course</button>
       </div>
 
       {message && (
@@ -127,9 +134,9 @@ export default function ProgramEditor() {
         </div>
       )}
 
-      <div className="program-admin-grid">
+      <div className="course-admin-grid">
         {programs.map((program) => (
-          <article className={String(program.id) === selectedId ? "program-admin-card active-row" : "program-admin-card"} key={program.id}>
+          <article className={String(program.id) === selectedId ? "course-admin-card active-row" : "course-admin-card"} key={program.id}>
             <div>
               <span className="category-label">{program.category.replace(/_/g, " ")}</span>
               <h3>{program.title}</h3>
@@ -141,7 +148,7 @@ export default function ProgramEditor() {
               <div><dt>Duration</dt><dd>{program.durationWeeks} weeks</dd></div>
               <div><dt>Slots</dt><dd>{program.availableSlots} / {program.capacity}</dd></div>
             </dl>
-            <div className="program-admin-card-actions">
+            <div className="course-admin-card-actions">
               <span className={`status-pill status-${program.isActive ? "approved" : "declined"}`}>{program.isActive ? "Active" : "Inactive"}</span>
               {program.isRestricted && <span className="status-pill status-restricted">Restricted</span>}
               <button className="icon-action" onClick={() => chooseProgram(String(program.id))} type="button">
@@ -159,11 +166,11 @@ export default function ProgramEditor() {
 
       {editorOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setEditorOpen(false)}>
-          <article className="detail-modal program-editor-modal" role="dialog" aria-modal="true" aria-labelledby="program-editor-title" onClick={(event) => event.stopPropagation()}>
+          <article className="detail-modal course-editor-modal" role="dialog" aria-modal="true" aria-labelledby="course-editor-title" onClick={(event) => event.stopPropagation()}>
             <div className="detail-modal-heading">
               <div>
-                <span className="category-label">{selectedId === "new" ? "New Program" : "Edit Program"}</span>
-                <h3 id="program-editor-title">{selectedId === "new" ? "Create Program" : form.title}</h3>
+                <span className="category-label">{selectedId === "new" ? "New Course" : "Edit Course"}</span>
+                <h3 id="course-editor-title">{selectedId === "new" ? "Create Course" : form.title}</h3>
               </div>
               <button className="icon-action" onClick={() => setEditorOpen(false)} type="button" aria-label="Close editor">
                 <X size={16} />
@@ -184,8 +191,12 @@ export default function ProgramEditor() {
               {fields.trainerId && <span className="field-error">{fields.trainerId}</span>}
               <label>Location<input value={form.location} onChange={(e) => update("location", e.target.value)} /></label>
               {fields.location && <span className="field-error">{fields.location}</span>}
-              <label className="checkbox-label"><input type="checkbox" checked={form.isActive} onChange={(e) => update("isActive", e.target.checked)} /> Active program</label>
-              <button className="primary-button"><PlusCircle size={16} /> Save Program</button>
+              <label>Start Date<input type="date" required value={form.startDate} onChange={(e) => update("startDate", e.target.value)} /></label>
+              {fields.startDate && <span className="field-error">{fields.startDate}</span>}
+              <label>End Date<input type="date" required value={form.endDate} onChange={(e) => update("endDate", e.target.value)} /></label>
+              {fields.endDate && <span className="field-error">{fields.endDate}</span>}
+              <label className="checkbox-label"><input type="checkbox" checked={form.isActive} onChange={(e) => update("isActive", e.target.checked)} /> Active course</label>
+              <button className="primary-button"><PlusCircle size={16} /> Save Course</button>
             </form>
           </article>
         </div>

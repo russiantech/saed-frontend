@@ -838,7 +838,7 @@ export default function ManageUsers() {
                 <h3>Account Information</h3>
                 <div className="form-grid-2">
                   <label>Full Name *
-                    <input value={editForm.fullName} onChange={(e) => updateEdit("fullName", e.target.value)} />
+                    <input value={editForm.fullName} onChange={(e) => updateEdit("fullName", e.target.value)} placeholder="e.g. John Doe (first name first)" />
                   </label>
                   {editFields.fullName && <span className="field-error">{editFields.fullName}</span>}
                   <label>Phone

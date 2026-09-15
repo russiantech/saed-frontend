@@ -11,10 +11,10 @@ export default function Home() {
         <div className="hero-overlay">
           <div className="hero-content">
             <h1>Learn Practical Skills That Prepare You for Life After NYSC</h1>
-            <p>Explore SAED programs, career resources, and opportunities designed to help corps members succeed beyond service year.</p>
+            <p>Explore SAED courses, career resources, and opportunities designed to help corps members succeed beyond service year.</p>
             <div className="hero-actions">
               <Link className="primary-button" to="/signup">Get Started</Link>
-              <Link className="secondary-button" to="/programs">Explore Programs</Link>
+              <Link className="secondary-button" to="/programs">Explore Courses</Link>
             </div>
           </div>
         </div>
@@ -22,7 +22,7 @@ export default function Home() {
 
       <section className="stats-band">
         <div><strong>5,000+</strong><span>Corps Members</span></div>
-        <div><strong>120+</strong><span>SAED Programs</span></div>
+        <div><strong>120+</strong><span>SAED Courses</span></div>
         <div><strong>98%</strong><span>Success Rate</span></div>
       </section>
 
@@ -35,7 +35,7 @@ export default function Home() {
           <article>
             <GraduationCap size={34} />
             <h3>Skill Acquisition</h3>
-            <p>Access hands-on training programs in tech, agriculture, business, and more.</p>
+            <p>Access hands-on training courses in tech, agriculture, business, and more.</p>
           </article>
           <article>
             <Handshake size={34} />

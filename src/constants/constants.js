@@ -12,6 +12,22 @@ export const SKILL_AREAS = [
   "Education",
 ];
 
+// API values used for trainer specialization and program categories. Keep
+// SKILL_AREAS above as display strings for the corps-member multi-select.
+export const SKILL_AREA_OPTIONS = [
+  { value: "creative_industry", label: "Creative Industry" },
+  { value: "automobile", label: "Automobile" },
+  { value: "construction", label: "Construction" },
+  { value: "agro_allied", label: "Agro-Allied" },
+  { value: "delivery_logistics", label: "Delivery & Logistics" },
+  { value: "culinary_catering", label: "Culinary & Catering" },
+  { value: "cleaning_services", label: "Cleaning Services" },
+  { value: "green_energy_satellite_security", label: "Green Energy & Satellite Security" },
+  { value: "ict", label: "ICT" },
+  { value: "cosmetology", label: "Cosmetology" },
+  { value: "education", label: "Education" },
+];
+
 export const EXPERIENCE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
 
 export const VALIDATION = {

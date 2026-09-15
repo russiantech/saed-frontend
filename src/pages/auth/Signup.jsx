@@ -8,7 +8,7 @@ import { RoleSelector, FormField, FormRow, SubmitButton, StepIndicator, TermsChe
 import useAuthForm from "hooks/useAuthForm.js";
 import useToggleArray from "hooks/useToggleArray.js";
 import { validateFullName, validateEmail, validatePhone, validateUsername, validatePassword, validateNyscCode, validateRequired } from "constants/validators.js";
-import { SKILL_AREAS, MESSAGES } from "constants/constants.js";
+import { SKILL_AREAS, SKILL_AREA_OPTIONS, MESSAGES } from "constants/constants.js";
 import { LAGOS_LGAS } from "data/nigerianStates.js";
 
 const INITIAL_FORM = {
@@ -68,7 +68,7 @@ export default function Signup() {
         if (codeErr) errors.nyscStateCode = codeErr;
 
         const lgaErr = validateRequired(formData.lgaOfDeployment, MESSAGES.LGA_REQUIRED);
-        if (lgaErr) errors.lgaOfDeployment = MESSAGES.LGA_REQUIRED;
+        if (lgaErr) errors.lgaOfDeployment = lgaErr;
 
         if (!formData.skillInterests || formData.skillInterests.length === 0) {
             errors.skillInterest = MESSAGES.SKILL_REQUIRED;
@@ -79,7 +79,7 @@ export default function Signup() {
     function validateStep2Trainer() {
         const errors = {};
         const specErr = validateRequired(formData.specialization, MESSAGES.SPECIALIZATION_REQUIRED);
-        if (specErr) errors.specialization = MESSAGES.SPECIALIZATION_REQUIRED;
+        if (specErr) errors.specialization = specErr;
 
         const lgaErr = validateRequired(partnerLgas, MESSAGES.LGA_MIN);
         if (lgaErr) errors.partnerLgas = MESSAGES.LGA_MIN;
@@ -250,7 +250,7 @@ function PersonalInfo({ form, fields, update }) {
                 value={form.fullName}
                 onChange={update}
                 error={fields.fullName}
-                placeholder="Enter your full name"
+                placeholder="e.g. John Doe (first name first)"
                 required
             />
             <FormField
@@ -391,7 +391,7 @@ function TrainerStep2({ form, fields, update, lgas, toggleLga }) {
                 onChange={update}
                 error={fields.specialization}
                 placeholder="Select your Skill Area"
-                options={SKILL_AREAS}
+                options={SKILL_AREA_OPTIONS}
                 required
             />
 

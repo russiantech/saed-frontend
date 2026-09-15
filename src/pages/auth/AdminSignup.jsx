@@ -78,7 +78,7 @@ export default function AdminSignup() {
                     value={form.form.fullName}
                     onChange={form.update}
                     error={form.fields.fullName}
-                    placeholder="Enter first and last name"
+                    placeholder="e.g. John Doe (first name first)"
                     required
                 />
                 <FormField

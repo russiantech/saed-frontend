@@ -37,7 +37,7 @@ export default function DunisComplaintForm() {
   return (
     <section className="inactive-account-page">
       <div className="inactive-account-card">
-        <Link className="back-link" to="/inactive-account"><ArrowLeft size={16} /> Back</Link>
+        <Link className="back-link" to="/app/inactive-account"><ArrowLeft size={16} /> Back</Link>
         <h2>Payment Complaint</h2>
         <p>If you have already made payment but your account is still inactive, submit a complaint below.</p>
 

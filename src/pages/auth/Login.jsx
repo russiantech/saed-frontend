@@ -72,9 +72,9 @@ export default function Login() {
         user.role === "trainer" &&
         (!user.isAuthorized || !user.isActive)
       ) {
-        navigate("/inactive-account", {
-          replace: true,
-        });
+        navigate("/app/inactive-account", {
+            replace: true,
+          });
 
         return;
       }

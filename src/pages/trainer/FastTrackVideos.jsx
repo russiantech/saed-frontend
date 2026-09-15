@@ -98,6 +98,7 @@ export default function FastTrackVideos() {
       const data = await api("/manage/fetch-video-duration/", { method: "POST", body: { url } });
       setForm((prev) => ({ ...prev, durationSeconds: data.durationSeconds }));
     } catch {
+      // Duration fetch is best-effort; ignore failures silently.
     }
   }, []);
 

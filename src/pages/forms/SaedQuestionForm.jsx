@@ -38,7 +38,7 @@ export default function SaedQuestionForm() {
   return (
     <section className="inactive-account-page">
       <div className="inactive-account-card">
-        <Link className="back-link" to="/inactive-account"><ArrowLeft size={16} /> Back</Link>
+        <Link className="back-link" to="/app/inactive-account"><ArrowLeft size={16} /> Back</Link>
         <h2>Ask SAED Admin</h2>
         <p>Submit a question or concern about your account approval.</p>
 

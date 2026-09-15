@@ -35,8 +35,8 @@ export default function Notifications() {
     try {
       await api(`/notifications/${id}/read/`, { method: "POST" });
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
-    } catch {
-      // ignore
+    } catch (err) {
+      showMsg(err.message || "Failed to mark notification.", "error");
     }
   }
 
@@ -44,8 +44,8 @@ export default function Notifications() {
     try {
       await api("/notifications/read-all/", { method: "POST" });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch {
-      // ignore
+    } catch (err) {
+      showMsg(err.message || "Failed to mark notifications.", "error");
     }
   }
 
