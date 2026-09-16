@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import AppShell from "./components/layout/AppShell.jsx";
 import { AuthProvider, useAuth } from "./lib/auth.jsx";
@@ -77,7 +77,15 @@ try {
 
 function homePathForRole(role) {
   if (role === "dunis_admin") return "/app/dunis-admin";
-  return "/app";
+  return "/app/dashboard";
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
 }
 
 function ProtectedRoute({ children, roles }) {
@@ -94,6 +102,7 @@ function ProtectedRoute({ children, roles }) {
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <Routes>
           {/* Public routes */}
@@ -140,6 +149,11 @@ createRoot(document.getElementById("root")).render(
             }
           />
 
+          {/* Inactive account page (outside AppShell so it renders for inactive trainers) */}
+          <Route path="/app/inactive-account" element={
+            <ProtectedRoute><InactiveAccountPage /></ProtectedRoute>
+          } />
+
           {/* App shell with protected routes */}
           <Route
             path="/app"
@@ -149,8 +163,8 @@ createRoot(document.getElementById("root")).render(
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
-            <Route path="inactive-account" element={<InactiveAccountPage />} />
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="programs" element={<Programs />} />
             <Route path="programs/:id" element={<ProgramDetail />} />
 

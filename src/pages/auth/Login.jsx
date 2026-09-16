@@ -101,7 +101,7 @@ export default function Login() {
         location.state?.redirectTo ||
         (user.role === "dunis_admin"
           ? "/app/dunis-admin"
-          : "/app");
+          : "/app/dashboard");
 
       navigate(destination, {
         replace: true,

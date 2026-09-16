@@ -87,6 +87,10 @@ export default function AppShell() {
     }
   }
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   if (loading) return <div className="empty-state">Loading...</div>;
   if (!user) return null;
 
@@ -133,7 +137,7 @@ export default function AppShell() {
           {navOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         <nav>
-          <NavLink to="/app" end onClick={closeNav}>
+          <NavLink to="/app/dashboard" end onClick={closeNav}>
             <LayoutDashboard size={18} /> Dashboard
           </NavLink>
 

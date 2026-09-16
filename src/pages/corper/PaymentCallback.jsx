@@ -21,7 +21,7 @@ export default function PaymentCallback() {
         if (type === "trainer") {
           const data = await api("/paystack/initialize/", { method: "POST", body: {} });
           setMessage("Payment verified. Redirecting...");
-          setTimeout(() => navigate("/app", { replace: true }), 1200);
+          setTimeout(() => navigate("/app/dashboard", { replace: true }), 1200);
         } else {
           await api("/courses/pay/verify/", { method: "POST", body: { reference } });
           setMessage("Payment verified. Waiting for trainer confirmation...");

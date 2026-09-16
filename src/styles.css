@@ -2523,3 +2523,32 @@ span.status-pill,
   0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
   40% { opacity: 1; transform: scale(1); }
 }
+
+/* Code verification boxes */
+.code-boxes {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 24px 0 8px;
+}
+.code-box {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  border: 2px solid var(--border, #ccc);
+  border-radius: 12px;
+  background: var(--input-bg, #fff);
+  color: var(--text);
+  outline: none;
+  caret-color: transparent;
+  transition: border-color 0.2s;
+}
+.code-box:focus {
+  border-color: var(--brand, #0f6b45);
+}
+@media (max-width: 480px) {
+  .code-box { width: 40px; height: 48px; font-size: 20px; }
+  .code-boxes { gap: 6px; }
+}

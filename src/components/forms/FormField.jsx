@@ -155,9 +155,9 @@ export function StepIndicator({ current, total }) {
 }
 
 // Submit Button
-export function SubmitButton({ loading, children, disabled = false }) {
+export function SubmitButton({ loading, children, disabled = false, onClick, type = "submit" }) {
   return (
-    <button className="wide-button" type="submit" disabled={loading || disabled}>
+    <button className="wide-button" type={type} disabled={loading || disabled} onClick={onClick}>
       {loading ? "Please wait..." : children}
     </button>
   );

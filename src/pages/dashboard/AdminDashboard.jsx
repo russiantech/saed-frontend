@@ -17,7 +17,7 @@ export default function AdminDashboard() {
     } else if (user.role === "dunis_admin") {
       navigate("/app/dunis-admin", { replace: true });
     } else {
-      navigate("/app", { replace: true });
+      navigate("/app/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
