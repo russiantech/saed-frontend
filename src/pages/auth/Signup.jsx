@@ -159,7 +159,7 @@ export default function Signup() {
                     throw new Error("Invalid response from server. Please try again.");
                 }
 
-                navigate("/trainer-signup-success");
+                navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
             } else {
                 const data = await api("/auth/signup/", {
                     method: "POST",
@@ -192,7 +192,7 @@ export default function Signup() {
             : "Select your skills and deployment info";
 
     return (
-        <AuthLayout title="Create Your Account" subtitle={subtitle}>
+        <AuthLayout title="Create Your Account" subtitle={subtitle} onBack={() => step === 2 ? setStep(1) : navigate(-1)}>
             <StepIndicator current={step} total={2} />
 
             {step === 1 && (
@@ -223,16 +223,6 @@ export default function Signup() {
                 >
                     {step === 1 ? "Continue to Next Step →" : isTrainer ? "Create Trainer Account →" : "Create Account →"}
                 </SubmitButton>
-
-                {step === 2 && (
-                    <button
-                        type="button"
-                        className="outline-button"
-                        onClick={() => setStep(1)}
-                    >
-                        ← Back
-                    </button>
-                )}
             </form>
 
             <p className="auth-switch">

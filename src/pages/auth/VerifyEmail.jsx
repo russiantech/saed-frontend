@@ -15,7 +15,7 @@ export default function VerifyEmail() {
   const [emailInput, setEmailInput] = useState(searchParams.get("email") || "");
   const email = emailInput;
 
-  const [step, setStep] = useState("idle");
+  const [step, setStep] = useState(searchParams.get("email") ? "code_sent" : "idle");
   const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
@@ -42,6 +42,14 @@ export default function VerifyEmail() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    if (email && step === "code_sent") {
+      api("/auth/send-code/", { method: "POST", body: { email } })
+        .then(() => startCooldown())
+        .catch((err) => setError(err.message || "Failed to send code."));
+    }
   }, []);
 
   function handleDigitChange(index, value) {

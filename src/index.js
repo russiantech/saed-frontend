@@ -154,6 +154,11 @@ createRoot(document.getElementById("root")).render(
             <ProtectedRoute><InactiveAccountPage /></ProtectedRoute>
           } />
 
+          {/* Payment callback (outside AppShell so inactive trainers can complete verification) */}
+          <Route path="/app/payment/callback" element={
+            <ProtectedRoute><PaymentCallback /></ProtectedRoute>
+          } />
+
           {/* App shell with protected routes */}
           <Route
             path="/app"
@@ -175,7 +180,6 @@ createRoot(document.getElementById("root")).render(
             <Route path="connection-success" element={<ProtectedRoute roles={["corps_member"]}><ConnectionSuccess /></ProtectedRoute>} />
             <Route path="trainee-fast-track" element={<ProtectedRoute roles={["corps_member"]}><TraineeFastTrack /></ProtectedRoute>} />
             <Route path="payment/verify" element={<ProtectedRoute roles={["corps_member"]}><CoursePaymentCallback /></ProtectedRoute>} />
-            <Route path="payment/callback" element={<ProtectedRoute><PaymentCallback /></ProtectedRoute>} />
 
             {/* Trainer routes */}
             <Route path="course-management" element={<ProtectedRoute roles={["trainer"]}><CourseManagement /></ProtectedRoute>} />

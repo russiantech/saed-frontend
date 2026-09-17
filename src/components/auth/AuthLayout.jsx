@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import DarkToggle from "components/ui/DarkToggle.jsx";
 
-export default function AuthLayout({ children, title, subtitle }) {
+export default function AuthLayout({ children, title, subtitle, onBack }) {
   const navigate = useNavigate();
   return (
     <main className="auth-page full-width">
@@ -10,7 +10,7 @@ export default function AuthLayout({ children, title, subtitle }) {
         <DarkToggle />
       </div>
       <div className="auth-panel">
-        <button type="button" className="back-link" onClick={() => navigate(-1)}>
+        <button type="button" className="back-link" onClick={onBack || (() => navigate(-1))}>
           <ArrowLeft size={16} /> Back
         </button>
         {title && <h1>{title}</h1>}

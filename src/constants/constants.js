@@ -15,17 +15,17 @@ export const SKILL_AREAS = [
 // API values used for trainer specialization and program categories. Keep
 // SKILL_AREAS above as display strings for the corps-member multi-select.
 export const SKILL_AREA_OPTIONS = [
-  { value: "creative_industry", label: "Creative Industry" },
-  { value: "automobile", label: "Automobile" },
-  { value: "construction", label: "Construction" },
-  { value: "agro_allied", label: "Agro-Allied" },
-  { value: "delivery_logistics", label: "Delivery & Logistics" },
-  { value: "culinary_catering", label: "Culinary & Catering" },
-  { value: "cleaning_services", label: "Cleaning Services" },
-  { value: "green_energy_satellite_security", label: "Green Energy & Satellite Security" },
-  { value: "ict", label: "ICT" },
-  { value: "cosmetology", label: "Cosmetology" },
-  { value: "education", label: "Education" },
+  { value: "Creative Industry", label: "Creative Industry" },
+  { value: "Automobile", label: "Automobile" },
+  { value: "Construction", label: "Construction" },
+  { value: "Agro-Allied", label: "Agro-Allied" },
+  { value: "Delivery & Logistics", label: "Delivery & Logistics" },
+  { value: "Culinary & Catering", label: "Culinary & Catering" },
+  { value: "Cleaning Services", label: "Cleaning Services" },
+  { value: "Green Energy & Satellite Security", label: "Green Energy & Satellite Security" },
+  { value: "ICT", label: "ICT" },
+  { value: "Cosmetology", label: "Cosmetology" },
+  { value: "Education", label: "Education" },
 ];
 
 export const EXPERIENCE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];

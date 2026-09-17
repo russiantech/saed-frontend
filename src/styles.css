@@ -517,7 +517,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .trainer-card.large { max-width: 500px; margin: 0 auto 24px; }
 .trainer-avatar { width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%; background: #145f3f; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; }
 .trainer-card h3 { margin: 0 0 4px; color: var(--heading); }
-.trainer-specialization { margin: 0 0 4px; color: #145f3f; font-weight: 700; font-size: 13px; text-transform: uppercase; }
+.trainer-specialization { margin: 0 0 4px; color: #145f3f; font-weight: 700; font-size: 13px; }
 .trainer-company { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
 .trainer-stats { display: flex; justify-content: center; gap: 24px; margin: 12px 0; }
 .trainer-stats span { font-size: 14px; color: var(--text); }

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../lib/api.js";
+import { useAuth } from "../../lib/auth.jsx";
 
 export default function PaymentCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [message, setMessage] = useState("Verifying your payment...");
+  const { refreshUser } = useAuth();
 
   useEffect(() => {
     const reference = searchParams.get("reference");
@@ -19,7 +21,8 @@ export default function PaymentCallback() {
     const verifyPayment = async () => {
       try {
         if (type === "trainer") {
-          const data = await api("/paystack/initialize/", { method: "POST", body: {} });
+          await api("/paystack/trainer-verify/", { method: "POST", body: { reference } });
+          await refreshUser();
           setMessage("Payment verified. Redirecting...");
           setTimeout(() => navigate("/app/dashboard", { replace: true }), 1200);
         } else {
@@ -33,7 +36,7 @@ export default function PaymentCallback() {
     };
 
     verifyPayment();
-  }, [navigate, searchParams]);
+  }, [navigate, searchParams, refreshUser]);
 
   return (
     <section className="inactive-account-page">
