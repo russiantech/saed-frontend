@@ -145,7 +145,7 @@ export default function TraineeFastTrack() {
             <div className="ft-course-meta">
               {selectedCourse.durationWeeks && <span><Clock size={14} /> {selectedCourse.durationWeeks} weeks</span>}
               {selectedCourse.category && <span className="ft-badge ft-badge-cat">{selectedCourse.category}</span>}
-              <span className="ft-badge ft-badge-free">{totalLessons()} lesson{totalLessons() !== 1 ? "s" : ""}</span>
+              <span className="ft-badge ft-badge-free">{modules.length} module{modules.length !== 1 ? "s" : ""} &middot; {totalLessons()} lesson{totalLessons() !== 1 ? "s" : ""}</span>
               {selectedCourse.isEnrolled && totalLessons() > 0 && (
                 <span className="ft-badge ft-badge-cat">{totalCompleted()}/{totalLessons()} completed</span>
               )}
@@ -270,7 +270,7 @@ export default function TraineeFastTrack() {
               </div>
               {course.description && <p className="ft-course-card-desc">{course.description}</p>}
               <div className="ft-course-card-footer">
-                <span className="ft-badge ft-badge-free">{course.videoCount} content item{course.videoCount !== 1 ? "s" : ""}</span>
+                <span className="ft-badge ft-badge-free">{course.moduleCount || 0} module{(course.moduleCount || 0) !== 1 ? "s" : ""}</span>
                 {coursePrice(course) > 0 ? (
                   course.isEnrolled ? <span className="ft-badge ft-badge-free"><Check size={12} /> Enrolled</span>
                   : course.isPending ? <span className="ft-badge ft-badge-pending">Pending</span>
