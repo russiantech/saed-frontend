@@ -1,21 +1,12 @@
-import { CheckCircle2, CircleSlash, FileCheck2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "../../lib/auth.jsx";
 import { api } from "../../lib/api.js";
-
-const actions = [
-  ["approved", "Approve", CheckCircle2, "primary-button"],
-  ["declined", "Decline", CircleSlash, "danger-button"],
-  ["completed", "Complete", FileCheck2, "primary-button"],
-];
 
 export default function ManageApplications() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [applications, setApplications] = useState([]);
-  const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
@@ -39,34 +30,21 @@ export default function ManageApplications() {
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  // Completed applications can only be changed by an admin. Trainers see
-  // read-only action buttons, while admins can still approve, decline, or
-  // re-mark the application as completed.
-  const isAdmin = user?.role === "saed_admin" || user?.role === "dunis_admin";
-
-  function isActionDisabled(item, status) {
-    if (item.status === status) return true;
-    if (item.status === "completed" && !isAdmin) return true;
-    return false;
-  }
-
-  async function updateStatus(id, status) {
-    showMsg("");
-    try {
-      await api(`/manage/applications/${id}/`, { method: "PATCH", body: { status } });
-      await load();
-      showMsg("Enrollment updated.", "success");
-    } catch (err) {
-      showMsg(err.message, "error");
-    }
-  }
+  const sorted = [...applications].sort((a, b) => {
+    const aLast = (a.applicant.fullName || "").split(" ").slice(-1)[0].toLowerCase();
+    const bLast = (b.applicant.fullName || "").split(" ").slice(-1)[0].toLowerCase();
+    if (aLast !== bLast) return aLast.localeCompare(bLast);
+    const aCourse = (a.program.title || "").toLowerCase();
+    const bCourse = (b.program.title || "").toLowerCase();
+    return aCourse.localeCompare(bCourse);
+  });
 
   return (
     <section className="panel full-panel">
       <div className="panel-heading">
         <div>
           <h2>Enrollment Management</h2>
-          <p>Review submitted enrollments and move them through approval, decline, and completion.</p>
+          <p>Students, their enrolled courses, and progress.</p>
         </div>
       </div>
 
@@ -76,36 +54,23 @@ export default function ManageApplications() {
           <button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button>
         </div>
       )}
-      <div className="filter-row">
-        <div className="filter-label">Filter:</div>
-        <div className="filter-buttons">
-          <button type="button" className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All</button>
-          <button type="button" className={filter === "pending" ? "active" : ""} onClick={() => setFilter("pending")}>Pending</button>
-          <button type="button" className={filter === "approved" ? "active" : ""} onClick={() => setFilter("approved")}>Approved</button>
-          <button type="button" className={filter === "declined" ? "active" : ""} onClick={() => setFilter("declined")}>Declined</button>
-          <button type="button" className={filter === "completed" ? "active" : ""} onClick={() => setFilter("completed")}>Completed</button>
-        </div>
-      </div>
+
       {loading ? <div className="empty-state">Loading enrollments...</div> : null}
 
-      {!loading && !applications.length ? (
+      {!loading && !sorted.length ? (
         <div className="empty-state">
-          <p>{user?.role === "trainer"
-            ? "No enrollments found. Enrollments appear here when corps members enroll in courses you are teaching."
-            : "No enrollments have been submitted yet."
-          }</p>
+          <p>No enrollments yet.</p>
         </div>
       ) : null}
 
-      {!loading && applications.length ? (
-        <div className="management-table">
+      {!loading && sorted.length ? (
+        <div className="management-table enrollment-management">
           <div className="management-row table-head">
             <span>Student</span>
             <span>Course</span>
-            <span>Status</span>
-            <span>Actions</span>
+            <span>Progress</span>
           </div>
-          {(filter === "all" ? applications : applications.filter((a) => a.status === filter)).map((item) => (
+          {sorted.map((item) => (
             <div className="management-row" key={item.id}>
               <div>
                 <strong>{item.applicant.fullName}</strong>
@@ -115,21 +80,13 @@ export default function ManageApplications() {
                 <strong>{item.program.title}</strong>
                 <span>{item.program.location}</span>
               </div>
-              <span className={`status-pill status-${item.status}`}>{item.status}</span>
-              <div className="row-actions">
-                {actions.map(([status, label, Icon, btnClass]) => (
-                  <button
-                    className={btnClass}
-                    disabled={isActionDisabled(item, status)}
-                    key={status}
-                    onClick={() => updateStatus(item.id, status)}
-                    title={label}
-                    type="button"
-                  >
-                    <Icon size={16} />
-                    <span>{label}</span>
-                  </button>
-                ))}
+              <div>
+                <div className="progress-bar-wrapper">
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: `${item.progressPercentage || 0}%` }} />
+                  </div>
+                  <span className="progress-text">{item.completedLessons || 0}/{item.totalLessons || 0} lessons ({item.progressPercentage || 0}%)</span>
+                </div>
               </div>
             </div>
           ))}

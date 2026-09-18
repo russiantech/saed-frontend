@@ -25,9 +25,14 @@ export default function PaymentCallback() {
           await refreshUser();
           setMessage("Payment verified. Redirecting...");
           setTimeout(() => navigate("/app/dashboard", { replace: true }), 1200);
+        } else if (type === "fast_track") {
+          await api("/paystack/fast-track-verify/", { method: "POST", body: { reference } });
+          await refreshUser();
+          setMessage("Fast track enabled! Redirecting...");
+          setTimeout(() => navigate("/app/course-management", { replace: true }), 1200);
         } else {
           await api("/courses/pay/verify/", { method: "POST", body: { reference } });
-          setMessage("Payment verified. Waiting for trainer confirmation...");
+          setMessage("Payment confirmed. You are enrolled!");
           setTimeout(() => navigate("/app/trainee-fast-track", { replace: true }), 1200);
         }
       } catch (err) {

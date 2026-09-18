@@ -22,7 +22,7 @@ export default function FloatingNav() {
       </Link>
       <nav>
         <Link to="/activities">Camp Activities</Link>
-        <Link to="/programs">Explore</Link>
+        <Link to="/login" state={{ redirectTo: "/app/programs" }}>Explore</Link>
         <Link to="/opportunities">Opportunities</Link>
       </nav>
       <div className="nav-actions">
@@ -42,7 +42,7 @@ export default function FloatingNav() {
         <Link role="menuitem" to="/activities" onClick={() => setMobileOpen(false)}>
           Camp Activities
         </Link>
-        <Link role="menuitem" to="/programs" onClick={() => setMobileOpen(false)}>
+        <Link role="menuitem" to="/login" state={{ redirectTo: "/app/programs" }} onClick={() => setMobileOpen(false)}>
           Explore
         </Link>
         <Link role="menuitem" to="/opportunities" onClick={() => setMobileOpen(false)}>

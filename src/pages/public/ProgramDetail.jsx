@@ -33,6 +33,9 @@ export default function ProgramDetail() {
   const [messageType, setMessageType] = useState("");
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
+  const [enrollmentStatus, setEnrollmentStatus] = useState(null);
+  const [enrollmentStatusLoading, setEnrollmentStatusLoading] = useState(false);
+  const [progress, setProgress] = useState(null);
 
   function showMsg(text, type) {
     setMessage(text);
@@ -72,6 +75,25 @@ export default function ProgramDetail() {
     };
   }, [id, inApp, isTrainer]);
 
+  useEffect(() => {
+    if (!user || !program || user.role !== "corps_member") return;
+    let active = true;
+    setEnrollmentStatusLoading(true);
+    api(`/courses/${program.id}/enrollment-status/`)
+      .then((data) => {
+        if (!active) return;
+        setEnrollmentStatus(data);
+        if (data.enrolled && data.isPaid) {
+          api(`/courses/${program.id}/progress/`)
+            .then((p) => { if (active) setProgress(p); })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setEnrollmentStatusLoading(false); });
+    return () => { active = false; };
+  }, [user, program]);
+
   const backHref = inApp ? "/app/programs" : "/programs";
 
   async function handleEnroll() {
@@ -83,9 +105,10 @@ export default function ProgramDetail() {
 
     const redirectToLogin = () => {
       navigate("/login", {
+        replace: true,
         state: {
           pendingProgramId: program.id,
-          redirectTo: "/app",
+          redirectTo: `/app/programs/${program.id}`,
           role: "corps_member",
         },
       });
@@ -128,11 +151,15 @@ export default function ProgramDetail() {
         navigate("/login", {
           state: {
             pendingProgramId: program.id,
-            redirectTo: "/app",
+            redirectTo: `/app/programs/${program.id}`,
             role: "corps_member",
           },
           replace: true,
         });
+        return;
+      }
+      if (err.status === 403 && err.message?.includes("Connect with this course")) {
+        navigate(`/app/connect-trainer/${program.trainerId}`);
         return;
       }
       showMsg(err.message || "Failed to enroll.", "error");
@@ -298,16 +325,30 @@ export default function ProgramDetail() {
         </div>
       ) : null}
 
-      {isCorpsMember && !staffProgramView && !program.isRestricted && (
+      {(!user || isCorpsMember) && !staffProgramView && !program.isRestricted && !(user && enrollmentStatusLoading) && (
         <div className="course-detail-footer">
-          <button
-            className="primary-button"
-            disabled={enrolling}
-            onClick={handleEnroll}
-            type="button"
-          >
-            {enrolling ? "Enrolling..." : isFree ? "Enroll Now" : `Pay \u20a6${price.toLocaleString()} & Enroll`}
-          </button>
+          {enrollmentStatus?.enrolled && enrollmentStatus?.isPaid ? (
+            <div className="inline-message inline-message--success" style={{ margin: 0, width: "100%" }}>
+              You are enrolled in this course.
+              {progress && progress.totalLessons > 0 && (
+                <div className="progress-bar-wrapper" style={{ marginTop: 8 }}>
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: `${progress.percentage}%` }} />
+                  </div>
+                  <span className="progress-text">{progress.completedLessons}/{progress.totalLessons} lessons ({progress.percentage}%)</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              className="primary-button"
+              disabled={enrolling}
+              onClick={handleEnroll}
+              type="button"
+            >
+              {enrolling ? "Enrolling..." : isFree ? "Enroll Now" : `Pay \u20a6${price.toLocaleString()} & Enroll`}
+            </button>
+          )}
         </div>
       )}
     </section>

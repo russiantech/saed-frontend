@@ -31,9 +31,9 @@ export default function ConnectTrainer() {
     async function loadTrainer() {
       try {
         const data = await api(`/trainers/${trainerId}/`);
-        setTrainer(data.trainer);
+        setTrainer(data);
         setCourses(data.courses || []);
-        setConnectionStatus(data.connectionStatus);
+        setConnectionStatus(data.connectionStatus === "none" ? null : data.connectionStatus);
       } catch (err) {
         showMsg("Failed to load trainer details.", "error");
       } finally {

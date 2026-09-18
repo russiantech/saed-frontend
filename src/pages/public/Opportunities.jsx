@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import FloatingNav from "../../components/layout/FloatingNav.jsx";
 
 function firstSentence(text) {
@@ -429,6 +430,7 @@ export default function Opportunities() {
   return (
     <div className="site-page">
       <FloatingNav />
+      <Link className="back-link" to="/">← Back to Home</Link>
       <section className="panel full-panel opportunities-panel">
         <div className="panel-heading">
           <div>

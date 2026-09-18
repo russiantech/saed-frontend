@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle, XCircle, X, CreditCard } from "lucide-react";
+import { X } from "lucide-react";
 
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
@@ -23,10 +23,6 @@ export default function CourseManagement() {
     hasFastTrack: false,
   });
   const [submitting, setSubmitting] = useState(false);
-  const [tab, setTab] = useState("courses");
-  const [enrollments, setEnrollments] = useState([]);
-  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
-  const [actionId, setActionId] = useState(null);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
 
@@ -47,36 +43,6 @@ export default function CourseManagement() {
       showMsg(err.message || "Failed to load courses.", "error");
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function loadEnrollments() {
-    setLoadingEnrollments(true);
-    try {
-      const data = await api("/trainer/enrollments/pending/");
-      setEnrollments(data.enrollments || []);
-    } catch (err) {
-      showMsg(err.message || "Failed to load enrollments.", "error");
-    } finally {
-      setLoadingEnrollments(false);
-    }
-  }
-
-  useEffect(() => {
-    if (tab === "enrollments") loadEnrollments();
-  }, [tab]);
-
-  async function handleEnrollmentAction(id, action) {
-    setActionId(id);
-    showMsg("");
-    try {
-      await api(`/trainer/enrollments/${id}/${action}/`, { method: "POST" });
-      setEnrollments((prev) => prev.filter((e) => e.id !== id));
-      showMsg(`Enrollment ${action === "confirm" ? "confirmed" : "rejected"}.`, "success");
-    } catch (err) {
-      showMsg(err.message, "error");
-    } finally {
-      setActionId(null);
     }
   }
 
@@ -167,18 +133,7 @@ export default function CourseManagement() {
         </div>
       )}
 
-      <div className="filter-tabs">
-        <button className={`filter-tab ${tab === "courses" ? "active" : ""}`} onClick={() => setTab("courses")} type="button">
-          My Courses ({courses.length})
-        </button>
-        <button className={`filter-tab ${tab === "enrollments" ? "active" : ""}`} onClick={() => setTab("enrollments")} type="button">
-          Pending Enrollments ({enrollments.length})
-        </button>
-      </div>
-
-      {tab === "courses" && (
-        <>
-          {showForm && (
+      {showForm && (
             <div className="modal-overlay" onClick={() => setShowForm(false)}>
               <div className="modal-content modal-trainer-form" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
@@ -251,7 +206,7 @@ export default function CourseManagement() {
             </div>
           )}
 
-          <div className="courses-grid">
+      <div className="courses-grid">
             {courses.map((course) => (
               <div key={course.id} className={`course-card ${course.isRestricted ? "restricted" : ""}`}>
                 <h3>{course.title}</h3>
@@ -278,66 +233,7 @@ export default function CourseManagement() {
               <p>No courses yet. Create your first course to start teaching!</p>
             </div>
           )}
-        </>
-      )}
 
-      {tab === "enrollments" && (
-        <>
-          {loadingEnrollments ? (
-            <div className="empty-state">Loading pending enrollments...</div>
-          ) : enrollments.length === 0 ? (
-            <div className="empty-state">
-              <CreditCard size={48} style={{ opacity: 0.3 }} />
-              <p>No pending enrollments. When students pay for your courses, their enrollments will appear here for your confirmation.</p>
-            </div>
-          ) : (
-            <div className="management-table">
-              <div className="management-row table-head">
-                <span>Student</span>
-                <span>Course</span>
-                <span>Amount</span>
-                <span>Reference</span>
-                <span>Date</span>
-                <span>Actions</span>
-              </div>
-              {enrollments.map((e) => (
-                <div className="management-row" key={e.id}>
-                  <div>
-                    <strong>{e.studentName}</strong>
-                    <span>{e.studentEmail}</span>
-                  </div>
-                  <div>
-                    <strong>{e.courseTitle}</strong>
-                  </div>
-                  <span>₦{e.amount}</span>
-                  <span style={{ fontSize: 12, fontFamily: "monospace" }}>{e.paymentReference}</span>
-                  <span>{new Date(e.enrolledAt).toLocaleDateString()}</span>
-                  <div className="action-buttons">
-                    <button
-                      className="primary-button"
-                      style={{ minHeight: 34, padding: "0 14px", fontSize: 13 }}
-                      disabled={actionId === e.id}
-                      onClick={() => handleEnrollmentAction(e.id, "confirm")}
-                      type="button"
-                    >
-                      <CheckCircle size={14} /> Confirm
-                    </button>
-                    <button
-                      className="danger-button"
-                      style={{ minHeight: 34, padding: "0 14px", fontSize: 13 }}
-                      disabled={actionId === e.id}
-                      onClick={() => handleEnrollmentAction(e.id, "reject")}
-                      type="button"
-                    >
-                      <XCircle size={14} /> Reject
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }

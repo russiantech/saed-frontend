@@ -1,6 +1,6 @@
 import { Search, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useMatch, useNavigate } from "react-router-dom";
+import { Link, useMatch, useNavigate } from "react-router-dom";
 
 import FloatingNav from "../../components/layout/FloatingNav.jsx";
 
@@ -157,6 +157,7 @@ export default function Programs() {
   return (
     <div className="site-page">
       <FloatingNav />
+      <Link className="back-link" to="/">← Back to Home</Link>
       {content}
     </div>
   );

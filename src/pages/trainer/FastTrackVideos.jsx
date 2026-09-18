@@ -1,7 +1,8 @@
-import { Video, Plus, Trash2, Edit, X, ArrowLeft, BookOpen, Clock, Play, Check, Ban, CreditCard, Users } from "lucide-react";
+import { Video, Plus, Trash2, Edit, X, ArrowLeft, BookOpen, Clock, Play, FileText, File, HelpCircle, ChevronDown, ChevronRight, Layers } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 
 import { api } from "../../lib/api.js";
+import { useAuth } from "../../lib/auth.jsx";
 
 function getVideoThumbnail(url) {
   if (!url) return null;
@@ -12,42 +13,52 @@ function getVideoThumbnail(url) {
   return null;
 }
 
+const CONTENT_ICONS = { video: Video, text: FileText, quiz: HelpCircle, document: File };
+
+function formatDuration(seconds) {
+  if (!seconds) return "\u2014";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 export default function FastTrackVideos() {
-  const [videos, setVideos] = useState([]);
+  const { user } = useAuth();
   const [courses, setCourses] = useState([]);
+  const [modules, setModules] = useState([]);
+  const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [messageType, setMessageType] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [form, setForm] = useState({ courseId: "", title: "", description: "", videoUrl: "", durationSeconds: 0, order: 0, price: 0, isFreePreview: false });
-  const durationTimer = useRef(null);
-  const [pendingEnrollments, setPendingEnrollments] = useState([]);
-  const [loadingPending, setLoadingPending] = useState(false);
   const [activeTab, setActiveTab] = useState("courses");
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedModule, setSelectedModule] = useState(null);
+  const [showModuleForm, setShowModuleForm] = useState(false);
+  const [editModule, setEditModule] = useState(null);
+  const [moduleForm, setModuleForm] = useState({ title: "", description: "" });
+  const [showLessonForm, setShowLessonForm] = useState(false);
+  const [editLesson, setEditLesson] = useState(null);
+  const [lessonForm, setLessonForm] = useState({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
+  const durationTimer = useRef(null);
+  const [expandedModules, setExpandedModules] = useState({});
 
-  function showMsg(text, type) {
-    setError(text);
-    setMessageType(type || "");
-  }
+  function showMsg(text, type) { setError(text); setMessageType(type || ""); }
 
-  async function load() {
+  async function loadAll() {
+    setLoading(true);
     try {
-      const [vidResult, courseResult] = await Promise.allSettled([
-        api("/manage/fast-track-videos/"),
+      const [courseRes, moduleRes, lessonRes] = await Promise.allSettled([
         api("/manage/courses/"),
+        api("/manage/modules/"),
+        api("/manage/lessons/"),
       ]);
-      if (vidResult.status === "fulfilled") {
-        setVideos(vidResult.value.videos || []);
-      } else if (vidResult.reason?.status === 403) {
-        showMsg("You are not approved to upload fast track videos. Contact an admin.", "error");
-      } else {
-        showMsg(vidResult.reason?.message || "Failed to load videos.", "error");
+      if (courseRes.status === "fulfilled") {
+        setCourses((courseRes.value.courses || []).filter((c) => c.hasFastTrack));
       }
-      if (courseResult.status === "fulfilled") {
-        setCourses((courseResult.value.courses || []).filter((c) => c.hasFastTrack));
-      }
+      if (moduleRes.status === "fulfilled") setModules(moduleRes.value.modules || []);
+      if (lessonRes.status === "fulfilled") setLessons(lessonRes.value.lessons || []);
     } catch (err) {
       showMsg(err.message || "Failed to load data.", "error");
     } finally {
@@ -55,295 +66,189 @@ export default function FastTrackVideos() {
     }
   }
 
-  async function loadPending() {
-    setLoadingPending(true);
-    try {
-      const data = await api("/trainer/enrollments/pending/");
-      setPendingEnrollments(data.enrollments || []);
-    } catch (err) {
-      showMsg(err.message || "Failed to load pending enrollments.", "error");
-    } finally {
-      setLoadingPending(false);
-    }
-  }
+  useEffect(() => { loadAll(); }, []);
 
-  useEffect(() => { load(); loadPending(); }, []);
-
-  async function handleConfirm(enrollmentId) {
-    try {
-      await api(`/trainer/enrollments/${enrollmentId}/confirm/`, { method: "POST" });
-      setPendingEnrollments((prev) => prev.filter((e) => e.id !== enrollmentId));
-      showMsg("Enrollment confirmed.", "success");
-    } catch (err) {
-      showMsg(err.message || "Failed to confirm.", "error");
-    }
-  }
-
-  async function handleReject(enrollmentId) {
-    if (!window.confirm("Reject this payment? The student will be notified.")) return;
-    try {
-      await api(`/trainer/enrollments/${enrollmentId}/reject/`, { method: "POST" });
-      setPendingEnrollments((prev) => prev.filter((e) => e.id !== enrollmentId));
-      showMsg("Enrollment rejected.", "success");
-    } catch (err) {
-      showMsg(err.message || "Failed to reject.", "error");
-    }
+  async function handlePayFastTrack() {
+    try { const data = await api("/paystack/fast-track-init/", { method: "POST" }); window.location.href = data.authorization_url; } catch (err) { showMsg(err.message || "Payment init failed.", "error"); }
   }
 
   const fetchDuration = useCallback(async (url) => {
-    if (!url || (!url.includes("youtube.com") && !url.includes("youtu.be") && !url.includes("vimeo.com"))) {
-      return;
-    }
-    try {
-      const data = await api("/manage/fetch-video-duration/", { method: "POST", body: { url } });
-      setForm((prev) => ({ ...prev, durationSeconds: data.durationSeconds }));
-    } catch {
-      // Duration fetch is best-effort; ignore failures silently.
-    }
+    if (!url || (!url.includes("youtube.com") && !url.includes("youtu.be") && !url.includes("vimeo.com"))) return;
+    try { const data = await api("/manage/fetch-video-duration/", { method: "POST", body: { url } }); setLessonForm((p) => ({ ...p, durationSeconds: data.durationSeconds })); } catch { /* ignore */ }
   }, []);
 
   function handleUrlChange(value) {
-    setForm((prev) => ({ ...prev, videoUrl: value }));
+    setLessonForm((p) => ({ ...p, videoUrl: value }));
     if (durationTimer.current) clearTimeout(durationTimer.current);
     durationTimer.current = setTimeout(() => fetchDuration(value), 800);
   }
-
   useEffect(() => () => { if (durationTimer.current) clearTimeout(durationTimer.current); }, []);
 
-  function openForm(video, course) {
-    if (video) {
-      setEditingId(video.id);
-      setForm({
-        courseId: video.courseId,
-        title: video.title,
-        description: video.description,
-        videoUrl: video.videoUrl,
-        durationSeconds: video.durationSeconds,
-        order: video.order,
-        price: video.price,
-        isFreePreview: video.isFreePreview,
-      });
-    } else {
-      setEditingId(null);
-      setForm({ courseId: course?.id || "", title: "", description: "", videoUrl: "", durationSeconds: 0, order: videos.filter((v) => v.courseId === (course?.id || "")).length + 1, price: 0, isFreePreview: false });
-    }
-    setShowForm(true);
-  }
+  function toggleModule(id) { setExpandedModules((p) => ({ ...p, [id]: !p[id] })); }
 
-  async function handleSubmit(e) {
+  function getModulesForCourse(courseId) { return modules.filter((m) => m.courseId === courseId).sort((a, b) => a.order - b.order); }
+  function getLessonsForModule(moduleId) { return lessons.filter((l) => l.moduleId === moduleId).sort((a, b) => a.order - b.order); }
+  function getLessonsForCourse(courseId) { return lessons.filter((l) => { const mod = modules.find((m) => m.id === l.moduleId); return mod && mod.courseId === courseId; }); }
+
+  async function handleModuleSubmit(e) {
     e.preventDefault();
     try {
-      if (editingId) {
-        await api(`/manage/fast-track-videos/${editingId}/`, { method: "PATCH", body: form });
+      if (editModule) {
+        await api(`/manage/modules/${editModule.id}/`, { method: "PATCH", body: moduleForm });
       } else {
-        await api("/manage/fast-track-videos/", { method: "POST", body: form });
+        await api("/manage/modules/", { method: "POST", body: { ...moduleForm, courseId: selectedCourse.id } });
       }
-      setShowForm(false);
-      load();
-    } catch (err) {
-      showMsg(err.message || "Failed to save video.", "error");
-    }
+      setShowModuleForm(false); setEditModule(null); setModuleForm({ title: "", description: "" });
+      const data = await api("/manage/modules/"); setModules(data.modules || []);
+    } catch (err) { showMsg(err.message || "Failed to save module.", "error"); }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm("Delete this video?")) return;
+  async function handleDeleteModule(id) {
+    if (!window.confirm("Delete this module and all its lessons?")) return;
+    try { await api(`/manage/modules/${id}/`, { method: "DELETE" }); setModules((p) => p.filter((m) => m.id !== id)); setLessons((p) => p.filter((l) => l.moduleId !== id)); } catch (err) { showMsg(err.message, "error"); }
+  }
+
+  async function handleLessonSubmit(e) {
+    e.preventDefault();
     try {
-      await api(`/manage/fast-track-videos/${id}/`, { method: "DELETE" });
-      setVideos((prev) => prev.filter((v) => v.id !== id));
-    } catch (err) {
-      showMsg(err.message || "Failed to delete video.", "error");
-    }
+      if (editLesson) {
+        await api(`/manage/lessons/${editLesson.id}/`, { method: "PATCH", body: lessonForm });
+      } else {
+        await api("/manage/lessons/", { method: "POST", body: { ...lessonForm, moduleId: selectedModule.id } });
+      }
+      setShowLessonForm(false); setEditLesson(null); setLessonForm({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
+      const data = await api("/manage/lessons/"); setLessons(data.lessons || []);
+    } catch (err) { showMsg(err.message || "Failed to save lesson.", "error"); }
   }
 
-  function formatDuration(seconds) {
-    if (!seconds) return "—";
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${String(s).padStart(2, "0")}`;
+  async function handleDeleteLesson(id) {
+    if (!window.confirm("Delete this lesson?")) return;
+    try { await api(`/manage/lessons/${id}/`, { method: "DELETE" }); setLessons((p) => p.filter((l) => l.id !== id)); } catch (err) { showMsg(err.message, "error"); }
   }
 
-  if (loading) return <div className="empty-state">Loading fast track courses...</div>;
+  if (loading) return <div className="empty-state">Loading...</div>;
+
+  if (!user?.canUploadFastTrack) {
+    return (
+      <div className="page-container">
+        <div className="page-header"><div><h1><Video size={24} /> Fast Track</h1><p>Enable fast track to upload content for your courses</p></div></div>
+        <div className="empty-state">
+          <p>Fast track is not enabled yet. Pay ₦25,000 to enable it.</p>
+          <button className="primary-button" onClick={handlePayFastTrack} type="button"><CreditCard size={16} /> Pay ₦25,000 to Enable Fast Track</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1><Video size={24} /> Fast Track Courses</h1>
-          <p>Manage your fast track videos and course enrollments</p>
-        </div>
-      </div>
+      <div className="page-header"><div><h1><Video size={24} /> Fast Track Courses</h1><p>Manage modules, lessons, and enrollments</p></div></div>
 
       {error && (
         <div className={`inline-message inline-message--${messageType || "error"}`}>
-          {error}
-          <button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button>
+          {error}<button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button>
         </div>
       )}
 
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        <button
-          type="button"
-          className={activeTab === "courses" ? "primary-button" : "secondary-button"}
-          onClick={() => setActiveTab("courses")}
-        >
-          <BookOpen size={14} /> My Courses
-        </button>
-        <button
-          type="button"
-          className={activeTab === "payments" ? "primary-button" : "secondary-button"}
-          onClick={() => { setActiveTab("payments"); loadPending(); }}
-        >
-          <CreditCard size={14} /> Pending Payments
-          {pendingEnrollments.length > 0 && (
-            <span style={{ background: "#ef4444", color: "#fff", borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 700, marginLeft: 6 }}>
-              {pendingEnrollments.length}
-            </span>
-          )}
-        </button>
+        <button type="button" className={activeTab === "courses" ? "primary-button" : "secondary-button"} onClick={() => setActiveTab("courses")}><BookOpen size={14} /> My Courses</button>
       </div>
 
-      {activeTab === "payments" ? (
-        <div>
-          {loadingPending ? (
-            <div className="empty-state">Loading pending payments...</div>
-          ) : pendingEnrollments.length === 0 ? (
-            <div className="empty-state">
-              <CreditCard size={48} style={{ opacity: 0.3 }} />
-              <p>No pending course payments.</p>
+      {showModuleForm && (
+        <div className="modal-overlay" onClick={() => { setShowModuleForm(false); setEditModule(null); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2 style={{ margin: 0 }}>{editModule ? "Edit Module" : "New Module"}</h2>
+              <button className="inline-message-close" onClick={() => { setShowModuleForm(false); setEditModule(null); }}><X size={18} /></button>
             </div>
-          ) : (
-            <div className="trainer-list">
-              {pendingEnrollments.map((e) => (
-                <div key={e.id} className="corper-record" style={{ padding: "16px 20px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 15 }}>{e.studentName}</div>
-                      <div style={{ color: "var(--muted)", fontSize: 13 }}>{e.studentEmail}</div>
-                      <div style={{ marginTop: 6, fontSize: 13 }}>
-                        <strong>{e.courseTitle}</strong> &mdash; ₦{e.amount}
-                      </div>
-                      <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>
-                        Ref: {e.paymentReference}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button
-                        type="button"
-                        className="primary-button"
-                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", fontSize: 13 }}
-                        onClick={() => handleConfirm(e.id)}
-                      >
-                        <Check size={14} /> Confirm
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", fontSize: 13, color: "#ef4444", borderColor: "#ef4444" }}
-                        onClick={() => handleReject(e.id)}
-                      >
-                        <Ban size={14} /> Reject
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : showForm ? (
-        <div>
-          <button className="back-link" onClick={() => setShowForm(false)} type="button">
-            <ArrowLeft size={16} /> Back to courses
-          </button>
-          <div className="form-card">
-            <h2>{editingId ? "Edit Video" : "Add Video"}</h2>
-            <form className="management-form" onSubmit={handleSubmit}>
-              <label>Course
-                <select value={form.courseId} onChange={(e) => setForm({ ...form, courseId: e.target.value })} required>
-                  <option value="">-- Select Course --</option>
-                  {courses.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
-                </select>
-              </label>
-              <label>Title
-                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-              </label>
-              <label>Description
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
-              </label>
-              <label>Video URL
-                <input value={form.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} required placeholder="YouTube or Vimeo URL" />
-              </label>
-              <label>Duration (seconds)
-                <input type="number" value={form.durationSeconds} onChange={(e) => setForm({ ...form, durationSeconds: Number(e.target.value) })} />
-              </label>
-              <label>Order
-                <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} min="1" />
-              </label>
-              <label>Price (₦)
-                <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} min="0" step="100" />
-              </label>
-              <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="checkbox" checked={form.isFreePreview} onChange={(e) => setForm({ ...form, isFreePreview: e.target.checked })} />
-                <span className="checkbox-custom" />
-                Free Preview
-              </label>
-              <button className="primary-button" type="submit" style={{ marginTop: 8 }}>{editingId ? "Update" : "Add"} Video</button>
+            <form className="management-form" style={{ gridTemplateColumns: "1fr", background: "none", padding: 0, margin: 0 }} onSubmit={handleModuleSubmit}>
+              <label>Module Title<input value={moduleForm.title} onChange={(e) => setModuleForm({ ...moduleForm, title: e.target.value })} required /></label>
+              <label>Description<textarea value={moduleForm.description} onChange={(e) => setModuleForm({ ...moduleForm, description: e.target.value })} rows={2} /></label>
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button className="primary-button" type="submit">{editModule ? "Update" : "Create"} Module</button>
+                <button className="secondary-button" type="button" onClick={() => { setShowModuleForm(false); setEditModule(null); }}>Cancel</button>
+              </div>
             </form>
           </div>
         </div>
-      ) : selectedCourse ? (
-        <div>
-          <button className="back-link" onClick={() => setSelectedCourse(null)} type="button">
-            <ArrowLeft size={16} /> Back to courses
-          </button>
+      )}
 
-          <div className="ft-course-intro">
-            <h2>{selectedCourse.title}</h2>
-            {selectedCourse.description && <p className="ft-course-desc">{selectedCourse.description}</p>}
-            <div className="ft-course-meta">
-              {selectedCourse.category && <span className="ft-badge ft-badge-cat">{selectedCourse.category}</span>}
+      {showLessonForm && (
+        <div className="modal-overlay" onClick={() => { setShowLessonForm(false); setEditLesson(null); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2 style={{ margin: 0 }}>{editLesson ? "Edit Lesson" : "New Lesson"}</h2>
+              <button className="inline-message-close" onClick={() => { setShowLessonForm(false); setEditLesson(null); }}><X size={18} /></button>
             </div>
+            <form className="management-form" style={{ gridTemplateColumns: "1fr", background: "none", padding: 0, margin: 0 }} onSubmit={handleLessonSubmit}>
+              <label>Content Type
+                <select value={lessonForm.contentType} onChange={(e) => setLessonForm({ ...lessonForm, contentType: e.target.value })}>
+                  <option value="video">Video</option>
+                  <option value="text">Text</option>
+                  <option value="quiz">Quiz</option>
+                  <option value="document">Document</option>
+                </select>
+              </label>
+              <label>Title<input value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} required /></label>
+              <label>Description<textarea value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} rows={2} /></label>
+              {lessonForm.contentType === "video" && (
+                <>
+                  <label>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube or Vimeo URL" /></label>
+                  <label>Duration (seconds)<input type="number" value={lessonForm.durationSeconds} onChange={(e) => setLessonForm({ ...lessonForm, durationSeconds: Number(e.target.value) })} /></label>
+                </>
+              )}
+              {lessonForm.contentType === "text" && (
+                <label>Text Content<textarea value={lessonForm.textContent} onChange={(e) => setLessonForm({ ...lessonForm, textContent: e.target.value })} rows={6} placeholder="Write lesson content here..." /></label>
+              )}
+              {lessonForm.contentType === "document" && (
+                <label>Document URL<input value={lessonForm.documentUrl} onChange={(e) => setLessonForm({ ...lessonForm, documentUrl: e.target.value })} placeholder="Link to document" /></label>
+              )}
+              <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <input type="checkbox" checked={lessonForm.isFreePreview} onChange={(e) => setLessonForm({ ...lessonForm, isFreePreview: e.target.checked })} />
+                <span className="checkbox-custom" /> Free Preview
+              </label>
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button className="primary-button" type="submit">{editLesson ? "Update" : "Create"} Lesson</button>
+                <button className="secondary-button" type="button" onClick={() => { setShowLessonForm(false); setEditLesson(null); }}>Cancel</button>
+              </div>
+            </form>
           </div>
+        </div>
+      )}
 
-          <button className="primary-button" onClick={() => openForm(null, selectedCourse)} style={{ marginBottom: 16, display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <Plus size={16} /> Add Video
+      {!showModuleForm && !showLessonForm && selectedModule ? (
+        <div>
+          <button className="back-link" onClick={() => setSelectedModule(null)} type="button"><ArrowLeft size={16} /> Back to modules</button>
+          <h2 style={{ marginTop: 12 }}>{selectedModule.title} &mdash; Lessons</h2>
+          <button className="primary-button" onClick={() => { setEditLesson(null); setLessonForm({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false }); setShowLessonForm(true); }} style={{ margin: "16px 0", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Plus size={16} /> Add Lesson
           </button>
-
           {(() => {
-            const courseVideos = videos.filter((v) => v.courseId === selectedCourse.id).sort((a, b) => a.order - b.order);
-            return courseVideos.length === 0 ? (
-              <div className="empty-state"><p>No videos yet. Add your first fast track video.</p></div>
-            ) : (
+            const ml = getLessonsForModule(selectedModule.id);
+            return ml.length === 0 ? <div className="empty-state"><p>No lessons yet.</p></div> : (
               <div className="ft-video-list">
-                {courseVideos.map((v) => {
-                  const thumb = getVideoThumbnail(v.videoUrl);
+                {ml.map((l) => {
+                  const Icon = CONTENT_ICONS[l.contentType] || FileText;
+                  const thumb = l.contentType === "video" ? getVideoThumbnail(l.videoUrl) : null;
                   return (
-                    <div key={v.id} className="ft-video-card">
+                    <div key={l.id} className="ft-video-card">
                       {thumb ? (
-                        <div className="ft-video-thumb">
-                          <img src={thumb} alt={v.title} />
-                          <div className="ft-video-thumb-overlay">
-                            <Play size={20} fill="#fff" color="#fff" />
-                          </div>
-                        </div>
+                        <div className="ft-video-thumb"><img src={thumb} alt={l.title} /><div className="ft-video-thumb-overlay"><Play size={20} fill="#fff" color="#fff" /></div></div>
                       ) : (
-                        <div className="ft-video-number">{v.order}</div>
+                        <div className="ft-video-number"><Icon size={20} /></div>
                       )}
                       <div className="ft-video-info">
-                        <strong>{v.title}</strong>
-                        {v.description && <p>{v.description}</p>}
+                        <strong>{l.title}</strong>
+                        {l.description && <p>{l.description}</p>}
                         <div className="ft-video-meta">
-                          <span><Clock size={13} /> {formatDuration(v.durationSeconds)}</span>
-                          {v.isFreePreview ? (
-                            <span className="ft-badge ft-badge-free">Free Preview</span>
-                          ) : (
-                            <span className="ft-badge ft-badge-paid">₦{v.price}</span>
-                          )}
+                          {l.contentType === "video" && <span><Clock size={13} /> {formatDuration(l.durationSeconds)}</span>}
+                          <span className="ft-badge ft-badge-cat">{l.contentType}</span>
+                          {l.isFreePreview && <span className="ft-badge ft-badge-free">Free Preview</span>}
                         </div>
                       </div>
                       <div className="trainer-row-actions">
-                        <button className="icon-action" onClick={() => openForm(v)}><Edit size={16} /></button>
-                        <button className="icon-action danger" onClick={() => handleDelete(v.id)}><Trash2 size={16} /></button>
+                        <button className="icon-action" onClick={() => { setEditLesson(l); setLessonForm({ title: l.title, description: l.description || "", contentType: l.contentType, videoUrl: l.videoUrl || "", textContent: l.textContent || "", documentUrl: l.documentUrl || "", durationSeconds: l.durationSeconds || 0, isFreePreview: l.isFreePreview || false }); setShowLessonForm(true); }}><Edit size={16} /></button>
+                        <button className="icon-action danger" onClick={() => handleDeleteLesson(l.id)}><Trash2 size={16} /></button>
                       </div>
                     </div>
                   );
@@ -352,29 +257,86 @@ export default function FastTrackVideos() {
             );
           })()}
         </div>
-      ) : courses.length === 0 ? (
-        <div className="empty-state">
-          <BookOpen size={48} style={{ opacity: 0.3 }} />
-          <p>No courses with fast track enabled. Enable fast track on a course to add videos.</p>
+      ) : selectedCourse ? (
+        <div>
+          <button className="back-link" onClick={() => { setSelectedCourse(null); setSelectedModule(null); }} type="button"><ArrowLeft size={16} /> Back to courses</button>
+          <div className="ft-course-intro">
+            <h2>{selectedCourse.title}</h2>
+            {selectedCourse.description && <p className="ft-course-desc">{selectedCourse.description}</p>}
+            <div className="ft-course-meta">
+              {selectedCourse.category && <span className="ft-badge ft-badge-cat">{selectedCourse.category}</span>}
+              <span className="ft-badge ft-badge-free">{getModulesForCourse(selectedCourse.id).length} modules</span>
+              <span className="ft-badge ft-badge-free">{getLessonsForCourse(selectedCourse.id).length} lessons</span>
+            </div>
+          </div>
+          <button className="primary-button" onClick={() => { setEditModule(null); setModuleForm({ title: "", description: "" }); setShowModuleForm(true); }} style={{ marginBottom: 16, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Plus size={16} /> Add Module
+          </button>
+          {(() => {
+            const cm = getModulesForCourse(selectedCourse.id);
+            return cm.length === 0 ? <div className="empty-state"><p>No modules yet. Add your first module.</p></div> : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {cm.map((m) => {
+                  const ml = getLessonsForModule(m.id);
+                  const expanded = expandedModules[m.id] !== false;
+                  return (
+                    <div key={m.id} className="ft-course-card" style={{ cursor: "default" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", flex: 1 }} onClick={() => toggleModule(m.id)}>
+                          {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                          <Layers size={18} style={{ color: "var(--primary)" }} />
+                          <div>
+                            <strong>{m.title}</strong>
+                            <div style={{ fontSize: 13, color: "var(--muted)" }}>{ml.length} lesson{ml.length !== 1 ? "s" : ""}</div>
+                          </div>
+                        </div>
+                        <div className="trainer-row-actions">
+                          <button className="icon-action" onClick={() => { setEditModule(m); setModuleForm({ title: m.title, description: m.description || "" }); setShowModuleForm(true); }}><Edit size={16} /></button>
+                          <button className="icon-action danger" onClick={() => handleDeleteModule(m.id)}><Trash2 size={16} /></button>
+                          <button className="primary-button" style={{ padding: "6px 12px", fontSize: 12, minHeight: 0 }} onClick={() => setSelectedModule(m)}><Plus size={14} /> Lesson</button>
+                        </div>
+                      </div>
+                      {expanded && ml.length > 0 && (
+                        <div style={{ marginTop: 12, paddingLeft: 28 }}>
+                          {ml.map((l) => {
+                            const Icon = CONTENT_ICONS[l.contentType] || FileText;
+                            return (
+                              <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderTop: "1px solid var(--border)", fontSize: 14 }}>
+                                <Icon size={14} style={{ color: "var(--muted)" }} />
+                                <span style={{ flex: 1 }}>{l.title}</span>
+                                {l.contentType === "video" && <span style={{ fontSize: 12, color: "var(--muted)" }}>{formatDuration(l.durationSeconds)}</span>}
+                                {l.isFreePreview && <span className="ft-badge ft-badge-free" style={{ fontSize: 10 }}>Free</span>}
+                                <button className="icon-action" style={{ padding: 2 }} onClick={() => { setEditLesson(l); setLessonForm({ title: l.title, description: l.description || "", contentType: l.contentType, videoUrl: l.videoUrl || "", textContent: l.textContent || "", documentUrl: l.documentUrl || "", durationSeconds: l.durationSeconds || 0, isFreePreview: l.isFreePreview || false }); setShowLessonForm(true); }}><Edit size={13} /></button>
+                                <button className="icon-action danger" style={{ padding: 2 }} onClick={() => handleDeleteLesson(l.id)}><Trash2 size={13} /></button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
+      ) : courses.length === 0 ? (
+        <div className="empty-state"><BookOpen size={48} style={{ opacity: 0.3 }} /><p>No courses with fast track enabled.</p></div>
       ) : (
         <div className="ft-courses-grid">
           {courses.map((course) => {
-            const count = videos.filter((v) => v.courseId === course.id).length;
+            const modCount = getModulesForCourse(course.id).length;
+            const lesCount = getLessonsForCourse(course.id).length;
             return (
               <div key={course.id} className="ft-course-card" onClick={() => setSelectedCourse(course)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setSelectedCourse(course)}>
                 <div className="ft-course-card-header">
-                  <div className="ft-course-card-icon">
-                    <BookOpen size={22} />
-                  </div>
-                  <div>
-                    <h3>{course.title}</h3>
-                  </div>
+                  <div className="ft-course-card-icon"><BookOpen size={22} /></div>
+                  <div><h3>{course.title}</h3></div>
                 </div>
                 {course.description && <p className="ft-course-card-desc">{course.description}</p>}
                 <div className="ft-course-card-footer">
-                  <span className="ft-badge ft-badge-free">{count} video{count !== 1 ? "s" : ""}</span>
-                  <span className="ft-view-link">Manage Videos <Play size={12} /></span>
+                  <span className="ft-badge ft-badge-free">{modCount} module{modCount !== 1 ? "s" : ""} &middot; {lesCount} lesson{lesCount !== 1 ? "s" : ""}</span>
+                  <span className="ft-view-link">Manage <Play size={12} /></span>
                 </div>
               </div>
             );

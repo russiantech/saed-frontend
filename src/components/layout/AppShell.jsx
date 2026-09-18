@@ -109,7 +109,7 @@ export default function AppShell() {
       // ignore
     }
     setNavOpen(false);
-    navigate("/");
+    navigate("/login", { replace: true });
   }
 
   function closeNav() {
@@ -177,7 +177,7 @@ export default function AppShell() {
               <ClipboardList size={18} /> Enrollments
             </NavLink>
           )}
-          {isTrainer && user.canUploadFastTrack && (
+          {isTrainer && (
             <NavLink to="/app/fast-track-videos" onClick={closeNav}>
               <Video size={18} /> Fast Track Courses
             </NavLink>

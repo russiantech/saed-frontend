@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "lib/api.js";
@@ -7,6 +7,7 @@ import {FormField, SubmitButton} from "components/forms/FormField.jsx";
 import AuthError from "components/auth/AuthError.jsx";
 import useAuthForm from "hooks/useAuthForm.js";
 
+const CODE_LENGTH = 6;
 const STEPS = {
   EMAIL: 1,
   VERIFY: 2,
@@ -16,8 +17,11 @@ const STEPS = {
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(STEPS.EMAIL);
-  const [code, setCode] = useState("");
+  const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [resetToken, setResetToken] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const timerRef = useRef(null);
+  const inputRefs = useRef([]);
 
   const {
     form,
@@ -31,6 +35,26 @@ export default function ForgotPassword() {
     setSubmitError,
     clearErrors,
   } = useAuthForm({ email: "" });
+
+  const startCooldown = useCallback(() => {
+    setResendCooldown(60);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   async function handleSendCode(e) {
     e.preventDefault();
@@ -47,7 +71,9 @@ export default function ForgotPassword() {
       });
       setResetToken(res.token);
       setStep(STEPS.VERIFY);
+      setDigits(Array(CODE_LENGTH).fill(""));
       clearErrors();
+      startCooldown();
     } catch (err) {
       setSubmitError(err);
     } finally {
@@ -55,25 +81,80 @@ export default function ForgotPassword() {
     }
   }
 
-  async function handleVerifyCode(e) {
-    e.preventDefault();
-    if (!code.trim()) {
-      setFieldErrors({ code: "Verification code is required." });
-      return;
+  function handleDigitChange(index, value) {
+    if (!/^\d*$/.test(value)) return;
+    const newDigits = [...digits];
+    newDigits[index] = value.slice(-1);
+    setDigits(newDigits);
+
+    if (value && index < CODE_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
 
+    if (newDigits.every((d) => d !== "")) {
+      handleVerifyCode(newDigits.join(""));
+    }
+  }
+
+  function handleKeyDown(index, e) {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+      const newDigits = [...digits];
+      newDigits[index - 1] = "";
+      setDigits(newDigits);
+    }
+  }
+
+  function handlePaste(e) {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
+    if (!pasted) return;
+    const newDigits = Array(CODE_LENGTH).fill("");
+    for (let i = 0; i < pasted.length; i++) {
+      newDigits[i] = pasted[i];
+    }
+    setDigits(newDigits);
+    const nextEmpty = newDigits.findIndex((d) => d === "");
+    const focusIndex = nextEmpty === -1 ? CODE_LENGTH - 1 : nextEmpty;
+    inputRefs.current[focusIndex]?.focus();
+
+    if (newDigits.every((d) => d !== "")) {
+      handleVerifyCode(newDigits.join(""));
+    }
+  }
+
+  async function handleVerifyCode(codeStr) {
+    if (!codeStr || codeStr.length !== CODE_LENGTH) return;
     startSubmit();
     try {
       await api("/auth/verify-reset-code/", {
         method: "POST",
-        body: { email: form.email, code, token: resetToken },
+        body: { email: form.email, code: codeStr, token: resetToken },
       });
       setStep(STEPS.RESET);
       clearErrors();
     } catch (err) {
+      setDigits(Array(CODE_LENGTH).fill(""));
+      inputRefs.current[0]?.focus();
       setSubmitError(err);
     } finally {
       endSubmit();
+    }
+  }
+
+  async function handleResend() {
+    if (resendCooldown > 0) return;
+    setDigits(Array(CODE_LENGTH).fill(""));
+    try {
+      const res = await api("/auth/forgot-password/", {
+        method: "POST",
+        body: { email: form.email },
+      });
+      setResetToken(res.token);
+      clearErrors();
+      startCooldown();
+    } catch (err) {
+      setSubmitError(err);
     }
   }
 
@@ -93,7 +174,7 @@ export default function ForgotPassword() {
         body: {
           email: form.email,
           token: resetToken,
-          code,
+          code: digits.join(""),
           password: form.password,
         },
       });
@@ -119,12 +200,16 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout
-      title={step === STEPS.RESET ? "Set New Password" : "Forgot Password?"}
+      title={
+        step === STEPS.EMAIL ? "Forgot Password?" :
+        step === STEPS.VERIFY ? "Enter Reset Code" :
+        "Set New Password"
+      }
       subtitle={
         step === STEPS.EMAIL
           ? "Enter your email and we'll send you a reset code."
           : step === STEPS.VERIFY
-          ? "Enter the verification code sent to your email."
+          ? <>Enter the 6-digit code sent to <strong>{form.email}</strong>.</>
           : "Create a new password for your account."
       }
     >
@@ -146,22 +231,44 @@ export default function ForgotPassword() {
       )}
 
       {step === STEPS.VERIFY && (
-        <form className="auth-form" onSubmit={handleVerifyCode}>
-          <FormField
-            label="Verification Code"
-            name="code"
-            value={code}
-            onChange={(_, val) => setCode(val)}
-            error={fields.code}
-            placeholder="Enter 6-digit code"
-            required
-          />
+        <div className="verify-status">
+          <div className="code-boxes" onPaste={handlePaste}>
+            {digits.map((digit, i) => (
+              <input
+                key={i}
+                ref={(el) => { inputRefs.current[i] = el; }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleDigitChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                className="code-box"
+                autoFocus={i === 0}
+              />
+            ))}
+          </div>
+
+          {submitting && <p style={{ marginTop: 12 }}>Verifying...</p>}
           <AuthError message={error} />
-          <SubmitButton loading={submitting}>Verify Code</SubmitButton>
+
+          <p style={{ marginTop: 20, fontSize: "14px", color: "var(--muted)" }}>
+            {resendCooldown > 0 ? (
+              <span>Resend code in {resendCooldown}s</span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                className="text-button"
+              >
+                Resend Code
+              </button>
+            )}
+          </p>
           <button type="button" className="text-button" onClick={() => setStep(STEPS.EMAIL)}>
             ← Back to Email
           </button>
-        </form>
+        </div>
       )}
 
       {step === STEPS.RESET && (
@@ -198,4 +305,3 @@ export default function ForgotPassword() {
     </AuthLayout>
   );
 }
-

@@ -190,7 +190,8 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 }
 .nav-button, .wide-button { background: var(--action-bg); color: var(--action-fg); }
 .primary-button { background: var(--primary); color: var(--primary-fg); box-shadow: 0 12px 24px rgba(20, 95, 63, 0.18); }
-.secondary-button { border: 1px solid rgba(255, 255, 255, 0.68); color: #fff; }
+.secondary-button { border: 1.5px solid #145f3f; background: #fff; color: #145f3f; }
+.secondary-button:hover { background: #f0f7f3; }
 .icon-only { display: none; width: 42px; height: 42px; border: 0; border-radius: 12px; background: var(--pill-bg); color: var(--pill-fg); z-index: 45; }
 
 /* mobile dropdown menu under the floating nav */
@@ -814,7 +815,37 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   background: var(--surface-soft);
 }
 .management-form label { display: grid; gap: 8px; color: var(--text); font-size: 14px; font-weight: 800; }
+.enrollment-list { display: flex; flex-direction: column; gap: 12px; }
+.enrollment-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  padding: 18px;
+}
+.enrollment-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.enrollment-card-header strong { font-size: 15px; color: var(--heading); }
+.enrollment-card-header span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.enrollment-ref { font-size: 12px !important; font-family: monospace; color: var(--muted) !important; background: var(--surface-soft); padding: 4px 8px; border-radius: 6px; margin-top: 0 !important; }
+.enrollment-card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-border);
+  margin-bottom: 12px;
+}
+.enrollment-card-body strong { font-size: 14px; color: var(--heading); }
+.enrollment-card-body span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.enrollment-amount { font-size: 15px; font-weight: 700; color: var(--brand); }
+.enrollment-card-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
 .management-table { display: grid; gap: 10px; }
+.enrollment-management .management-row { grid-template-columns: 1fr 1fr 1fr; }
 .management-row {
   display: grid;
   grid-template-columns: 1fr 1fr 0.6fr 1.5fr;
@@ -1824,6 +1855,7 @@ span.status-pill,
 /* Back link */
 .back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; color: var(--brand); text-decoration: none; font-size: 14px; font-weight: 500; background: none; border: none; cursor: pointer; padding: 0; }
 .back-link:hover { text-decoration: underline; }
+.site-page .back-link { padding-left: 24px; }
 
 /* Notification bell */
 .notification-bell { position: relative; cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
@@ -2552,3 +2584,8 @@ span.status-pill,
   .code-box { width: 40px; height: 48px; font-size: 20px; }
   .code-boxes { gap: 6px; }
 }
+
+.progress-bar-wrapper { display: flex; flex-direction: column; gap: 4px; }
+.progress-bar { width: 120px; height: 8px; background: var(--border, #e0e0e0); border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--brand, #1a5f2a); border-radius: 4px; transition: width 0.3s ease; }
+.progress-text { font-size: 12px; color: var(--muted, #666); }
