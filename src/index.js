@@ -39,7 +39,6 @@ import PaymentCallback from "./pages/corper/PaymentCallback.jsx";
 import MyCorpers from "./pages/trainer/MyCorpers.jsx";
 import CourseManagement from "./pages/trainer/CourseManagement.jsx";
 import CourseDetail from "./pages/trainer/CourseDetail.jsx";
-import FastTrackVideos from "./pages/trainer/FastTrackVideos.jsx";
 import CorperProfile from "./pages/trainer/CorperProfile.jsx";
 
 // Admin pages
@@ -184,7 +183,6 @@ createRoot(document.getElementById("root")).render(
             {/* Trainer routes */}
             <Route path="course-management" element={<ProtectedRoute roles={["trainer"]}><CourseManagement /></ProtectedRoute>} />
             <Route path="my-corpers" element={<ProtectedRoute roles={["trainer"]}><MyCorpers /></ProtectedRoute>} />
-            <Route path="fast-track-videos" element={<ProtectedRoute roles={["trainer"]}><FastTrackVideos /></ProtectedRoute>} />
             <Route path="corper-profile/:corperId" element={<ProtectedRoute roles={["trainer"]}><CorperProfile /></ProtectedRoute>} />
 
             {/* Admin routes inside app */}

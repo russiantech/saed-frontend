@@ -188,11 +188,6 @@ export default function Dashboard() {
               <Link className="primary-button" to="/app/my-corpers">
                 View Corps Members
               </Link>
-              {user?.canUploadFastTrack && (
-                <Link className="primary-button" to="/app/fast-track-videos">
-                  Fast Track Courses
-                </Link>
-              )}
             </div>
           </section>
         </>
