@@ -38,6 +38,7 @@ export default function FastTrackVideos() {
   const [moduleForm, setModuleForm] = useState({ title: "", description: "" });
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [editLesson, setEditLesson] = useState(null);
+  const [viewingLesson, setViewingLesson] = useState(null);
   const [lessonForm, setLessonForm] = useState({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
   const [uploadingFile, setUploadingFile] = useState(false);
   const durationTimer = useRef(null);
@@ -107,6 +108,10 @@ export default function FastTrackVideos() {
     setShowLessonForm(true);
   }
 
+  function openLessonView(l) {
+    setViewingLesson(l);
+  }
+
   function getModulesForCourse(courseId) { return modules.filter((m) => m.courseId === courseId).sort((a, b) => a.order - b.order); }
   function getLessonsForModule(moduleId) { return lessons.filter((l) => l.moduleId === moduleId).sort((a, b) => a.order - b.order); }
   function getLessonsForCourse(courseId) { return lessons.filter((l) => { const mod = modules.find((m) => m.id === l.moduleId); return mod && mod.courseId === courseId; }); }
@@ -138,7 +143,8 @@ export default function FastTrackVideos() {
         await api("/manage/lessons/", { method: "POST", body: { ...lessonForm, moduleId: selectedModule.id } });
       }
       setShowLessonForm(false); setEditLesson(null); setLessonForm({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
-      const data = await api("/manage/lessons/"); setLessons(data.lessons || []);
+      if (viewingLesson) { const data = await api("/manage/lessons/"); const updated = (data.lessons || []).find((l) => l.id === viewingLesson.id); if (updated) setViewingLesson(updated); }
+      else { const data = await api("/manage/lessons/"); setLessons(data.lessons || []); }
     } catch (err) { showMsg(err.message || "Failed to save lesson.", "error"); }
   }
 
@@ -249,7 +255,61 @@ export default function FastTrackVideos() {
         </div>
       )}
 
-      {!showModuleForm && !showLessonForm && selectedModule ? (
+      {!showModuleForm && !showLessonForm && viewingLesson ? (
+        <div>
+          <button className="back-link" onClick={() => setViewingLesson(null)} type="button"><ArrowLeft size={16} /> Back to {selectedModule ? "lessons" : "modules"}</button>
+          <div className="mod-card" style={{ marginTop: 16, cursor: "default" }}>
+            <div style={{ padding: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                <div className="mod-card-icon" style={{ width: 42, height: 42 }}>
+                  {(() => { const Ic = CONTENT_ICONS[viewingLesson.contentType] || FileText; return <Ic size={20} />; })()}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h2 style={{ margin: 0, fontSize: 20 }}>{viewingLesson.title}</h2>
+                  <div style={{ display: "flex", gap: 8, marginTop: 6, alignItems: "center" }}>
+                    <span className="ft-badge ft-badge-cat">{viewingLesson.contentType}</span>
+                    {viewingLesson.contentType === "video" && <span style={{ fontSize: 13, color: "var(--muted)" }}><Clock size={13} style={{ verticalAlign: -2 }} /> {formatDuration(viewingLesson.durationSeconds)}</span>}
+                    {viewingLesson.isFreePreview && <span className="ft-badge ft-badge-free">Free Preview</span>}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button className="icon-action" onClick={() => { openLessonEdit(viewingLesson); setViewingLesson(null); }} title="Edit"><Edit size={16} /></button>
+                  <button className="icon-action danger" onClick={() => { handleDeleteLesson(viewingLesson.id); setViewingLesson(null); }} title="Delete"><Trash2 size={16} /></button>
+                </div>
+              </div>
+
+              {viewingLesson.description && <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.6, margin: "0 0 20px" }}>{viewingLesson.description}</p>}
+
+              {viewingLesson.contentType === "video" && viewingLesson.videoUrl && (
+                <div style={{ borderRadius: 12, overflow: "hidden", background: "#000", aspectRatio: "16/9", marginBottom: 20 }}>
+                  {viewingLesson.videoUrl.includes("youtube.com") || viewingLesson.videoUrl.includes("youtu.be") ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${viewingLesson.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] || ""}`}
+                      style={{ width: "100%", height: "100%", border: 0 }}
+                      allowFullScreen
+                      title={viewingLesson.title}
+                    />
+                  ) : (
+                    <video src={viewingLesson.videoUrl} controls style={{ width: "100%", height: "100%" }} />
+                  )}
+                </div>
+              )}
+
+              {viewingLesson.contentType === "text" && viewingLesson.textContent && (
+                <div style={{ padding: 20, background: "var(--surface-soft)", borderRadius: 10, fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                  {viewingLesson.textContent}
+                </div>
+              )}
+
+              {viewingLesson.contentType === "document" && viewingLesson.documentUrl && (
+                <a href={viewingLesson.documentUrl} target="_blank" rel="noopener noreferrer" className="primary-button" style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
+                  <File size={16} /> View Document
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : !showModuleForm && !showLessonForm && selectedModule ? (
         <div>
           <button className="back-link" onClick={() => setSelectedModule(null)} type="button"><ArrowLeft size={16} /> Back to modules</button>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16, marginBottom: 16 }}>
@@ -266,7 +326,7 @@ export default function FastTrackVideos() {
                   const Icon = CONTENT_ICONS[l.contentType] || FileText;
                   const thumb = l.contentType === "video" ? getVideoThumbnail(l.videoUrl) : null;
                   return (
-                    <div key={l.id} className="mod-lesson-row" style={{ padding: "14px 20px", cursor: "pointer" }} onClick={() => openLessonEdit(l)}>
+                    <div key={l.id} className="mod-lesson-row" style={{ padding: "14px 20px", cursor: "pointer" }} onClick={() => openLessonView(l)}>
                       {thumb ? (
                         <div style={{ width: 56, height: 36, borderRadius: 6, overflow: "hidden", flexShrink: 0, background: "var(--surface-soft)" }}>
                           <img src={thumb} alt={l.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -336,7 +396,7 @@ export default function FastTrackVideos() {
                           {ml.map((l) => {
                             const Icon = CONTENT_ICONS[l.contentType] || FileText;
                             return (
-                              <div key={l.id} className="mod-lesson-row" onClick={() => openLessonEdit(l)} style={{ cursor: "pointer" }}>
+                              <div key={l.id} className="mod-lesson-row" onClick={() => openLessonView(l)} style={{ cursor: "pointer" }}>
                                 <div className="mod-lesson-icon"><Icon size={15} /></div>
                                 <span className="mod-lesson-title">{l.title}</span>
                                 <div className="mod-lesson-meta">
