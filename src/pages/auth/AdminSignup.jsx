@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "lib/auth.jsx";
+
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
@@ -19,7 +18,6 @@ const INITIAL_FORM = {
 
 export default function AdminSignup() {
     const navigate = useNavigate();
-    const { login } = useAuth();
     const form = useAuthForm(INITIAL_FORM);
 
     function validate() {
@@ -59,7 +57,6 @@ export default function AdminSignup() {
             });
 
             if (data.user) {
-                await login(data.user);
                 navigate("/app/dunis-admin");
             }
         } catch (err) {
@@ -135,7 +132,7 @@ export default function AdminSignup() {
                     />
                 </FormRow>
                 <p className="password-hint">
-                    Password must be at least 8 characters, include uppercase, lowercase, numbers, and symbols
+                    Password must be at least 8 characters
                 </p>
 
                 <AuthError message={form.error} />

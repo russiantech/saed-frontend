@@ -84,23 +84,6 @@ export function AuthProvider({ children }) {
     return confirmedUser;
   }, []);
 
-  const signup = useCallback(async (payload) => {
-    const data = await api("/auth/signup/", { method: "POST", body: payload });
-    const userData = data?.user ?? null;
-    setUser(userData);
-    return userData;
-  }, []);
-
-  const trainerSignup = useCallback(async (payload) => {
-    const data = await api("/auth/trainer-signup/", {
-      method: "POST",
-      body: payload,
-    });
-    const userData = data?.user ?? null;
-    setUser(userData);
-    return userData;
-  }, []);
-
   const logout = useCallback(async () => {
     setUser(null);
     try {
@@ -127,8 +110,6 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     refreshUser,
     login,
-    signup,
-    trainerSignup,
     logout,
     requestPasswordReset,
     confirmPasswordReset,

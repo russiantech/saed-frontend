@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "lib/auth.jsx";
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
@@ -22,18 +21,10 @@ const INITIAL_FORM = {
     lgaOfDeployment: "",
     skillInterest: "",
     skillInterests: [],
-    specialization: "",
-    partnerLgas: [],
-    yearsExperience: "",
-    bio: "",
-    companyName: "",
-    numberTrained: "",
-    partnershipLetter: null,
 };
 
 export default function Signup() {
     const navigate = useNavigate();
-    const { signup } = useAuth();
     const [role, setRole] = useState("corps_member");
     const [step, setStep] = useState(1);
     const [agree, setAgree] = useState(false);
@@ -97,30 +88,7 @@ export default function Signup() {
             setFieldErrors(errors);
             if (Object.keys(errors).length > 0) return;
 
-            startSubmit();
-            try {
-                const data = await api("/auth/validate-signup/", {
-                    method: "POST",
-                    body: {
-                        fullName: formData.fullName,
-                        username: formData.username,
-                        email: formData.email,
-                        phone: formData.phone,
-                    },
-                });
-
-                setStep(2);
-            } catch (err) {
-                if (err.data?.fields) {
-                    setFieldErrors(err.data.fields);
-                    const fieldMessages = Object.values(err.data.fields).join(". ");
-                    setSubmitError(new Error(fieldMessages));
-                } else {
-                    setSubmitError(err);
-                }
-            } finally {
-                endSubmit();
-            }
+            setStep(2);
             return;
         }
 
@@ -304,7 +272,7 @@ function PersonalInfo({ form, fields, update }) {
                 />
             </FormRow>
             <p className="password-hint">
-                Password must be at least 8 characters, include uppercase, lowercase, numbers, and symbols
+                Password must be at least 8 characters
             </p>
         </>
     );
