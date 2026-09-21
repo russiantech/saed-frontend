@@ -95,7 +95,7 @@ export default function CourseManagement() {
       ]);
       if (courseRes.status === "fulfilled") setCourses(courseRes.value.courses || []);
       if (moduleRes.status === "fulfilled") setModules(moduleRes.value.modules || []);
-      if (lessonRes.status === "fulfilled") setLessons(moduleRes.value.lessons || []);
+      if (lessonRes.status === "fulfilled") setLessons(lessonRes.value.lessons || []);
     } catch (err) {
       showMsg(err.message || "Failed to load data.", "error");
     } finally {
@@ -647,7 +647,7 @@ export default function CourseManagement() {
           return (
             <div key={course.id} className={`course-card ${course.isRestricted ? "restricted" : ""}`} onClick={() => setSelectedCourse(course)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setSelectedCourse(course)} style={{ cursor: "pointer" }}>
               <h3>{course.title}</h3>
-              <p className="course-meta">TRAINER: {course.trainerName}</p>
+              <p className="course-meta">TRAINER: {course.trainerName || user?.fullName || "—"}</p>
               <div className="course-tags">
                 <span className={`status-badge ${course.isActive ? "active" : "inactive"}`}>{course.isActive ? "Active" : "Inactive"}</span>
                 {course.isRestricted && <span className="status-badge restricted">Restricted</span>}
