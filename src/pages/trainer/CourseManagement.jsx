@@ -535,8 +535,8 @@ export default function CourseManagement() {
 
           {!selectedCourse.hasFastTrack && (
             <div style={{ marginTop: 20, padding: 20, border: "1px dashed var(--border)", borderRadius: 12, background: "var(--surface-soft)", textAlign: "center" }}>
-              <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Video content requires Fast Track</p>
-              <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>Add text, documents, and quizzes now. Enable fast track to upload videos.</p>
+              <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Unlock Video Lessons</p>
+              <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>Upgrade to fast track to add video lessons to your course.</p>
               {user?.canUploadFastTrack ? (
                 <button className="primary-button" onClick={async () => {
                   try {
