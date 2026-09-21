@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Video, Plus, Trash2, Edit, X, ArrowLeft, BookOpen, Clock, Play, FileText, File, HelpCircle, ChevronDown, ChevronRight, Layers, Upload, CreditCard } from "lucide-react";
+import ConfirmModal from "../../components/ui/ConfirmModal.jsx";
 
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
@@ -59,6 +60,27 @@ export default function CourseManagement() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const durationTimer = useRef(null);
+
+  // ── Confirm modal state ────────────────────────────────────────────────────
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [confirmDestructive, setConfirmDestructive] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+
+  function openConfirm(title, message, onConfirm, destructive = false) {
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmDestructive(destructive);
+    setConfirmAction(() => onConfirm);
+    setConfirmOpen(true);
+  }
+
+  function handleConfirm() {
+    if (confirmAction) confirmAction();
+    setConfirmOpen(false);
+    setConfirmAction(null);
+  }
 
   // ── Data loading ──────────────────────────────────────────────────────────
   useEffect(() => { loadAll(); }, []);
@@ -154,14 +176,15 @@ export default function CourseManagement() {
   }
 
   async function deleteCourse(id) {
-    if (!confirm("Are you sure you want to delete this course?")) return;
-    try {
-      await api(`/manage/courses/${id}/`, { method: "DELETE" });
-      if (selectedCourse?.id === id) { setSelectedCourse(null); setViewingLesson(null); }
-      loadAll();
-    } catch (err) {
-      showMsg(err.message || "Failed to delete course.", "error");
-    }
+    openConfirm("Delete Course", "Are you sure you want to delete this course? This cannot be undone.", async () => {
+      try {
+        await api(`/manage/courses/${id}/`, { method: "DELETE" });
+        if (selectedCourse?.id === id) { setSelectedCourse(null); setViewingLesson(null); }
+        loadAll();
+      } catch (err) {
+        showMsg(err.message || "Failed to delete course.", "error");
+      }
+    }, true);
   }
 
   async function handlePayFastTrack() {
@@ -190,12 +213,13 @@ export default function CourseManagement() {
   }
 
   async function handleDeleteModule(id) {
-    if (!window.confirm("Delete this module and all its lessons?")) return;
-    try {
-      await api(`/manage/modules/${id}/`, { method: "DELETE" });
-      setModules((p) => p.filter((m) => m.id !== id));
-      setLessons((p) => p.filter((l) => l.moduleId !== id));
-    } catch (err) { showMsg(err.message, "error"); }
+    openConfirm("Delete Module", "Delete this module and all its lessons?", async () => {
+      try {
+        await api(`/manage/modules/${id}/`, { method: "DELETE" });
+        setModules((p) => p.filter((m) => m.id !== id));
+        setLessons((p) => p.filter((l) => l.moduleId !== id));
+      } catch (err) { showMsg(err.message, "error"); }
+    }, true);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -268,8 +292,9 @@ export default function CourseManagement() {
   }
 
   async function handleDeleteLesson(id) {
-    if (!window.confirm("Delete this lesson?")) return;
-    try { await api(`/manage/lessons/${id}/`, { method: "DELETE" }); setLessons((p) => p.filter((l) => l.id !== id)); } catch (err) { showMsg(err.message, "error"); }
+    openConfirm("Delete Lesson", "Delete this lesson?", async () => {
+      try { await api(`/manage/lessons/${id}/`, { method: "DELETE" }); setLessons((p) => p.filter((l) => l.id !== id)); } catch (err) { showMsg(err.message, "error"); }
+    }, true);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -372,6 +397,7 @@ export default function CourseManagement() {
         {error && <div className={`inline-message inline-message--${messageType || "error"}`}>{error}<button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button></div>}
         {moduleFormModal}
         {lessonFormModal}
+        <ConfirmModal open={confirmOpen} title={confirmTitle} message={confirmMessage} destructive={confirmDestructive} onConfirm={handleConfirm} onCancel={() => setConfirmOpen(false)} />
         <div>
           <button className="back-link" onClick={() => setViewingLesson(null)} type="button"><ArrowLeft size={16} /> Back to modules</button>
           <div className="mod-card" style={{ marginTop: 16, cursor: "default" }}>
@@ -434,6 +460,7 @@ export default function CourseManagement() {
         {error && <div className={`inline-message inline-message--${messageType || "error"}`}>{error}<button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button></div>}
         {moduleFormModal}
         {lessonFormModal}
+        <ConfirmModal open={confirmOpen} title={confirmTitle} message={confirmMessage} destructive={confirmDestructive} onConfirm={handleConfirm} onCancel={() => setConfirmOpen(false)} />
         <div>
           <button className="back-link" onClick={() => { setSelectedCourse(null); setViewingLesson(null); }} type="button"><ArrowLeft size={16} /> Back to courses</button>
           <div className="ft-course-intro">
@@ -537,6 +564,8 @@ export default function CourseManagement() {
       </div>
 
       {error && <div className={`inline-message inline-message--${messageType || "error"}`}>{error}<button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button></div>}
+
+      <ConfirmModal open={confirmOpen} title={confirmTitle} message={confirmMessage} destructive={confirmDestructive} onConfirm={handleConfirm} onCancel={() => setConfirmOpen(false)} />
 
       {showCourseForm && (
         <div className="modal-overlay" onClick={() => setShowCourseForm(false)}>

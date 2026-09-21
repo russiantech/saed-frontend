@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
+import ConfirmModal from "../../components/ui/ConfirmModal.jsx";
 
 const blankProgram = {
   title: "",
@@ -29,10 +30,29 @@ export default function ProgramEditor() {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [editorOpen, setEditorOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [confirmDestructive, setConfirmDestructive] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   function showMsg(text, type) {
     setMessage(text);
     setMessageType(type || "");
+  }
+
+  function openConfirm(title, message, onConfirm, destructive = false) {
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmDestructive(destructive);
+    setConfirmAction(() => onConfirm);
+    setConfirmOpen(true);
+  }
+
+  function handleConfirm() {
+    if (confirmAction) confirmAction();
+    setConfirmOpen(false);
+    setConfirmAction(null);
   }
 
   async function load() {
@@ -107,14 +127,20 @@ export default function ProgramEditor() {
 
   async function toggleRestrict(program) {
     const action = program.isRestricted ? "unrestrict" : "restrict";
-    if (!confirm(`Are you sure you want to ${action} this course?`)) return;
-    try {
-      await api(`/manage/programs/${program.id}/${action}/`, { method: "POST" });
-      await load();
-      showMsg(`Course ${action}ed successfully.`, "success");
-    } catch (err) {
-      showMsg(err.message || `Failed to ${action} course`, "error");
-    }
+    openConfirm(
+      `${action.charAt(0).toUpperCase() + action.slice(1)} Course`,
+      `Are you sure you want to ${action} this course?`,
+      async () => {
+        try {
+          await api(`/manage/programs/${program.id}/${action}/`, { method: "POST" });
+          await load();
+          showMsg(`Course ${action}ed successfully.`, "success");
+        } catch (err) {
+          showMsg(err.message || `Failed to ${action} course`, "error");
+        }
+      },
+      action === "restrict"
+    );
   }
 
   return (
@@ -133,6 +159,8 @@ export default function ProgramEditor() {
           <button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button>
         </div>
       )}
+
+      <ConfirmModal open={confirmOpen} title={confirmTitle} message={confirmMessage} destructive={confirmDestructive} onConfirm={handleConfirm} onCancel={() => setConfirmOpen(false)} />
 
       <div className="course-admin-grid">
         {programs.map((program) => (
