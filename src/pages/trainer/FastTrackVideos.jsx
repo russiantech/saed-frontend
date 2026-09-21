@@ -101,6 +101,12 @@ export default function FastTrackVideos() {
 
   function toggleModule(id) { setExpandedModules((p) => ({ ...p, [id]: !p[id] })); }
 
+  function openLessonEdit(l) {
+    setEditLesson(l);
+    setLessonForm({ title: l.title, description: l.description || "", contentType: l.contentType, videoUrl: l.videoUrl || "", textContent: l.textContent || "", documentUrl: l.documentUrl || "", durationSeconds: l.durationSeconds || 0, isFreePreview: l.isFreePreview || false });
+    setShowLessonForm(true);
+  }
+
   function getModulesForCourse(courseId) { return modules.filter((m) => m.courseId === courseId).sort((a, b) => a.order - b.order); }
   function getLessonsForModule(moduleId) { return lessons.filter((l) => l.moduleId === moduleId).sort((a, b) => a.order - b.order); }
   function getLessonsForCourse(courseId) { return lessons.filter((l) => { const mod = modules.find((m) => m.id === l.moduleId); return mod && mod.courseId === courseId; }); }
@@ -260,7 +266,7 @@ export default function FastTrackVideos() {
                   const Icon = CONTENT_ICONS[l.contentType] || FileText;
                   const thumb = l.contentType === "video" ? getVideoThumbnail(l.videoUrl) : null;
                   return (
-                    <div key={l.id} className="mod-lesson-row" style={{ padding: "14px 20px" }}>
+                    <div key={l.id} className="mod-lesson-row" style={{ padding: "14px 20px", cursor: "pointer" }} onClick={() => openLessonEdit(l)}>
                       {thumb ? (
                         <div style={{ width: 56, height: 36, borderRadius: 6, overflow: "hidden", flexShrink: 0, background: "var(--surface-soft)" }}>
                           <img src={thumb} alt={l.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -330,15 +336,15 @@ export default function FastTrackVideos() {
                           {ml.map((l) => {
                             const Icon = CONTENT_ICONS[l.contentType] || FileText;
                             return (
-                              <div key={l.id} className="mod-lesson-row">
+                              <div key={l.id} className="mod-lesson-row" onClick={() => openLessonEdit(l)} style={{ cursor: "pointer" }}>
                                 <div className="mod-lesson-icon"><Icon size={15} /></div>
                                 <span className="mod-lesson-title">{l.title}</span>
                                 <div className="mod-lesson-meta">
                                   {l.contentType === "video" && <span>{formatDuration(l.durationSeconds)}</span>}
                                   {l.isFreePreview && <span className="ft-badge ft-badge-free" style={{ fontSize: 10, padding: "2px 6px" }}>Free</span>}
                                 </div>
-                                <div className="mod-lesson-actions">
-                                  <button className="icon-action" onClick={() => { setEditLesson(l); setLessonForm({ title: l.title, description: l.description || "", contentType: l.contentType, videoUrl: l.videoUrl || "", textContent: l.textContent || "", documentUrl: l.documentUrl || "", durationSeconds: l.durationSeconds || 0, isFreePreview: l.isFreePreview || false }); setShowLessonForm(true); }}><Edit size={13} /></button>
+                                <div className="mod-lesson-actions" onClick={(e) => e.stopPropagation()}>
+                                  <button className="icon-action" onClick={() => openLessonEdit(l)}><Edit size={13} /></button>
                                   <button className="icon-action danger" onClick={() => handleDeleteLesson(l.id)}><Trash2 size={13} /></button>
                                 </div>
                               </div>
