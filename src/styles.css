@@ -1824,12 +1824,12 @@ span.status-pill,
 .course-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
 
 /* Modal form styling */
-.modal-trainer-form { max-width: 640px; border-radius: 16px; overflow: hidden; }
+.modal-trainer-form { max-width: 640px; border-radius: 16px; overflow: visible; }
 .modal-header {
   background: var(--brand);
   color: #fff;
   padding: 28px 32px 24px;
-  border-radius: 0;
+  border-radius: 16px 16px 0 0;
   position: relative;
 }
 .modal-header h2 { margin: 0 0 6px; color: #fff; font-size: 22px; font-weight: 700; }
