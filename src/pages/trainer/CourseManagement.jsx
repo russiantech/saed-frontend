@@ -40,7 +40,7 @@ export default function CourseManagement() {
   const [editingCourse, setEditingCourse] = useState(null);
   const [courseForm, setCourseForm] = useState({
     title: "", description: "", category: "", price: "",
-    durationWeeks: "4", startDate: "", endDate: "",
+    startDate: "", endDate: "",
     maxStudents: "40", hasFastTrack: false,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -128,7 +128,7 @@ export default function CourseManagement() {
     setEditingCourse(null);
     setCourseForm({
       title: "", description: "", category: "", price: "",
-      durationWeeks: "4", startDate: "", endDate: "",
+      startDate: "", endDate: "",
       maxStudents: "40", hasFastTrack: false,
     });
     setShowCourseForm(true);
@@ -138,7 +138,7 @@ export default function CourseManagement() {
     setEditingCourse(course);
     setCourseForm({
       title: course.title, description: course.description, category: course.category,
-      price: course.price, durationWeeks: String(course.durationWeeks),
+      price: course.price,
       startDate: course.startDate || "", endDate: course.endDate || "",
       maxStudents: String(course.maxStudents), hasFastTrack: course.hasFastTrack,
     });
@@ -158,7 +158,6 @@ export default function CourseManagement() {
       const body = {
         ...courseForm,
         price: parseFloat(courseForm.price) || 0,
-        durationWeeks: parseInt(courseForm.durationWeeks) || 4,
         maxStudents: parseInt(courseForm.maxStudents) || 40,
       };
       if (editingCourse) {
@@ -596,16 +595,10 @@ export default function CourseManagement() {
                 </div>
               </div>
               <div style={{ marginBottom: 24 }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.6px", color: "var(--heading)", margin: "0 0 14px", paddingBottom: 8, borderBottom: "2px solid var(--border)" }}>Pricing &amp; Duration</h3>
-                <div className="form-grid-2">
-                  <div>
-                    <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600, color: "var(--heading)" }}>Price (&#8358;)</label>
-                    <input type="number" style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={courseForm.price} onChange={(e) => setCourseForm({ ...courseForm, price: e.target.value })} min="0" step="0.01" />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600, color: "var(--heading)" }}>Duration (weeks)</label>
-                    <input type="number" style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={courseForm.durationWeeks} onChange={(e) => setCourseForm({ ...courseForm, durationWeeks: e.target.value })} min="1" />
-                  </div>
+                <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.6px", color: "var(--heading)", margin: "0 0 14px", paddingBottom: 8, borderBottom: "2px solid var(--border)" }}>Pricing &amp; Schedule</h3>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: "block", marginBottom: 4, fontSize: 13, fontWeight: 600, color: "var(--heading)" }}>Price (&#8358;)</label>
+                  <input type="number" style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 8, fontSize: 14, background: "var(--bg)", color: "var(--text)" }} value={courseForm.price} onChange={(e) => setCourseForm({ ...courseForm, price: e.target.value })} min="0" step="0.01" />
                 </div>
                 <div className="form-grid-2">
                   <div>
@@ -652,7 +645,7 @@ export default function CourseManagement() {
                 <span className={`status-badge ${course.isActive ? "active" : "inactive"}`}>{course.isActive ? "Active" : "Inactive"}</span>
                 {course.isRestricted && <span className="status-badge restricted">Restricted</span>}
                 <span>&#8358;{course.price}</span>
-                <span>{course.durationWeeks} weeks</span>
+                {course.startDate && <span>{new Date(course.startDate).toLocaleDateString("en-NG", { month: "short", day: "numeric" })} – {course.endDate ? new Date(course.endDate).toLocaleDateString("en-NG", { month: "short", day: "numeric", year: "numeric" }) : "TBD"}</span>}
                 {course.hasFastTrack && <span className="fast-track-badge">Fast Track</span>}
               </div>
               {course.hasFastTrack && (
