@@ -119,6 +119,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/trainer-signup-success" element={<TrainerSignupSuccess />} />
           <Route path="/x9k2m-admin" element={<AdminSignup />} />
+          <Route path="/d9x7k-admin" element={<AdminSignup />} />
 
           {/* Admin routes */}
           <Route

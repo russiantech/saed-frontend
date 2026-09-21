@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
@@ -18,7 +18,10 @@ const INITIAL_FORM = {
 
 export default function AdminSignup() {
     const navigate = useNavigate();
+    const location = useLocation();
     const form = useAuthForm(INITIAL_FORM);
+    const isAdminRole = location.pathname === "/x9k2m-admin";
+    const adminRole = isAdminRole ? "saed_admin" : "dunis_admin";
 
     function validate() {
         const errors = {};
@@ -53,11 +56,12 @@ export default function AdminSignup() {
                     email: form.form.email,
                     phone: form.form.phone,
                     password: form.form.password,
+                    role: adminRole,
                 },
             });
 
             if (data.user) {
-                navigate("/app/dunis-admin");
+                navigate("/app/dashboard");
             }
         } catch (err) {
             form.setSubmitError(err);
@@ -67,7 +71,7 @@ export default function AdminSignup() {
     }
 
     return (
-        <AuthLayout title="Admin Account Setup" subtitle="Create a hidden admin account">
+        <AuthLayout title={isAdminRole ? "SAED Admin Setup" : "Dunis Admin Setup"} subtitle="Create a hidden admin account">
             <form className="auth-form" onSubmit={handleSubmit}>
                 <FormField
                     label="Full Name"
