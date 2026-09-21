@@ -588,7 +588,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 
 /* Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
-.modal-content { background: var(--surface); border-radius: 0; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal-content { background: var(--surface); border-radius: 16px; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
 .modal-content h2 { margin: 0 0 20px; }
 .dark .activity-card h3 { color: var(--text); }
 .dark .activity-card p { color: var(--muted); }
@@ -758,7 +758,7 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .detail-list dt { color: var(--muted); font-size: 13px; font-weight: 800; }
 .detail-list dd { margin: 4px 0 0; color: var(--text); font-weight: 900; }
 
-.course-detail-modal { width: min(640px, 100%); max-height: min(85vh, 720px); display: flex; flex-direction: column; overflow: hidden; }
+.course-detail-modal { width: min(640px, 100%); max-height: min(85vh, 720px); display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; }
 .course-detail-modal .detail-list { flex: 0 0 auto; }
 .course-students { margin-top: 18px; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
 .course-students-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
@@ -1236,6 +1236,8 @@ span.status-pill,
 .course-editor-panel .field-error { margin-top: -6px; font-size: 12px; }
 .course-editor-modal {
   width: min(760px, 100%);
+  border-radius: 16px;
+  overflow: hidden;
 }
 .course-editor-modal .editor-form {
   background: var(--surface-soft);
@@ -1822,7 +1824,7 @@ span.status-pill,
 .course-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
 
 /* Modal form styling */
-.modal-trainer-form { max-width: 640px; }
+.modal-trainer-form { max-width: 640px; border-radius: 16px; overflow: hidden; }
 .modal-header {
   background: var(--brand);
   color: #fff;
