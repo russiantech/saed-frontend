@@ -41,6 +41,7 @@ export default function FastTrackVideos() {
   const [viewingLesson, setViewingLesson] = useState(null);
   const [lessonForm, setLessonForm] = useState({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
   const durationTimer = useRef(null);
   const [expandedModules, setExpandedModules] = useState({});
 
@@ -97,6 +98,22 @@ export default function FastTrackVideos() {
       showMsg(err.message || "Upload failed.", "error");
     } finally {
       setUploadingFile(false);
+    }
+  }
+
+  async function handleDocUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDoc(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const data = await api("/media/upload/", { method: "POST", body: formData });
+      setLessonForm((p) => ({ ...p, documentUrl: data.url }));
+    } catch (err) {
+      showMsg(err.message || "Upload failed.", "error");
+    } finally {
+      setUploadingDoc(false);
     }
   }
 
@@ -240,7 +257,22 @@ export default function FastTrackVideos() {
                 <label>Text Content<textarea value={lessonForm.textContent} onChange={(e) => setLessonForm({ ...lessonForm, textContent: e.target.value })} rows={6} placeholder="Write lesson content here..." /></label>
               )}
               {lessonForm.contentType === "document" && (
-                <label>Document URL<input value={lessonForm.documentUrl} onChange={(e) => setLessonForm({ ...lessonForm, documentUrl: e.target.value })} placeholder="Link to document" /></label>
+                <>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <label style={{ flex: 1 }}>Document URL<input value={lessonForm.documentUrl} onChange={(e) => setLessonForm({ ...lessonForm, documentUrl: e.target.value })} placeholder="Link to document" /></label>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Upload Document</span>
+                      <div className="file-upload-input">
+                        <input type="file" id="doc-file-upload" accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx" onChange={handleDocUpload} disabled={uploadingDoc} />
+                        <label htmlFor="doc-file-upload" className="file-upload-label">
+                          <Upload size={14} /> {uploadingDoc ? "Uploading..." : "Choose File"}
+                        </label>
+                        {lessonForm.documentUrl && !uploadingDoc && <span className="file-upload-name">{lessonForm.documentUrl.split("/").pop()}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  {lessonForm.documentUrl && <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>Current: {lessonForm.documentUrl}</p>}
+                </>
               )}
               <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <input type="checkbox" checked={lessonForm.isFreePreview} onChange={(e) => setLessonForm({ ...lessonForm, isFreePreview: e.target.checked })} />

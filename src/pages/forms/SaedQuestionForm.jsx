@@ -1,4 +1,4 @@
-import { ArrowLeft, Send, X } from "lucide-react";
+import { ArrowLeft, Send, X, Upload } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api.js";
@@ -6,9 +6,28 @@ import { api } from "../../lib/api.js";
 export default function SaedQuestionForm() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState("");
   const [resultType, setResultType] = useState("");
+
+  async function handleFileUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const data = await api("/media/upload/", { method: "POST", body: formData });
+      setAttachmentUrl(data.url);
+    } catch (err) {
+      setResult(err.message || "Upload failed.");
+      setResultType("error");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -21,12 +40,14 @@ export default function SaedQuestionForm() {
           subject: subject || "Question about account approval",
           message,
           recipient: "saed_admin",
+          attachmentUrl,
         },
       });
       setResult("Your question has been submitted. A SAED admin will review it shortly.");
       setResultType("success");
       setSubject("");
       setMessage("");
+      setAttachmentUrl("");
     } catch (err) {
       setResult(err.message);
       setResultType("error");
@@ -66,6 +87,16 @@ export default function SaedQuestionForm() {
               required
             />
           </label>
+          <div>
+            <span style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Attachment (optional)</span>
+            <div className="file-upload-input">
+              <input type="file" id="saed-complaint-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" onChange={handleFileUpload} disabled={uploading} />
+              <label htmlFor="saed-complaint-file" className="file-upload-label">
+                <Upload size={14} /> {uploading ? "Uploading..." : "Choose File"}
+              </label>
+              {attachmentUrl && !uploading && <span className="file-upload-name">{attachmentUrl.split("/").pop()}</span>}
+            </div>
+          </div>
           <button className="primary-button" type="submit" disabled={sending} style={{ width: "100%" }}>
             <Send size={16} /> {sending ? "Sending..." : "Submit Question"}
           </button>
