@@ -1,4 +1,4 @@
-import { Video, Plus, Trash2, Edit, X, ArrowLeft, BookOpen, Clock, Play, FileText, File, HelpCircle, ChevronDown, ChevronRight, Layers } from "lucide-react";
+import { Video, Plus, Trash2, Edit, X, ArrowLeft, BookOpen, Clock, Play, FileText, File, HelpCircle, ChevronDown, ChevronRight, Layers, Upload } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 
 import { api } from "../../lib/api.js";
@@ -210,9 +210,16 @@ export default function FastTrackVideos() {
                 <>
                   <div style={{ display: "flex", gap: 12 }}>
                     <label style={{ flex: 1 }}>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube URL" /></label>
-                    <label style={{ flex: 1 }}>Upload Video<input type="file" accept="video/*" onChange={handleFileUpload} disabled={uploadingFile} style={{ fontSize: 13, paddingTop: 6 }} />
-                      {uploadingFile && <span style={{ fontSize: 12, color: "var(--muted)" }}>Uploading...</span>}
-                    </label>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Upload Video</span>
+                      <div className="file-upload-input">
+                        <input type="file" id="video-file-upload" accept="video/*" onChange={handleFileUpload} disabled={uploadingFile} />
+                        <label htmlFor="video-file-upload" className="file-upload-label">
+                          <Upload size={14} /> {uploadingFile ? "Uploading..." : "Choose File"}
+                        </label>
+                        {lessonForm.videoUrl && !uploadingFile && <span className="file-upload-name">{lessonForm.videoUrl.split("/").pop()}</span>}
+                      </div>
+                    </div>
                   </div>
                   {lessonForm.videoUrl && <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>Current: {lessonForm.videoUrl}</p>}
                 </>
