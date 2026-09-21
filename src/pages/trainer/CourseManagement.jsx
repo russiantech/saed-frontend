@@ -121,6 +121,11 @@ export default function CourseManagement() {
     return lessons.filter((l) => { const mod = modules.find((m) => m.id === l.moduleId); return mod && mod.courseId === courseId; });
   }
 
+  function isCourseFastTrack(courseId) {
+    const c = courses.find((c) => c.id === courseId);
+    return c ? c.hasFastTrack : false;
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // COURSE CRUD
   // ══════════════════════════════════════════════════════════════════════════
@@ -279,7 +284,8 @@ export default function CourseManagement() {
         await api("/manage/lessons/", { method: "POST", body: { ...lessonForm, moduleId: selectedModule.id } });
       }
       setShowLessonForm(false); setEditLesson(null);
-      setLessonForm({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
+      const hasFastTrack = selectedModule ? isCourseFastTrack(selectedModule.courseId) : false;
+      setLessonForm({ title: "", description: "", contentType: hasFastTrack ? "video" : "text", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
       if (viewingLesson) {
         const data = await api("/manage/lessons/");
         const updated = (data.lessons || []).find((l) => l.id === viewingLesson.id);
@@ -331,8 +337,11 @@ export default function CourseManagement() {
         </div>
         <form className="management-form" style={{ gridTemplateColumns: "1fr", background: "none", padding: 0, margin: 0 }} onSubmit={handleLessonSubmit}>
           <label>Content Type
-            <select value={lessonForm.contentType} onChange={(e) => setLessonForm({ ...lessonForm, contentType: e.target.value })}>
-              <option value="video">Video</option>
+            <select value={lessonForm.contentType} onChange={(e) => {
+              const val = e.target.value;
+              setLessonForm((prev) => ({ ...prev, contentType: val, ...(val !== "video" ? { videoUrl: "" } : {}) }));
+            }}>
+              {selectedModule && isCourseFastTrack(selectedModule.courseId) && <option value="video">Video</option>}
               <option value="text">Text</option>
               <option value="quiz">Quiz</option>
               <option value="document">Document</option>
@@ -496,7 +505,7 @@ export default function CourseManagement() {
                           <div className="mod-card-actions" onClick={(e) => e.stopPropagation()}>
                             <button className="icon-action" onClick={() => { setEditModule(m); setModuleForm({ title: m.title, description: m.description || "" }); setShowModuleForm(true); }}><Edit size={15} /></button>
                             <button className="icon-action danger" onClick={() => handleDeleteModule(m.id)}><Trash2 size={15} /></button>
-                            <button className="add-lesson-btn" onClick={() => { setSelectedModule(m); setEditLesson(null); setLessonForm({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false }); setShowLessonForm(true); }}><Plus size={14} /> Lesson</button>
+                            <button className="add-lesson-btn" onClick={() => { setSelectedModule(m); setEditLesson(null); const hasFastTrack = isCourseFastTrack(m.courseId); setLessonForm({ title: "", description: "", contentType: hasFastTrack ? "video" : "text", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false }); setShowLessonForm(true); }}><Plus size={14} /> Lesson</button>
                           </div>
                         </div>
                         {expanded && ml.length > 0 && (
