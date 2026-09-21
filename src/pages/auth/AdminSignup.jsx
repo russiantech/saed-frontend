@@ -20,8 +20,7 @@ export default function AdminSignup() {
     const navigate = useNavigate();
     const location = useLocation();
     const form = useAuthForm(INITIAL_FORM);
-    const isAdminRole = location.pathname === "/x9k2m-admin";
-    const adminRole = isAdminRole ? "saed_admin" : "dunis_admin";
+    const adminRole = location.pathname === "/x9k2m-admin" ? "saed_admin" : "dunis_admin";
 
     function validate() {
         const errors = {};
