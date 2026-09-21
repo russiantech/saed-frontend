@@ -8,8 +8,6 @@ function getVideoThumbnail(url) {
   if (!url) return null;
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   if (ytMatch) return `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`;
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
   return null;
 }
 

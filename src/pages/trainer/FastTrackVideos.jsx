@@ -8,8 +8,6 @@ function getVideoThumbnail(url) {
   if (!url) return null;
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   if (ytMatch) return `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`;
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
   return null;
 }
 
@@ -41,6 +39,7 @@ export default function FastTrackVideos() {
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [editLesson, setEditLesson] = useState(null);
   const [lessonForm, setLessonForm] = useState({ title: "", description: "", contentType: "video", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false });
+  const [uploadingFile, setUploadingFile] = useState(false);
   const durationTimer = useRef(null);
   const [expandedModules, setExpandedModules] = useState({});
 
@@ -73,7 +72,7 @@ export default function FastTrackVideos() {
   }
 
   const fetchDuration = useCallback(async (url) => {
-    if (!url || (!url.includes("youtube.com") && !url.includes("youtu.be") && !url.includes("vimeo.com"))) return;
+    if (!url || !url.includes("youtube.com") && !url.includes("youtu.be")) return;
     try { const data = await api("/manage/fetch-video-duration/", { method: "POST", body: { url } }); setLessonForm((p) => ({ ...p, durationSeconds: data.durationSeconds })); } catch { /* ignore */ }
   }, []);
 
@@ -83,6 +82,22 @@ export default function FastTrackVideos() {
     durationTimer.current = setTimeout(() => fetchDuration(value), 800);
   }
   useEffect(() => () => { if (durationTimer.current) clearTimeout(durationTimer.current); }, []);
+
+  async function handleFileUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const data = await api("/media/upload/", { method: "POST", body: formData });
+      setLessonForm((p) => ({ ...p, videoUrl: data.url }));
+    } catch (err) {
+      showMsg(err.message || "Upload failed.", "error");
+    } finally {
+      setUploadingFile(false);
+    }
+  }
 
   function toggleModule(id) { setExpandedModules((p) => ({ ...p, [id]: !p[id] })); }
 
@@ -192,7 +207,15 @@ export default function FastTrackVideos() {
               <label>Title<input value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} required /></label>
               <label>Description<textarea value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} rows={2} /></label>
               {lessonForm.contentType === "video" && (
-                <label>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube or Vimeo URL" /></label>
+                <>
+                  <label>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube URL" /></label>
+                  <div style={{ textAlign: "center", color: "var(--muted)", fontSize: 13, margin: "4px 0" }}>or</div>
+                  <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <input type="file" accept="video/*" onChange={handleFileUpload} disabled={uploadingFile} style={{ fontSize: 13 }} />
+                    {uploadingFile && <span style={{ fontSize: 13 }}>Uploading...</span>}
+                  </label>
+                  {lessonForm.videoUrl && <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>Current: {lessonForm.videoUrl}</p>}
+                </>
               )}
               {lessonForm.contentType === "text" && (
                 <label>Text Content<textarea value={lessonForm.textContent} onChange={(e) => setLessonForm({ ...lessonForm, textContent: e.target.value })} rows={6} placeholder="Write lesson content here..." /></label>
