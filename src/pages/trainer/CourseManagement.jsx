@@ -481,64 +481,62 @@ export default function CourseManagement() {
             </div>
           </div>
 
-          {selectedCourse.hasFastTrack ? (
-            <>
-              <button className="primary-button" onClick={() => { setEditModule(null); setModuleForm({ title: "", description: "" }); setShowModuleForm(true); }} style={{ marginBottom: 16, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Plus size={16} /> Add Module
-              </button>
-              {cm.length === 0 ? (
-                <div className="empty-state"><p>No modules yet. Add your first module.</p></div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {cm.map((m) => {
-                    const ml = getLessonsForModule(m.id);
-                    const expanded = expandedModules[m.id] !== false;
-                    return (
-                      <div key={m.id} className="mod-card">
-                        <div className="mod-card-header" onClick={() => toggleModule(m.id)}>
-                          {expanded ? <ChevronDown size={18} style={{ color: "var(--muted)", flexShrink: 0 }} /> : <ChevronRight size={18} style={{ color: "var(--muted)", flexShrink: 0 }} />}
-                          <div className="mod-card-icon"><Layers size={18} /></div>
-                          <div className="mod-card-info">
-                            <strong>{m.title}</strong>
-                            <span>{ml.length} lesson{ml.length !== 1 ? "s" : ""}</span>
-                          </div>
-                          <div className="mod-card-actions" onClick={(e) => e.stopPropagation()}>
-                            <button className="icon-action" onClick={() => { setEditModule(m); setModuleForm({ title: m.title, description: m.description || "" }); setShowModuleForm(true); }}><Edit size={15} /></button>
-                            <button className="icon-action danger" onClick={() => handleDeleteModule(m.id)}><Trash2 size={15} /></button>
-                            <button className="add-lesson-btn" onClick={() => { setSelectedModule(m); setEditLesson(null); const hasFastTrack = isCourseFastTrack(m.courseId); setLessonForm({ title: "", description: "", contentType: hasFastTrack ? "video" : "text", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false }); setShowLessonForm(true); }}><Plus size={14} /> Lesson</button>
-                          </div>
-                        </div>
-                        {expanded && ml.length > 0 && (
-                          <div className="mod-lessons">
-                            {ml.map((l) => {
-                              const Icon = CONTENT_ICONS[l.contentType] || FileText;
-                              return (
-                                <div key={l.id} className="mod-lesson-row" onClick={() => openLessonView(l)} style={{ cursor: "pointer" }}>
-                                  <div className="mod-lesson-icon"><Icon size={15} /></div>
-                                  <span className="mod-lesson-title">{l.title}</span>
-                                  <div className="mod-lesson-meta">
-                                    {l.contentType === "video" && <span>{formatDuration(l.durationSeconds)}</span>}
-                                    {l.isFreePreview && <span className="ft-badge ft-badge-free" style={{ fontSize: 10, padding: "2px 6px" }}>Free</span>}
-                                  </div>
-                                  <div className="mod-lesson-actions" onClick={(e) => e.stopPropagation()}>
-                                    <button className="icon-action" onClick={() => openLessonEdit(l)}><Edit size={13} /></button>
-                                    <button className="icon-action danger" onClick={() => handleDeleteLesson(l.id)}><Trash2 size={13} /></button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </>
+          <button className="primary-button" onClick={() => { setEditModule(null); setModuleForm({ title: "", description: "" }); setShowModuleForm(true); }} style={{ marginBottom: 16, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Plus size={16} /> Add Module
+          </button>
+          {cm.length === 0 ? (
+            <div className="empty-state"><p>No modules yet. Add your first module.</p></div>
           ) : (
-            <div className="empty-state" style={{ marginTop: 20 }}>
-              <Layers size={48} style={{ opacity: 0.3 }} />
-              <p>Fast Track is not enabled for this course.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {cm.map((m) => {
+                const ml = getLessonsForModule(m.id);
+                const expanded = expandedModules[m.id] !== false;
+                return (
+                  <div key={m.id} className="mod-card">
+                    <div className="mod-card-header" onClick={() => toggleModule(m.id)}>
+                      {expanded ? <ChevronDown size={18} style={{ color: "var(--muted)", flexShrink: 0 }} /> : <ChevronRight size={18} style={{ color: "var(--muted)", flexShrink: 0 }} />}
+                      <div className="mod-card-icon"><Layers size={18} /></div>
+                      <div className="mod-card-info">
+                        <strong>{m.title}</strong>
+                        <span>{ml.length} lesson{ml.length !== 1 ? "s" : ""}</span>
+                      </div>
+                      <div className="mod-card-actions" onClick={(e) => e.stopPropagation()}>
+                        <button className="icon-action" onClick={() => { setEditModule(m); setModuleForm({ title: m.title, description: m.description || "" }); setShowModuleForm(true); }}><Edit size={15} /></button>
+                        <button className="icon-action danger" onClick={() => handleDeleteModule(m.id)}><Trash2 size={15} /></button>
+                        <button className="add-lesson-btn" onClick={() => { setSelectedModule(m); setEditLesson(null); const hasFastTrack = isCourseFastTrack(m.courseId); setLessonForm({ title: "", description: "", contentType: hasFastTrack ? "video" : "text", videoUrl: "", textContent: "", documentUrl: "", durationSeconds: 0, isFreePreview: false }); setShowLessonForm(true); }}><Plus size={14} /> Lesson</button>
+                      </div>
+                    </div>
+                    {expanded && ml.length > 0 && (
+                      <div className="mod-lessons">
+                        {ml.map((l) => {
+                          const Icon = CONTENT_ICONS[l.contentType] || FileText;
+                          return (
+                            <div key={l.id} className="mod-lesson-row" onClick={() => openLessonView(l)} style={{ cursor: "pointer" }}>
+                              <div className="mod-lesson-icon"><Icon size={15} /></div>
+                              <span className="mod-lesson-title">{l.title}</span>
+                              <div className="mod-lesson-meta">
+                                {l.contentType === "video" && <span>{formatDuration(l.durationSeconds)}</span>}
+                                {l.isFreePreview && <span className="ft-badge ft-badge-free" style={{ fontSize: 10, padding: "2px 6px" }}>Free</span>}
+                              </div>
+                              <div className="mod-lesson-actions" onClick={(e) => e.stopPropagation()}>
+                                <button className="icon-action" onClick={() => openLessonEdit(l)}><Edit size={13} /></button>
+                                <button className="icon-action danger" onClick={() => handleDeleteLesson(l.id)}><Trash2 size={13} /></button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {!selectedCourse.hasFastTrack && (
+            <div style={{ marginTop: 20, padding: 20, border: "1px dashed var(--border)", borderRadius: 12, background: "var(--surface-soft)", textAlign: "center" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Video content requires Fast Track</p>
+              <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>Add text, documents, and quizzes now. Enable fast track to upload videos.</p>
               {user?.canUploadFastTrack ? (
                 <button className="primary-button" onClick={async () => {
                   try {
@@ -548,10 +546,7 @@ export default function CourseManagement() {
                   } catch (err) { showMsg(err.message || "Failed to enable fast track.", "error"); }
                 }} type="button">Enable Fast Track</button>
               ) : (
-                <div>
-                  <p style={{ fontSize: 14, color: "var(--muted)" }}>Pay &#8358;25,000 to enable fast track and add content to your courses.</p>
-                  <button className="primary-button" onClick={handlePayFastTrack} type="button"><CreditCard size={16} /> Pay &#8358;25,000 to Enable Fast Track</button>
-                </div>
+                <button className="primary-button" onClick={handlePayFastTrack} type="button"><CreditCard size={16} /> Pay &#8358;25,000 to Enable Fast Track</button>
               )}
             </div>
           )}
