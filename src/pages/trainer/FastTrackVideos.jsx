@@ -307,34 +307,36 @@ export default function FastTrackVideos() {
                   const ml = getLessonsForModule(m.id);
                   const expanded = expandedModules[m.id] !== false;
                   return (
-                    <div key={m.id} className="ft-course-card" style={{ cursor: "default" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", flex: 1 }} onClick={() => toggleModule(m.id)}>
-                          {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                          <Layers size={18} style={{ color: "var(--primary)" }} />
-                          <div>
-                            <strong>{m.title}</strong>
-                            <div style={{ fontSize: 13, color: "var(--muted)" }}>{ml.length} lesson{ml.length !== 1 ? "s" : ""}</div>
-                          </div>
+                    <div key={m.id} className="mod-card">
+                      <div className="mod-card-header" onClick={() => toggleModule(m.id)}>
+                        {expanded ? <ChevronDown size={18} style={{ color: "var(--muted)", flexShrink: 0 }} /> : <ChevronRight size={18} style={{ color: "var(--muted)", flexShrink: 0 }} />}
+                        <div className="mod-card-icon"><Layers size={18} /></div>
+                        <div className="mod-card-info">
+                          <strong>{m.title}</strong>
+                          <span>{ml.length} lesson{ml.length !== 1 ? "s" : ""}</span>
                         </div>
-                        <div className="trainer-row-actions">
-                          <button className="icon-action" onClick={() => { setEditModule(m); setModuleForm({ title: m.title, description: m.description || "" }); setShowModuleForm(true); }}><Edit size={16} /></button>
-                          <button className="icon-action danger" onClick={() => handleDeleteModule(m.id)}><Trash2 size={16} /></button>
-                          <button className="primary-button" style={{ padding: "6px 12px", fontSize: 12, minHeight: 0 }} onClick={() => setSelectedModule(m)}><Plus size={14} /> Lesson</button>
+                        <div className="mod-card-actions" onClick={(e) => e.stopPropagation()}>
+                          <button className="icon-action" onClick={() => { setEditModule(m); setModuleForm({ title: m.title, description: m.description || "" }); setShowModuleForm(true); }}><Edit size={15} /></button>
+                          <button className="icon-action danger" onClick={() => handleDeleteModule(m.id)}><Trash2 size={15} /></button>
+                          <button className="add-lesson-btn" onClick={() => setSelectedModule(m)}><Plus size={14} /> Lesson</button>
                         </div>
                       </div>
                       {expanded && ml.length > 0 && (
-                        <div style={{ marginTop: 12, paddingLeft: 28 }}>
+                        <div className="mod-lessons">
                           {ml.map((l) => {
                             const Icon = CONTENT_ICONS[l.contentType] || FileText;
                             return (
-                              <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderTop: "1px solid var(--border)", fontSize: 14 }}>
-                                <Icon size={14} style={{ color: "var(--muted)" }} />
-                                <span style={{ flex: 1 }}>{l.title}</span>
-                                {l.contentType === "video" && <span style={{ fontSize: 12, color: "var(--muted)" }}>{formatDuration(l.durationSeconds)}</span>}
-                                {l.isFreePreview && <span className="ft-badge ft-badge-free" style={{ fontSize: 10 }}>Free</span>}
-                                <button className="icon-action" style={{ padding: 2 }} onClick={() => { setEditLesson(l); setLessonForm({ title: l.title, description: l.description || "", contentType: l.contentType, videoUrl: l.videoUrl || "", textContent: l.textContent || "", documentUrl: l.documentUrl || "", durationSeconds: l.durationSeconds || 0, isFreePreview: l.isFreePreview || false }); setShowLessonForm(true); }}><Edit size={13} /></button>
-                                <button className="icon-action danger" style={{ padding: 2 }} onClick={() => handleDeleteLesson(l.id)}><Trash2 size={13} /></button>
+                              <div key={l.id} className="mod-lesson-row">
+                                <div className="mod-lesson-icon"><Icon size={15} /></div>
+                                <span className="mod-lesson-title">{l.title}</span>
+                                <div className="mod-lesson-meta">
+                                  {l.contentType === "video" && <span>{formatDuration(l.durationSeconds)}</span>}
+                                  {l.isFreePreview && <span className="ft-badge ft-badge-free" style={{ fontSize: 10, padding: "2px 6px" }}>Free</span>}
+                                </div>
+                                <div className="mod-lesson-actions">
+                                  <button className="icon-action" onClick={() => { setEditLesson(l); setLessonForm({ title: l.title, description: l.description || "", contentType: l.contentType, videoUrl: l.videoUrl || "", textContent: l.textContent || "", documentUrl: l.documentUrl || "", durationSeconds: l.durationSeconds || 0, isFreePreview: l.isFreePreview || false }); setShowLessonForm(true); }}><Edit size={13} /></button>
+                                  <button className="icon-action danger" onClick={() => handleDeleteLesson(l.id)}><Trash2 size={13} /></button>
+                                </div>
                               </div>
                             );
                           })}
