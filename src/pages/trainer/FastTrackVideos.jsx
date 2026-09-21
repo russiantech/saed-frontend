@@ -208,12 +208,12 @@ export default function FastTrackVideos() {
               <label>Description<textarea value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} rows={2} /></label>
               {lessonForm.contentType === "video" && (
                 <>
-                  <label>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube URL" /></label>
-                  <div style={{ textAlign: "center", color: "var(--muted)", fontSize: 13, margin: "4px 0" }}>or</div>
-                  <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <input type="file" accept="video/*" onChange={handleFileUpload} disabled={uploadingFile} style={{ fontSize: 13 }} />
-                    {uploadingFile && <span style={{ fontSize: 13 }}>Uploading...</span>}
-                  </label>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <label style={{ flex: 1 }}>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube URL" /></label>
+                    <label style={{ flex: 1 }}>Upload Video<input type="file" accept="video/*" onChange={handleFileUpload} disabled={uploadingFile} style={{ fontSize: 13, paddingTop: 6 }} />
+                      {uploadingFile && <span style={{ fontSize: 12, color: "var(--muted)" }}>Uploading...</span>}
+                    </label>
+                  </div>
                   {lessonForm.videoUrl && <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>Current: {lessonForm.videoUrl}</p>}
                 </>
               )}
