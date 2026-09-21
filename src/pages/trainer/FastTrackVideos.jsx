@@ -192,10 +192,7 @@ export default function FastTrackVideos() {
               <label>Title<input value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} required /></label>
               <label>Description<textarea value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} rows={2} /></label>
               {lessonForm.contentType === "video" && (
-                <>
-                  <label>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube or Vimeo URL" /></label>
-                  <label>Duration (seconds)<input type="number" value={lessonForm.durationSeconds} onChange={(e) => setLessonForm({ ...lessonForm, durationSeconds: Number(e.target.value) })} /></label>
-                </>
+                <label>Video URL<input value={lessonForm.videoUrl} onChange={(e) => handleUrlChange(e.target.value)} placeholder="YouTube or Vimeo URL" /></label>
               )}
               {lessonForm.contentType === "text" && (
                 <label>Text Content<textarea value={lessonForm.textContent} onChange={(e) => setLessonForm({ ...lessonForm, textContent: e.target.value })} rows={6} placeholder="Write lesson content here..." /></label>
