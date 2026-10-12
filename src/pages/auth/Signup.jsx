@@ -185,6 +185,16 @@ export default function Signup() {
                     <TermsCheckbox checked={agree} onChange={setAgree} />
                 )}
 
+                {step === 2 && (
+                    <button
+                        type="button"
+                        className="back-link"
+                        onClick={() => { setSubmitError(null); setFieldErrors({}); setStep(1); }}
+                    >
+                        ← Back to previous step
+                    </button>
+                )}
+
                 <SubmitButton
                     loading={submitting}
                     disabled={step === 2 && !agree}
