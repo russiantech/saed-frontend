@@ -88,6 +88,7 @@ export default function Signup() {
             setFieldErrors(errors);
             if (Object.keys(errors).length > 0) return;
 
+            setSubmitError(null);
             setStep(2);
             return;
         }
@@ -189,7 +190,7 @@ export default function Signup() {
                     <button
                         type="button"
                         className="back-link"
-                        onClick={() => { setSubmitError(null); setFieldErrors({}); setStep(1); }}
+                        onClick={() => setStep(1)}
                     >
                         ← Back to previous step
                     </button>
