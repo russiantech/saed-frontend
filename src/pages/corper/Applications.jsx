@@ -8,7 +8,7 @@ import { useAuth } from "../../lib/auth.jsx";
 export default function Applications() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [applications, setApplications] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [messageType, setMessageType] = useState("");
@@ -23,7 +23,7 @@ export default function Applications() {
           if (firstProgram !== 0) return firstProgram;
           return first.applicant.fullName.localeCompare(second.applicant.fullName);
         });
-        setApplications(sorted);
+        setEnrollments(sorted);
       })
       .catch((err) => {
         if (err.status === 401) {
@@ -40,7 +40,7 @@ export default function Applications() {
     setMessageType(type || "");
   }
 
-  const groupedApplications = applications.reduce((groups, item) => {
+  const groupedEnrollments = enrollments.reduce((groups, item) => {
     const key = item.program.title;
     if (!groups[key]) groups[key] = [];
     groups[key].push(item);
@@ -51,10 +51,10 @@ export default function Applications() {
     <section className="panel full-panel">
       <div className="panel-heading">
         <div>
-          <h2>{canManage ? "Student Applications" : "My Applications"}</h2>
-          <p>{canManage ? "Check submitted student applications sorted by program." : "Track the SAED programs you have applied for."}</p>
+          <h2>{canManage ? "Student Enrollments" : "My Enrollments"}</h2>
+          <p>{canManage ? "Check submitted student enrollments sorted by course." : "Track the SAED courses you have enrolled in."}</p>
         </div>
-        {!canManage ? <Link to="/app/programs">Browse programs</Link> : null}
+        {!canManage ? <Link to="/app/programs">Browse courses</Link> : null}
       </div>
 
       {error && (
@@ -63,29 +63,29 @@ export default function Applications() {
           <button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button>
         </div>
       )}
-      {loading ? <div className="empty-state">Checking your applications...</div> : null}
+      {loading ? <div className="empty-state">Checking your enrollments...</div> : null}
 
-      {!loading && !applications.length ? (
+      {!loading && !enrollments.length ? (
         <div className="empty-state">
           <FileText size={22} />
-          <p>{canManage ? "No student applications have been submitted yet." : "You have not submitted any applications yet."}</p>
-          {!canManage ? <Link className="primary-button" to="/app/programs">Choose a Program</Link> : null}
+          <p>{canManage ? "No student enrollments have been submitted yet." : "You have not enrolled in any courses yet."}</p>
+          {!canManage ? <Link className="primary-button" to="/app/programs">Choose a Course</Link> : null}
         </div>
       ) : null}
 
-      {!loading && canManage && applications.length ? (
+      {!loading && canManage && enrollments.length ? (
         <div className="student-application-groups">
-          {Object.entries(groupedApplications).map(([programTitle, items]) => (
+          {Object.entries(groupedEnrollments).map(([programTitle, items]) => (
             <section className="student-application-group" key={programTitle}>
               <div className="group-heading">
                 <h3>{programTitle}</h3>
-                <span>{items.length} application{items.length === 1 ? "" : "s"}</span>
+                <span>{items.length} enrollment{items.length === 1 ? "" : "s"}</span>
               </div>
               <div className="management-table">
                 <div className="management-row student-application-row table-head">
-                  <span>Applicant</span>
+                  <span>Student</span>
                   <span>Status</span>
-                  <span>Applied</span>
+                  <span>Enrolled</span>
                   <span>Location</span>
                 </div>
                 {items.map((item) => (
@@ -105,9 +105,9 @@ export default function Applications() {
         </div>
       ) : null}
 
-      {!loading && !canManage && applications.length ? (
+      {!loading && !canManage && enrollments.length ? (
         <div className="application-grid">
-          {applications.map((item) => (
+          {enrollments.map((item) => (
             <article className="application-card" key={item.id}>
               <div>
                 <span className={`status-pill status-${item.status}`}>{item.status}</span>
@@ -115,7 +115,7 @@ export default function Applications() {
                 <p>{item.program.description}</p>
               </div>
               <dl>
-                <div><dt>Applied</dt><dd>{new Date(item.createdAt).toLocaleDateString()}</dd></div>
+                <div><dt>Enrolled</dt><dd>{new Date(item.createdAt).toLocaleDateString()}</dd></div>
                 <div><dt>Duration</dt><dd>{item.program.durationWeeks} weeks</dd></div>
                 <div><dt>Location</dt><dd>{item.program.location}</dd></div>
                 <div><dt>Trainer</dt><dd>{item.program.trainerName}</dd></div>

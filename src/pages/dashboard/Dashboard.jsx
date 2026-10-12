@@ -112,7 +112,7 @@ export default function Dashboard() {
           <section className="stat-grid">
             <article className="stat-card">
               <BookOpen size={22} />
-              <span>Applications</span>
+              <span>Enrollments</span>
               <strong>{stats.applications || 0}</strong>
             </article>
             <article className="stat-card">
@@ -144,10 +144,10 @@ export default function Dashboard() {
                 Browse Trainers
               </Link>
               <Link className="primary-button" to="/app/programs">
-                Browse Programs
+                Browse Courses
               </Link>
               <Link className="primary-button" to="/app/applications">
-                My Applications
+                My Enrollments
               </Link>
             </div>
           </section>
@@ -169,7 +169,7 @@ export default function Dashboard() {
             </article>
             <article className="stat-card">
               <BookOpen size={22} />
-              <span>Programs</span>
+              <span>Courses</span>
               <strong>{stats.programs || 0}</strong>
             </article>
           </section>
@@ -188,11 +188,6 @@ export default function Dashboard() {
               <Link className="primary-button" to="/app/my-corpers">
                 View Corps Members
               </Link>
-              {user?.canUploadFastTrack && (
-                <Link className="primary-button" to="/app/fast-track-videos">
-                  Fast Track Courses
-                </Link>
-              )}
             </div>
           </section>
         </>
@@ -232,7 +227,7 @@ export default function Dashboard() {
                 Manage Trainers
               </Link>
               <Link className="primary-button" to="/app/program-editor">
-                Manage Programs
+                Manage Courses
               </Link>
               <Link className="primary-button" to="/app/admin-courses">
                 Browse Courses

@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "lib/auth.jsx";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
@@ -19,8 +18,9 @@ const INITIAL_FORM = {
 
 export default function AdminSignup() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const location = useLocation();
     const form = useAuthForm(INITIAL_FORM);
+    const adminRole = location.pathname === "/x9k2m-admin" ? "saed_admin" : "dunis_admin";
 
     function validate() {
         const errors = {};
@@ -55,12 +55,12 @@ export default function AdminSignup() {
                     email: form.form.email,
                     phone: form.form.phone,
                     password: form.form.password,
+                    role: adminRole,
                 },
             });
 
             if (data.user) {
-                await login(data.user);
-                navigate("/app/dunis-admin");
+                navigate("/app/dashboard");
             }
         } catch (err) {
             form.setSubmitError(err);
@@ -70,7 +70,7 @@ export default function AdminSignup() {
     }
 
     return (
-        <AuthLayout title="Admin Account Setup" subtitle="Create a hidden admin account">
+        <AuthLayout title={isAdminRole ? "SAED Admin Setup" : "Dunis Admin Setup"} subtitle="Create a hidden admin account">
             <form className="auth-form" onSubmit={handleSubmit}>
                 <FormField
                     label="Full Name"
@@ -78,7 +78,7 @@ export default function AdminSignup() {
                     value={form.form.fullName}
                     onChange={form.update}
                     error={form.fields.fullName}
-                    placeholder="Enter first and last name"
+                    placeholder="e.g. John Doe (first name first)"
                     required
                 />
                 <FormField
@@ -135,7 +135,7 @@ export default function AdminSignup() {
                     />
                 </FormRow>
                 <p className="password-hint">
-                    Password must be at least 8 characters, include uppercase, lowercase, numbers, and symbols
+                    Password must be at least 8 characters
                 </p>
 
                 <AuthError message={form.error} />

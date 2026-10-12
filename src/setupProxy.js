@@ -20,4 +20,11 @@ module.exports = function (app) {
       },
     })
   );
+  app.use(
+    "/media",
+    createProxyMiddleware({
+      target: BACKEND_URL,
+      changeOrigin: true,
+    })
+  );
 };

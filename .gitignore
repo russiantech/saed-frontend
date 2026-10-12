@@ -112,3 +112,4 @@ migrations/versions_0/
 # Ignore underscore-prefixed directories everywhere
 _*/
 **/_*/
+.tools/node/node.exe

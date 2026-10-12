@@ -98,7 +98,7 @@ export default function MyCorpers() {
             {paginatedCorpers.map((conn) => (
             <div
               key={conn.id}
-              className="program-row clickable corper-record"
+              className="course-row clickable corper-record"
               onClick={() => navigate(`/app/corper-profile/${conn.corpsMember?.id}`)}
             >
               <div>

@@ -90,7 +90,7 @@ export default function MyTrainers() {
             {paginated.map((trainer) => (
               <div
                 key={trainer.id}
-                className="program-row clickable trainer-record"
+                className="course-row clickable trainer-record"
                 onClick={() => navigate(`/app/connect-trainer/${trainer.id}`)}
               >
                 <div>

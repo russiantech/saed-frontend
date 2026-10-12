@@ -31,7 +31,7 @@ export default function TrainerSelection() {
   }, [user, lga, skill]);
 
   if (!user || user.hasSelectedTrainers) {
-    navigate("/app", { replace: true });
+    navigate("/app/dashboard", { replace: true });
     return null;
   }
 
@@ -57,7 +57,7 @@ export default function TrainerSelection() {
         body: { trainerIds: selected },
       });
       setUser({ ...user, hasSelectedTrainers: true });
-      navigate("/app", { replace: true });
+      navigate("/app/dashboard", { replace: true });
     } catch (err) {
       showMsg(err.message, "error");
     } finally {
@@ -86,7 +86,7 @@ export default function TrainerSelection() {
           <p>You can skip this for now and find trainers later from the Trainers tab.</p>
           <button className="primary-button" onClick={() => {
             setUser({ ...user, hasSelectedTrainers: true });
-            navigate("/app", { replace: true });
+            navigate("/app/dashboard", { replace: true });
           }}>Continue to Dashboard</button>
         </div>
       )}
@@ -127,7 +127,7 @@ export default function TrainerSelection() {
             </button>
             <button className="outline-button" onClick={() => {
               setUser({ ...user, hasSelectedTrainers: true });
-              navigate("/app", { replace: true });
+              navigate("/app/dashboard", { replace: true });
             }}>Skip for now</button>
           </div>
         </>

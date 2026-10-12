@@ -72,36 +72,18 @@ export default function Login() {
         user.role === "trainer" &&
         (!user.isAuthorized || !user.isActive)
       ) {
-        navigate("/inactive-account", {
-          replace: true,
-        });
+        navigate("/app/inactive-account", {
+            replace: true,
+          });
 
         return;
-      }
-
-      const pendingProgramId =
-        location.state?.pendingProgramId;
-
-      if (pendingProgramId) {
-        try {
-          await api("/applications/create/", {
-            method: "POST",
-            body: {
-              programId: pendingProgramId,
-              motivation:
-                "I want to gain practical skills through SAED.",
-            },
-          });
-        } catch {
-          // ignore — application may already exist
-        }
       }
 
       const destination =
         location.state?.redirectTo ||
         (user.role === "dunis_admin"
           ? "/app/dunis-admin"
-          : "/app");
+          : "/app/dashboard");
 
       navigate(destination, {
         replace: true,

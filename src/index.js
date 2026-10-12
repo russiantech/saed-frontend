@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import AppShell from "./components/layout/AppShell.jsx";
-import BackHome from "./components/layout/BackHome.jsx";
 import { AuthProvider, useAuth } from "./lib/auth.jsx";
 
 // Auth pages
@@ -11,7 +10,7 @@ import Login from "./pages/auth/Login.jsx";
 import Signup from "./pages/auth/Signup.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import VerifyEmail from "./pages/auth/VerifyEmail.jsx";
-import InactiveAccount from "./pages/auth/InactiveAccount.jsx";
+import InactiveAccountPage from "./pages/corper/InactiveAccountPage.jsx";
 import TrainerSignupSuccess from "./pages/auth/TrainerSignupSuccess.jsx";
 import AdminSignup from "./pages/auth/AdminSignup.jsx";
 
@@ -29,17 +28,17 @@ import AdminDashboard from "./pages/dashboard/AdminDashboard.jsx";
 
 // Corper pages
 import Applications from "./pages/corper/Applications.jsx";
-import FindTrainers from "./pages/corper/FindTrainers.jsx";
 import ConnectTrainer from "./pages/corper/ConnectTrainer.jsx";
 import ConnectionSuccess from "./pages/corper/ConnectionSuccess.jsx";
 import MyTrainers from "./pages/corper/MyTrainers.jsx";
 import TraineeFastTrack from "./pages/corper/TraineeFastTrack.jsx";
+import CoursePaymentCallback from "./pages/corper/CoursePaymentCallback.jsx";
+import PaymentCallback from "./pages/corper/PaymentCallback.jsx";
 
 // Trainer pages
 import MyCorpers from "./pages/trainer/MyCorpers.jsx";
 import CourseManagement from "./pages/trainer/CourseManagement.jsx";
 import CourseDetail from "./pages/trainer/CourseDetail.jsx";
-import FastTrackVideos from "./pages/trainer/FastTrackVideos.jsx";
 import CorperProfile from "./pages/trainer/CorperProfile.jsx";
 
 // Admin pages
@@ -77,7 +76,15 @@ try {
 
 function homePathForRole(role) {
   if (role === "dunis_admin") return "/app/dunis-admin";
-  return "/app";
+  return "/app/dashboard";
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
 }
 
 function ProtectedRoute({ children, roles }) {
@@ -94,7 +101,7 @@ function ProtectedRoute({ children, roles }) {
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <BackHome />
+      <ScrollToTop />
       <AuthProvider>
         <Routes>
           {/* Public routes */}
@@ -110,9 +117,9 @@ createRoot(document.getElementById("root")).render(
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/inactive-account" element={<InactiveAccount />} />
           <Route path="/trainer-signup-success" element={<TrainerSignupSuccess />} />
           <Route path="/x9k2m-admin" element={<AdminSignup />} />
+          <Route path="/d9x7k-admin" element={<AdminSignup />} />
 
           {/* Admin routes */}
           <Route
@@ -124,9 +131,33 @@ createRoot(document.getElementById("root")).render(
             }
           />
 
-          {/* Form routes */}
-          <Route path="/saed-question" element={<SaedQuestionForm />} />
-          <Route path="/dunis-complaint" element={<DunisComplaintForm />} />
+          {/* Form routes - require authentication */}
+          <Route
+            path="/saed-question"
+            element={
+              <ProtectedRoute>
+                <SaedQuestionForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dunis-complaint"
+            element={
+              <ProtectedRoute>
+                <DunisComplaintForm />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Inactive account page (outside AppShell so it renders for inactive trainers) */}
+          <Route path="/app/inactive-account" element={
+            <ProtectedRoute><InactiveAccountPage /></ProtectedRoute>
+          } />
+
+          {/* Payment callback (outside AppShell so inactive trainers can complete verification) */}
+          <Route path="/app/payment/callback" element={
+            <ProtectedRoute><PaymentCallback /></ProtectedRoute>
+          } />
 
           {/* App shell with protected routes */}
           <Route
@@ -137,22 +168,22 @@ createRoot(document.getElementById("root")).render(
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="programs" element={<Programs />} />
             <Route path="programs/:id" element={<ProgramDetail />} />
 
             {/* Corps member routes */}
             <Route path="applications" element={<ProtectedRoute roles={["corps_member"]}><Applications /></ProtectedRoute>} />
             <Route path="my-trainers" element={<ProtectedRoute roles={["corps_member"]}><MyTrainers /></ProtectedRoute>} />
-            <Route path="find-trainers" element={<ProtectedRoute roles={["corps_member"]}><FindTrainers /></ProtectedRoute>} />
             <Route path="connect-trainer/:trainerId" element={<ProtectedRoute roles={["corps_member"]}><ConnectTrainer /></ProtectedRoute>} />
             <Route path="connection-success" element={<ProtectedRoute roles={["corps_member"]}><ConnectionSuccess /></ProtectedRoute>} />
             <Route path="trainee-fast-track" element={<ProtectedRoute roles={["corps_member"]}><TraineeFastTrack /></ProtectedRoute>} />
+            <Route path="payment/verify" element={<ProtectedRoute roles={["corps_member"]}><CoursePaymentCallback /></ProtectedRoute>} />
 
             {/* Trainer routes */}
             <Route path="course-management" element={<ProtectedRoute roles={["trainer"]}><CourseManagement /></ProtectedRoute>} />
             <Route path="my-corpers" element={<ProtectedRoute roles={["trainer"]}><MyCorpers /></ProtectedRoute>} />
-            <Route path="fast-track-videos" element={<ProtectedRoute roles={["trainer"]}><FastTrackVideos /></ProtectedRoute>} />
             <Route path="corper-profile/:corperId" element={<ProtectedRoute roles={["trainer"]}><CorperProfile /></ProtectedRoute>} />
 
             {/* Admin routes inside app */}

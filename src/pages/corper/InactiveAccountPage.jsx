@@ -1,6 +1,6 @@
 import { ShieldAlert, CreditCard, X, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth.jsx";
 import { api } from "../../lib/api.js";
 
@@ -13,11 +13,10 @@ export default function InactiveAccountPage() {
 
   const needsSaedApproval = user && !user.isAuthorized;
   const needsDunisActivation = user && !user.isActive;
-  const onlyOneMessage = (needsSaedApproval && !needsDunisActivation) || (!needsSaedApproval && needsDunisActivation);
 
   useEffect(() => {
     if (user && user.isAuthorized && user.isActive) {
-      navigate("/app", { replace: true });
+      navigate("/app/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
@@ -34,7 +33,7 @@ export default function InactiveAccountPage() {
         method: "POST",
         body: { email: user.email, amount: Number(process.env.REACT_APP_PAYSTACK_DEFAULT_AMOUNT) || 50000 },
       });
-      showMsg(`Payment reference: ${data.reference}. Complete payment to activate your account.`, "success");
+      window.location.assign(data.authorization_url);
     } catch (err) {
       showMsg(err.message, "error");
     } finally {
@@ -61,27 +60,14 @@ export default function InactiveAccountPage() {
         </div>
         <h2>Account Inactive</h2>
 
-        {needsSaedApproval && (
-          <div className={`inactive-message-box${onlyOneMessage ? " inactive-message-box--centered" : ""}`}>
+        {(needsSaedApproval || needsDunisActivation) && (
+          <div className="inactive-message-box">
             <p>
-              Your account has not been approved by SAED admin. If you have any questions,{" "}
-              <Link to="/saed-question" className="link-button">click here</Link>.
-            </p>
-          </div>
-        )}
-
-        {needsDunisActivation && (
-          <div className={`inactive-message-box${onlyOneMessage ? " inactive-message-box--centered" : ""}`}>
-            <p>
-              To activate your account, click the button below to make payment.
+              Click the button below to pay for activation and continue as a trainer.
             </p>
             <button className="primary-button pay-button" disabled={paying} onClick={handlePay}>
-              <CreditCard size={16} /> {paying ? "Initializing..." : "Make Payment"}
+              <CreditCard size={16} /> {paying ? "Initializing..." : "Pay to Activate"}
             </button>
-            <p className="inactive-small-print">
-              If you have made payment,{" "}
-              <Link to="/dunis-complaint" className="link-button">click here</Link>.
-            </p>
           </div>
         )}
 

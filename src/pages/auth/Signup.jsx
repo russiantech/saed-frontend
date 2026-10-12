@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "lib/auth.jsx";
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
@@ -8,7 +7,7 @@ import { RoleSelector, FormField, FormRow, SubmitButton, StepIndicator, TermsChe
 import useAuthForm from "hooks/useAuthForm.js";
 import useToggleArray from "hooks/useToggleArray.js";
 import { validateFullName, validateEmail, validatePhone, validateUsername, validatePassword, validateNyscCode, validateRequired } from "constants/validators.js";
-import { SKILL_AREAS, MESSAGES } from "constants/constants.js";
+import { SKILL_AREAS, SKILL_AREA_OPTIONS, MESSAGES } from "constants/constants.js";
 import { LAGOS_LGAS } from "data/nigerianStates.js";
 
 const INITIAL_FORM = {
@@ -22,18 +21,10 @@ const INITIAL_FORM = {
     lgaOfDeployment: "",
     skillInterest: "",
     skillInterests: [],
-    specialization: "",
-    partnerLgas: [],
-    yearsExperience: "",
-    bio: "",
-    companyName: "",
-    numberTrained: "",
-    partnershipLetter: null,
 };
 
 export default function Signup() {
     const navigate = useNavigate();
-    const { signup } = useAuth();
     const [role, setRole] = useState("corps_member");
     const [step, setStep] = useState(1);
     const [agree, setAgree] = useState(false);
@@ -68,7 +59,7 @@ export default function Signup() {
         if (codeErr) errors.nyscStateCode = codeErr;
 
         const lgaErr = validateRequired(formData.lgaOfDeployment, MESSAGES.LGA_REQUIRED);
-        if (lgaErr) errors.lgaOfDeployment = MESSAGES.LGA_REQUIRED;
+        if (lgaErr) errors.lgaOfDeployment = lgaErr;
 
         if (!formData.skillInterests || formData.skillInterests.length === 0) {
             errors.skillInterest = MESSAGES.SKILL_REQUIRED;
@@ -79,7 +70,7 @@ export default function Signup() {
     function validateStep2Trainer() {
         const errors = {};
         const specErr = validateRequired(formData.specialization, MESSAGES.SPECIALIZATION_REQUIRED);
-        if (specErr) errors.specialization = MESSAGES.SPECIALIZATION_REQUIRED;
+        if (specErr) errors.specialization = specErr;
 
         const lgaErr = validateRequired(partnerLgas, MESSAGES.LGA_MIN);
         if (lgaErr) errors.partnerLgas = MESSAGES.LGA_MIN;
@@ -97,30 +88,7 @@ export default function Signup() {
             setFieldErrors(errors);
             if (Object.keys(errors).length > 0) return;
 
-            startSubmit();
-            try {
-                const data = await api("/auth/validate-signup/", {
-                    method: "POST",
-                    body: {
-                        fullName: formData.fullName,
-                        username: formData.username,
-                        email: formData.email,
-                        phone: formData.phone,
-                    },
-                });
-
-                setStep(2);
-            } catch (err) {
-                if (err.data?.fields) {
-                    setFieldErrors(err.data.fields);
-                    const fieldMessages = Object.values(err.data.fields).join(". ");
-                    setSubmitError(new Error(fieldMessages));
-                } else {
-                    setSubmitError(err);
-                }
-            } finally {
-                endSubmit();
-            }
+            setStep(2);
             return;
         }
 
@@ -159,15 +127,18 @@ export default function Signup() {
                     throw new Error("Invalid response from server. Please try again.");
                 }
 
-                navigate("/trainer-signup-success");
+                navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
             } else {
-                await signup({
-                    ...formData,
-                    role: "corps_member",
-                    stateOfDeployment: "Lagos",
-                    skillInterests: formData.skillInterests || [],
+                const data = await api("/auth/signup/", {
+                    method: "POST",
+                    body: {
+                        ...formData,
+                        role: "corps_member",
+                        stateOfDeployment: "Lagos",
+                        skillInterests: formData.skillInterests || [],
+                    },
                 });
-                navigate("/app");
+                navigate(`/verify-email?email=${encodeURIComponent(data.email || formData.email)}`);
             }
         } catch (err) {
             if (err.name === "AbortError") {
@@ -189,7 +160,7 @@ export default function Signup() {
             : "Select your skills and deployment info";
 
     return (
-        <AuthLayout title="Create Your Account" subtitle={subtitle}>
+        <AuthLayout title="Create Your Account" subtitle={subtitle} onBack={() => step === 2 ? setStep(1) : navigate(-1)}>
             <StepIndicator current={step} total={2} />
 
             {step === 1 && (
@@ -220,16 +191,6 @@ export default function Signup() {
                 >
                     {step === 1 ? "Continue to Next Step →" : isTrainer ? "Create Trainer Account →" : "Create Account →"}
                 </SubmitButton>
-
-                {step === 2 && (
-                    <button
-                        type="button"
-                        className="outline-button"
-                        onClick={() => setStep(1)}
-                    >
-                        ← Back
-                    </button>
-                )}
             </form>
 
             <p className="auth-switch">
@@ -250,7 +211,7 @@ function PersonalInfo({ form, fields, update }) {
                 value={form.fullName}
                 onChange={update}
                 error={fields.fullName}
-                placeholder="Enter your full name"
+                placeholder="e.g. John Doe (first name first)"
                 required
             />
             <FormField
@@ -311,7 +272,7 @@ function PersonalInfo({ form, fields, update }) {
                 />
             </FormRow>
             <p className="password-hint">
-                Password must be at least 8 characters, include uppercase, lowercase, numbers, and symbols
+                Password must be at least 8 characters
             </p>
         </>
     );
@@ -391,7 +352,7 @@ function TrainerStep2({ form, fields, update, lgas, toggleLga }) {
                 onChange={update}
                 error={fields.specialization}
                 placeholder="Select your Skill Area"
-                options={SKILL_AREAS}
+                options={SKILL_AREA_OPTIONS}
                 required
             />
 

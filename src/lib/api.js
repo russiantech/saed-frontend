@@ -1,5 +1,3 @@
-
-
 // v5
 // src/lib/api.js — v6
 // KEY FIX: When CSRF fails, we now call /auth/clear-session/ (which is
@@ -27,46 +25,6 @@ export function onAuthError(handler) {
 // ============================================================
 // CSRF Token Management
 // ============================================================
-
-/*
-async function fetchCsrfToken() {
-  if (csrfToken) {
-    return csrfToken;
-  }
-
-  if (csrfFetchPromise) {
-    return csrfFetchPromise;
-  }
-
-  csrfFetchPromise = (async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/csrf/`, {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        return "";
-      }
-
-      const data = await response.json();
-      csrfToken = data?.csrfToken || "";
-      return csrfToken;
-    } catch {
-      return "";
-    } finally {
-      csrfFetchPromise = null;
-    }
-  })();
-
-  return csrfFetchPromise;
-}
-*/
-
-// A CSRF 403 means the CSRF cookie is stale or wasn't attached yet. It does
-// NOT mean the session is broken. Recovery is: drop the cached token, force
-// a fresh /csrf/ fetch (which re-sets the csrftoken cookie for the CURRENT
-// session), and retry once. We never ask the backend to flush the session
-// here — that's a distinct, user-initiated action (see logout()).
 
 async function fetchCsrfToken(force = false) {
   if (csrfToken && !force) return csrfToken;
@@ -182,9 +140,6 @@ async function parseResponse(response) {
 // ============================================================
 
 function createApiError(response, data, text) {
-
-  console.error("Response:", response, "Data:", data, "Text:", text); // Debugging log
-
   let message = data?.error || data?.detail || data?.message;
 
   if (!message) {
@@ -210,15 +165,28 @@ function createApiError(response, data, text) {
   }
 
   const error = new Error(message);
-  error.status = response.status;
+  const authenticationFailure = isAuthenticationFailure(response, data);
+  error.status = authenticationFailure ? 401 : response.status;
   error.data = data;
   error.raw = text;
 
-  if (response.status === 401 && !authErrorsSuppressed) {
+  if (authenticationFailure && !authErrorsSuppressed) {
+    clearCsrfToken();
     authErrorHandlers.forEach((h) => h());
   }
 
   return error;
+}
+
+function isAuthenticationFailure(response, data) {
+  if (response.status === 401) return true;
+  if (response.status !== 403) return false;
+
+  const detail = String(data?.detail || data?.error || data?.message || "").toLowerCase();
+  return (
+    detail.includes("authentication credentials were not provided") ||
+    detail.includes("session has expired")
+  );
 }
 
 function isCsrfFailure(response, text = "") {
@@ -250,33 +218,9 @@ export async function api(path, options = {}) {
     let { data, text } = await parseResponse(response);
 
     // ── Automatic CSRF Retry ──────────────────────────────────
-    /*
-    if (!response.ok && isCsrfFailure(response, text)) {
-      // 1. Ask the BACKEND to delete the HttpOnly sessionid cookie
-      //    (we cannot do this from JS).
-      await clearSessionViaBackend();
-
-      // 2. Forget our cached CSRF token and fetch a fresh one.
-      //    Django will now create a brand-new session, so the new
-      //    token will actually be valid.
-      clearCsrfToken();
-      const freshToken = await fetchCsrfToken();
-
-      // 3. Retry the original request with the new token.
-      response = await fetch(`${API_BASE_URL}${path}`, {
-        method,
-        credentials: "include",
-        headers: { ...headers, "X-CSRFToken": freshToken },
-        body,
-      });
-
-      ({ data, text } = await parseResponse(response));
-    }
-    */
-
     if (!response.ok && isCsrfFailure(response, text)) {
       clearCsrfToken();
-      const freshToken = await fetchCsrfToken(/* force */ true);
+      const freshToken = await fetchCsrfToken(true);
 
       response = await fetch(`${API_BASE_URL}${path}`, {
         method,
@@ -286,10 +230,6 @@ export async function api(path, options = {}) {
       });
 
       ({ data, text } = await parseResponse(response));
-
-      // If it fails again, this is a genuine auth problem (expired/invalid
-      // session) — surface it via the normal 401/403 handler below rather
-      // than silently retrying or wiping state.
     }
 
     // ── Handle API Errors ─────────────────────────────────────
@@ -300,12 +240,8 @@ export async function api(path, options = {}) {
       throw createApiError(response, data, text);
     }
 
-    console.log("API response data:", data); // Debugging log
-
     return data;
   } catch (error) {
-    console.error("API call failed:", error); // Debugging log
-
     if (error instanceof TypeError) {
       console.error("API Network Error:", error);
       throw new Error(
@@ -334,4 +270,3 @@ export const patch = (path, options = {}) =>
 
 export const del = (path, options = {}) =>
   api(path, { ...options, method: "DELETE" });
-
