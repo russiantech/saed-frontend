@@ -1,10 +1,15 @@
 import { ArrowLeft, Send, X, Upload } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { api } from "../../lib/api.js";
 
-export default function SaedQuestionForm() {
-  const [subject, setSubject] = useState("");
+export default function SupportComplaintForm({ defaultRecipient }) {
+  const location = useLocation();
+  const inferredRecipient = defaultRecipient || (location.pathname.includes("dunis") ? "dunis_admin" : "saed_admin");
+  const isDunis = inferredRecipient === "dunis_admin";
+
+  const [recipient, setRecipient] = useState(inferredRecipient);
+  const [subject, setSubject] = useState(isDunis ? "Payment issue" : "Account approval status");
   const [message, setMessage] = useState("");
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -37,19 +42,22 @@ export default function SaedQuestionForm() {
       await api("/submit-complaint/", {
         method: "POST",
         body: {
-          subject: subject || "Question about account approval",
+          subject,
           message,
-          recipient: "saed_admin",
+          recipient,
           attachmentUrl,
         },
       });
-      setResult("Your question has been submitted. A SAED admin will review it shortly.");
+      setResult(
+        recipient === "dunis_admin"
+          ? "Your complaint has been submitted. A Dunis admin will review it shortly."
+          : "Your question has been submitted. A SAED admin will review it shortly."
+      );
       setResultType("success");
-      setSubject("");
       setMessage("");
       setAttachmentUrl("");
     } catch (err) {
-      setResult(err.message);
+      setResult(err.message || "Failed to submit request.");
       setResultType("error");
     } finally {
       setSending(false);
@@ -60,8 +68,12 @@ export default function SaedQuestionForm() {
     <section className="inactive-account-page">
       <div className="inactive-account-card">
         <Link className="back-link" to="/app/inactive-account"><ArrowLeft size={16} /> Back</Link>
-        <h2>Ask SAED Admin</h2>
-        <p>Submit a question or concern about your account approval.</p>
+        <h2>{recipient === "dunis_admin" ? "Payment & Technical Support" : "Ask SAED Admin"}</h2>
+        <p>
+          {recipient === "dunis_admin"
+            ? "Submit a question or complaint regarding payment or technical issues."
+            : "Submit a question or inquiry about your account approval or program moderation."}
+        </p>
 
         {result && (
           <div className={`inline-message inline-message--${resultType || "error"}`} style={{ marginBottom: 16 }}>
@@ -71,34 +83,51 @@ export default function SaedQuestionForm() {
         )}
 
         <form onSubmit={handleSubmit}>
+          <label>Department / Admin
+            <select
+              value={recipient}
+              onChange={(e) => {
+                setRecipient(e.target.value);
+                setSubject(e.target.value === "dunis_admin" ? "Payment issue" : "Account approval status");
+              }}
+            >
+              <option value="saed_admin">SAED Admin (Approvals & Programs)</option>
+              <option value="dunis_admin">Dunis Admin (Payments & Verification)</option>
+            </select>
+          </label>
+
           <label>Subject
             <input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="e.g. Account approval status"
+              placeholder="e.g. Payment inquiry or account status"
+              required
             />
           </label>
+
           <label>Message *
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Describe your question or concern..."
+              placeholder="Describe your inquiry or issue in detail..."
               rows={5}
               required
             />
           </label>
+
           <div>
             <span style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Attachment (optional)</span>
             <div className="file-upload-input">
-              <input type="file" id="saed-complaint-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" onChange={handleFileUpload} disabled={uploading} />
-              <label htmlFor="saed-complaint-file" className="file-upload-label">
+              <input type="file" id="support-complaint-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" onChange={handleFileUpload} disabled={uploading} />
+              <label htmlFor="support-complaint-file" className="file-upload-label">
                 <Upload size={14} /> {uploading ? "Uploading..." : "Choose File"}
               </label>
               {attachmentUrl && !uploading && <span className="file-upload-name">{attachmentUrl.split("/").pop()}</span>}
             </div>
           </div>
-          <button className="primary-button" type="submit" disabled={sending} style={{ width: "100%" }}>
-            <Send size={16} /> {sending ? "Sending..." : "Submit Question"}
+
+          <button className="primary-button" type="submit" disabled={sending} style={{ width: "100%", marginTop: 8 }}>
+            <Send size={16} /> {sending ? "Sending..." : "Submit Inquiry"}
           </button>
         </form>
       </div>

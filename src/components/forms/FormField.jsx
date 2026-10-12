@@ -1,6 +1,7 @@
-import { User, GraduationCap, Eye, EyeOff } from "lucide-react";
+import { User, GraduationCap, Eye, EyeOff, Sparkles, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { generateStrongPassword } from "constants/validators.js";
 
 export function FormField({
   label,
@@ -17,6 +18,7 @@ export function FormField({
   accept = null,
   minLength,
   autoComplete,
+  action = null,
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +37,14 @@ export function FormField({
 
   return (
     <label htmlFor={inputId}>
-      {label} {required && "*"}
+      {action ? (
+        <span className="field-label-row">
+          <span className="field-label-text">{label} {required && "*"}</span>
+          {action}
+        </span>
+      ) : (
+        <span>{label} {required && "*"}</span>
+      )}
       {type === "password" ? (
         <div className="password-input-wrap">
           <input
@@ -48,6 +57,29 @@ export function FormField({
             className="password-eye-button"
             onClick={() => setShowPassword((s) => !s)}
             aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+      ) : type === "security-key" ? (
+        <div className="password-input-wrap">
+          <input
+            {...inputProps}
+            type="text"
+            className={`security-key-input ${showPassword ? "revealed" : ""}`}
+            autoComplete={autoComplete || "one-time-code"}
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
+          />
+          <button
+            type="button"
+            className="password-eye-button"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowPassword((s) => !s);
+            }}
+            aria-label={showPassword ? "Hide security key" : "Show security key"}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -185,4 +217,43 @@ export function TermsCheckbox({ checked, onChange }) {
     </div>
   );
 }
+
+// Suggest Password Button
+export function SuggestPasswordButton({ onGenerate, label = "Suggest strong password" }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const pwd = generateStrongPassword();
+    if (onGenerate) onGenerate(pwd);
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(pwd).catch(() => {});
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <button
+      type="button"
+      className={`btn-suggest-password ${copied ? "copied" : ""}`}
+      onClick={handleClick}
+      title="Generate a cryptographically secure 16-character password and copy it to clipboard"
+    >
+      {copied ? (
+        <>
+          <Check size={13} className="suggest-icon" />
+          <span>Password filled & copied!</span>
+        </>
+      ) : (
+        <>
+          <Sparkles size={13} className="suggest-icon" />
+          <span>{label}</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 

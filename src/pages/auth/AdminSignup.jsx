@@ -1,9 +1,11 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Shield, ShieldCheck } from "lucide-react";
 
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
-import { FormField, FormRow, SubmitButton } from "components/forms/FormField.jsx";
+import { FormField, FormRow, SubmitButton, SuggestPasswordButton } from "components/forms/FormField.jsx";
 import useAuthForm from "hooks/useAuthForm.js";
 import { validateFullName, validateEmail, validateUsername, validatePassword, validatePhone } from "constants/validators.js";
 
@@ -17,12 +19,17 @@ const INITIAL_FORM = {
     secret: "",
 };
 
+const ADMIN_ROLES = [
+    { key: "dunis_admin", label: "Dunis Admin", icon: ShieldCheck, desc: "Platform & payments management" },
+    { key: "saed_admin", label: "SAED Admin", icon: Shield, desc: "Program & user moderation" },
+];
+
 export default function AdminSignup() {
     const navigate = useNavigate();
-    const location = useLocation();
     const form = useAuthForm(INITIAL_FORM);
-    const adminRole = location.pathname === "/x9k2m-admin" ? "saed_admin" : "dunis_admin";
-    const isAdminRole = adminRole === "saed_admin";
+
+    const [adminRole, setAdminRole] = useState("dunis_admin");
+    const isDunis = adminRole === "dunis_admin";
 
     function validate() {
         const errors = {};
@@ -40,6 +47,11 @@ export default function AdminSignup() {
         const pwErrors = validatePassword(form.form.password, form.form.confirmPassword);
         Object.assign(errors, pwErrors);
         return errors;
+    }
+
+    function handleSuggestPassword(pwd) {
+        form.update("password", pwd);
+        form.update("confirmPassword", pwd);
     }
 
     async function handleSubmit(event) {
@@ -63,9 +75,7 @@ export default function AdminSignup() {
                 },
             });
 
-            if (data.user) {
-                navigate("/app/dashboard");
-            }
+            navigate(`/verify-email?email=${encodeURIComponent(data.email || form.form.email.trim())}`);
         } catch (err) {
             form.setSubmitError(err);
         } finally {
@@ -74,9 +84,28 @@ export default function AdminSignup() {
     }
 
     return (
-        <AuthLayout title={isAdminRole ? "SAED Admin Setup" : "Dunis Admin Setup"} subtitle="Create an authorized admin account">
-            <form className="auth-form" onSubmit={handleSubmit}>
+        <AuthLayout
+            title={isDunis ? "Dunis Admin Setup" : "SAED Admin Setup"}
+            subtitle={isDunis ? "Create an authorized Dunis admin account" : "Create an authorized SAED admin account"}
+        >
+            <form className="auth-form" onSubmit={handleSubmit} method="POST">
+                <div className="role-selector" style={{ marginBottom: "20px" }}>
+                    {ADMIN_ROLES.map(({ key, label, icon: Icon, desc }) => (
+                        <button
+                            key={key}
+                            type="button"
+                            className={`role-card ${adminRole === key ? "selected" : ""}`}
+                            onClick={() => setAdminRole(key)}
+                            style={{ padding: "16px 12px", textAlign: "center" }}
+                        >
+                            <Icon size={24} color={adminRole === key ? "#145f3f" : "var(--muted)"} />
+                            <span style={{ fontSize: "14px", fontWeight: "700" }}>{label}</span>
+                            <small style={{ fontSize: "11px", color: "var(--muted)", marginTop: "-4px" }}>{desc}</small>
+                        </button>
+                    ))}
+                </div>
                 <FormField
+                    id="admin-fullname"
                     label="Full Name"
                     name="fullName"
                     autoComplete="name"
@@ -87,6 +116,7 @@ export default function AdminSignup() {
                     required
                 />
                 <FormField
+                    id="admin-username"
                     label="Username"
                     name="username"
                     autoComplete="username"
@@ -98,6 +128,7 @@ export default function AdminSignup() {
                 />
                 <FormRow>
                     <FormField
+                        id="admin-email"
                         label="Email Address"
                         name="email"
                         type="email"
@@ -109,6 +140,7 @@ export default function AdminSignup() {
                         required
                     />
                     <FormField
+                        id="admin-phone"
                         label="Phone Number"
                         name="phone"
                         type="phone"
@@ -121,6 +153,7 @@ export default function AdminSignup() {
                 </FormRow>
                 <FormRow>
                     <FormField
+                        id="admin-password"
                         label="Password"
                         name="password"
                         type="password"
@@ -132,8 +165,10 @@ export default function AdminSignup() {
                         placeholder="Create a password"
                         minLength={8}
                         required
+                        action={<SuggestPasswordButton onGenerate={handleSuggestPassword} />}
                     />
                     <FormField
+                        id="admin-confirm-password"
                         label="Confirm Password"
                         name="confirmPassword"
                         type="password"
@@ -151,10 +186,10 @@ export default function AdminSignup() {
                 </p>
 
                 <FormField
+                    id="admin-security-key"
                     label="Admin Security Key"
                     name="secret"
-                    type="password"
-                    autoComplete="off"
+                    type="security-key"
                     value={form.form.secret}
                     onChange={form.update}
                     error={form.fields.secret}

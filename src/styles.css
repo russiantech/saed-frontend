@@ -360,6 +360,56 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   color: var(--muted);
 }
 .password-eye-button:hover { background: var(--surface-soft); color: var(--text); }
+.security-key-input {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+.security-key-input.revealed {
+  -webkit-text-security: none;
+  text-security: none;
+}
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.field-label-text {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 14px;
+}
+.btn-suggest-password {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(20, 95, 63, 0.08);
+  border: 1px solid rgba(20, 95, 63, 0.22);
+  color: var(--brand, #145f3f);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  line-height: 1.2;
+  text-decoration: none;
+  user-select: none;
+}
+.btn-suggest-password:hover {
+  background: rgba(20, 95, 63, 0.16);
+  border-color: var(--brand, #145f3f);
+  transform: translateY(-1px);
+}
+.btn-suggest-password.copied {
+  background: #145f3f;
+  color: #ffffff;
+  border-color: #145f3f;
+}
+.btn-suggest-password .suggest-icon {
+  flex-shrink: 0;
+}
+
 .management-form textarea { min-height: 124px; padding: 14px; resize: vertical; }
 .auth-form input:focus,
 .management-form input:focus,

@@ -49,3 +49,28 @@ export function validateRequired(value, message) {
   return null;
 }
 
+export function generateStrongPassword() {
+  const lower = "abcdefghjkmnpqrstuvwxyz";
+  const upper = "ABCDEFGHJKMNPQRSTUVWXYZ";
+  const numbers = "23456789";
+  const symbols = "!@#$%^&*_-+=";
+  const all = lower + upper + numbers + symbols;
+  const cryptoObj = window.crypto || window.msCrypto;
+  let bytes = new Uint8Array(16);
+  if (cryptoObj) {
+    cryptoObj.getRandomValues(bytes);
+  } else {
+    bytes = Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
+  }
+  const pwd = [
+    upper[bytes[0] % upper.length],
+    lower[bytes[1] % lower.length],
+    numbers[bytes[2] % numbers.length],
+    symbols[bytes[3] % symbols.length],
+  ];
+  for (let i = 4; i < 16; i++) {
+    pwd.push(all[bytes[i] % all.length]);
+  }
+  return pwd.sort(() => (bytes[15] % 2 === 0 ? 0.5 - Math.random() : -0.5)).join("");
+}
+

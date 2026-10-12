@@ -12,7 +12,6 @@ import Signup from "./pages/auth/Signup.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import VerifyEmail from "./pages/auth/VerifyEmail.jsx";
 import InactiveAccountPage from "./pages/corper/InactiveAccountPage.jsx";
-import TrainerSignupSuccess from "./pages/auth/TrainerSignupSuccess.jsx";
 import AdminSignup from "./pages/auth/AdminSignup.jsx";
 
 // Public pages
@@ -25,7 +24,6 @@ import ProgramDetail from "./pages/public/ProgramDetail.jsx";
 
 // Dashboard pages
 import Dashboard from "./pages/dashboard/Dashboard.jsx";
-import AdminDashboard from "./pages/dashboard/AdminDashboard.jsx";
 
 // Corper pages
 import Applications from "./pages/corper/Applications.jsx";
@@ -33,7 +31,6 @@ import ConnectTrainer from "./pages/corper/ConnectTrainer.jsx";
 import ConnectionSuccess from "./pages/corper/ConnectionSuccess.jsx";
 import MyTrainers from "./pages/corper/MyTrainers.jsx";
 import TraineeFastTrack from "./pages/corper/TraineeFastTrack.jsx";
-import CoursePaymentCallback from "./pages/corper/CoursePaymentCallback.jsx";
 import PaymentCallback from "./pages/corper/PaymentCallback.jsx";
 
 // Trainer pages
@@ -46,12 +43,10 @@ import CorperProfile from "./pages/trainer/CorperProfile.jsx";
 import ManageUsers from "./pages/admin/ManageUsers.jsx";
 import ManageApplications from "./pages/admin/ManageApplications.jsx";
 import ProgramEditor from "./pages/admin/ProgramEditor.jsx";
-import AdminCourses from "./pages/admin/AdminCourses.jsx";
 import DunisAdmin from "./pages/admin/DunisAdmin.jsx";
 
 // Form pages
-import SaedQuestionForm from "./pages/forms/SaedQuestionForm.jsx";
-import DunisComplaintForm from "./pages/forms/DunisComplaintForm.jsx";
+import SupportComplaintForm from "./pages/forms/SupportComplaintForm.jsx";
 
 // Profile pages
 import Notifications from "./pages/profile/Notifications.jsx";
@@ -119,26 +114,14 @@ createRoot(document.getElementById("root")).render(
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/trainer-signup-success" element={<TrainerSignupSuccess />} />
-          <Route path="/x9k2m-admin" element={<AdminSignup />} />
-          <Route path="/d9x7k-admin" element={<AdminSignup />} />
-
-          {/* Admin routes */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute roles={["saed_admin", "dunis_admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/admin-signup" element={<AdminSignup />} />
 
           {/* Form routes - require authentication */}
           <Route
             path="/saed-question"
             element={
               <ProtectedRoute>
-                <SaedQuestionForm />
+                <SupportComplaintForm defaultRecipient="saed_admin" />
               </ProtectedRoute>
             }
           />
@@ -146,7 +129,15 @@ createRoot(document.getElementById("root")).render(
             path="/dunis-complaint"
             element={
               <ProtectedRoute>
-                <DunisComplaintForm />
+                <SupportComplaintForm defaultRecipient="dunis_admin" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/support"
+            element={
+              <ProtectedRoute>
+                <SupportComplaintForm />
               </ProtectedRoute>
             }
           />
@@ -181,7 +172,6 @@ createRoot(document.getElementById("root")).render(
             <Route path="connect-trainer/:trainerId" element={<ProtectedRoute roles={["corps_member"]}><ConnectTrainer /></ProtectedRoute>} />
             <Route path="connection-success" element={<ProtectedRoute roles={["corps_member"]}><ConnectionSuccess /></ProtectedRoute>} />
             <Route path="trainee-fast-track" element={<ProtectedRoute roles={["corps_member"]}><TraineeFastTrack /></ProtectedRoute>} />
-            <Route path="payment/verify" element={<ProtectedRoute roles={["corps_member"]}><CoursePaymentCallback /></ProtectedRoute>} />
 
             {/* Trainer routes */}
             <Route path="course-management" element={<ProtectedRoute roles={["trainer"]}><CourseManagement /></ProtectedRoute>} />
@@ -190,7 +180,6 @@ createRoot(document.getElementById("root")).render(
 
             {/* Admin routes inside app */}
             <Route path="manage-applications" element={<ProtectedRoute roles={["saed_admin", "dunis_admin", "trainer"]}><ManageApplications /></ProtectedRoute>} />
-            <Route path="admin-courses" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><AdminCourses /></ProtectedRoute>} />
             <Route path="program-editor" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><ProgramEditor /></ProtectedRoute>} />
             <Route path="users" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><ManageUsers /></ProtectedRoute>} />
             <Route path="dunis-admin" element={<ProtectedRoute roles={["dunis_admin"]}><DunisAdmin /></ProtectedRoute>} />

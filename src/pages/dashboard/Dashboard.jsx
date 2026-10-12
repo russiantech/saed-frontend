@@ -240,9 +240,6 @@ export default function Dashboard() {
               <Link className="primary-button" to="/app/program-editor">
                 Manage Courses
               </Link>
-              <Link className="primary-button" to="/app/admin-courses">
-                Browse Courses
-              </Link>
             </div>
           </section>
         </>

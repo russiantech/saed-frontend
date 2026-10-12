@@ -134,30 +134,33 @@ The frontend uses `HashRouter`, so browser URLs use hash fragments such as `/#/a
 | `/activities` | Public | Camp activities listing. |
 | `/activities/:id` | Public | Detail page for a single camp activity. |
 | `/opportunities` | Public | Opportunities page. |
-| `/forgot` | Public | Password reset page. |
-| `/login` | Public | Email/password login for all roles. |
-| `/signup` | Public | Corps member signup with step-by-step registration. |
-| `/trainer-signup` | Public | Trainer self-registration (requires admin authorization). |
+| `/forgot` | Public | Password reset page (3-step 6-digit code flow). |
+| `/login` | Public | Email/password login for verified accounts. |
+| `/signup` | Public | Corps member & trainer signup. |
+| `/trainer-signup` | Public | Trainer self-registration (dispatches 6-digit code). |
+| `/verify-email` | Public | 6-digit email OTP verification with auto-login and role-based redirect. |
+| `/admin-signup` | Public | Unified admin registration with Dunis/SAED role toggle (requires `ADMIN_SIGNUP_SECRET`). |
 | `/programs` | Public | Public program browsing. |
 | `/app` | Authenticated | Dashboard. |
-| `/app/programs` | Authenticated | Corps member application actions; admin/trainer program detail viewing. Trainers only see their assigned programs. |
+| `/app/programs` | Authenticated | Corps member application actions; admin/trainer program detail viewing. |
 | `/app/applications` | Corps Member | Application tracking. |
 | `/app/manage-applications` | Admin/Trainer | Review applications, with status filters (All, Pending, Approved, Declined, Completed). |
-| `/app/program-editor` | Admin | Create and edit programs. Trainers are not allowed. |
-| `/app/users` | Admin | Create trainer accounts, manage access, and authorize/deauthorize trainers. |
+| `/app/program-editor` | Admin | Course moderation and management (SAED Admin: view/restrict only; Dunis Admin: create/edit/restrict). |
+| `/app/users` | Admin | Manage users, account activation, and trainer authorization. |
+| `/app/dunis-admin` | Dunis Admin | Payments and Fast Track administration. |
 
 ## Auth Flow
 
 1. The app calls `/api/auth/me/` on load to restore an existing Django session.
-2. Login posts email and password to `/api/auth/login/`.
-3. Signup creates corps member accounts with step-by-step registration including Nigerian state and LGA dropdowns.
-4. Trainers can self-register at `/trainer-signup` but require admin authorization before accessing most features.
-5. Admin users access `/app/users` from the sidebar after logging in normally.
-6. The frontend hides the Users link unless the current user's role is `admin`.
-7. Admin and trainer users do not submit applications from the frontend.
-8. Protected pages redirect unauthenticated users to `/login`.
-9. The route guard also redirects to `/login` (or the role's home) when a logged-in user lacks the required role for a page (for example, a trainer visiting `/app/users` or `/app/program-editor`).
-10. Unauthorized trainers see a "Account Pending Authorization" page inside the app shell (sidebar remains visible).
+2. Login posts email and password to `/api/auth/login/`. Unverified accounts are redirected to `/verify-email`.
+3. All signup flows (Corps Member, Trainer, Admin) register user data and dispatch a 6-digit OTP code to the provided email, redirecting to `/verify-email?email=<email>`.
+4. Entering the 6-digit code at `/verify-email` verifies the account, logs the user in immediately, and routes directly to the role's home page:
+   - **Corps Member**: `/app/dashboard`
+   - **Trainer**: `/app/inactive-account` (under review) or `/app/dashboard` (if already active)
+   - **SAED Admin**: `/app/dashboard`
+   - **Dunis Admin**: `/app/dunis-admin`
+5. Protected pages redirect unauthenticated users to `/login`.
+6. Role guards redirect users who lack the required role to their role's home page.
 
 ## Role-Based Screens
 
@@ -165,15 +168,16 @@ The frontend uses `HashRouter`, so browser URLs use hash fragments such as `/#/a
 - Admins and trainers see `View Details` on `/app/programs`; the details modal shows duration, capacity, available slots, trainer, location, and active status.
 - Trainers only see programs they are assigned to on `/app/programs`, `/app/applications`, and the dashboard.
 - Corps members use `/app/applications` to track their own applications.
-- Admins and trainers use `/app/manage-applications` to review student applications. The page includes filter buttons (All, Pending, Approved, Declined, Completed) for quick filtering; action buttons are disabled for applications already marked `completed` to enforce immutability. Relevant CSS classes: `.filter-row`, `.filter-buttons`, `.filter-buttons button.active`, and `.icon-action[disabled]`.
-- Trainers see their assigned programs on the dashboard under a `trainerPrograms` section, including the applications for each program.
-- Admins use `/app/users` to create trainers, manage access, and authorize/deauthorize self-registered trainers. The page includes an authorization status column and an "Authorize" toggle button.
+- Admins and trainers use `/app/manage-applications` to review student applications. Action buttons are disabled for applications marked `completed` to enforce immutability.
+- SAED Admins on `/app/program-editor` have moderation rights (restrict/unrestrict courses) but cannot create or edit courses ("+ New Course" and "Edit" action buttons are hidden).
+- Dunis Admins have full course creation, editing, and restriction controls on `/app/program-editor`.
+- Admins use `/app/users` to manage access, trainer authorization, and view account statuses. Dunis admins can activate or deactivate accounts.
 - The current admin's own deactivate action and role-change action are disabled in `/app/users`.
-- Unauthorized trainers see a "Account Pending Authorization" page inside the app shell (sidebar remains visible) with payment status and a "Pay Authorization Fee" button (scaffolded).
+- Unauthorized trainers see a "Account Pending Authorization" page inside the app shell with payment status and "Pay Authorization Fee" button.
 
 ## Program Editor Layout
 
-`/app/program-editor` is admin-only. It uses a fixed-height desktop panel. The program list can scroll, while the creation/edit form is compact and sticky so it fits inside the app viewport without internal form scrolling. On smaller screens, the layout becomes normal vertical flow. When a trainer is selected in the form, the API keeps the program in sync with the trainer account.
+`/app/program-editor` is admin-only. For SAED Admins, the view is restricted to course browsing and moderation (restrict/unrestrict). For Dunis Admins, it provides full course management including the course creation and editor form with trainer assignment.
 
 ## Activity Detail Page
 

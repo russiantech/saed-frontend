@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
+import { useAuth } from "../../lib/auth.jsx";
 import ConfirmModal from "../../components/ui/ConfirmModal.jsx";
 
 const blankProgram = {
@@ -21,6 +22,8 @@ const blankProgram = {
 
 export default function ProgramEditor() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSaedAdmin = user?.role === "saed_admin";
   const [programs, setPrograms] = useState([]);
   const [categories, setCategories] = useState([]);
   const [trainers, setTrainers] = useState([]);
@@ -70,6 +73,7 @@ export default function ProgramEditor() {
   }, [navigate]);
 
   function chooseProgram(value) {
+    if (isSaedAdmin) return;
     setSelectedId(value);
     setFields({});
     if (value === "new") {
@@ -148,9 +152,11 @@ export default function ProgramEditor() {
       <div className="panel-heading">
         <div>
           <h2>Courses</h2>
-          <p>Create new SAED courses and edit existing training records.</p>
+          <p>{isSaedAdmin ? "View and moderate SAED courses across trainers." : "Create new SAED courses and edit existing training records."}</p>
         </div>
-        <button className="primary-button" onClick={() => chooseProgram("new")} type="button"><PlusCircle size={16} /> New Course</button>
+        {!isSaedAdmin && (
+          <button className="primary-button" onClick={() => chooseProgram("new")} type="button"><PlusCircle size={16} /> New Course</button>
+        )}
       </div>
 
       {message && (
@@ -174,15 +180,17 @@ export default function ProgramEditor() {
               <div><dt>Trainer</dt><dd>{program.trainerName || "Unassigned"}</dd></div>
               <div><dt>Location</dt><dd>{program.location}</dd></div>
               <div><dt>Duration</dt><dd>{program.durationWeeks} weeks</dd></div>
-              <div><dt>Slots</dt><dd>{program.availableSlots} / {program.capacity}</dd></div>
+              <div><dt>Slots</dt><dd>{program.availableSlots ?? (program.capacity || program.maxStudents || 0)} / {program.capacity || program.maxStudents || "—"}</dd></div>
             </dl>
             <div className="course-admin-card-actions">
               <span className={`status-pill status-${program.isActive ? "approved" : "declined"}`}>{program.isActive ? "Active" : "Inactive"}</span>
               {program.isRestricted && <span className="status-pill status-restricted">Restricted</span>}
-              <button className="icon-action" onClick={() => chooseProgram(String(program.id))} type="button">
-                <Edit3 size={16} />
-                <span>Edit</span>
-              </button>
+              {!isSaedAdmin && (
+                <button className="icon-action" onClick={() => chooseProgram(String(program.id))} type="button">
+                  <Edit3 size={16} />
+                  <span>Edit</span>
+                </button>
+              )}
               <button className="icon-action" onClick={() => toggleRestrict(program)} type="button" title={program.isRestricted ? "Unrestrict" : "Restrict"}>
                 {program.isRestricted ? <ShieldAlert size={16} /> : <Ban size={16} />}
                 <span>{program.isRestricted ? "Unrestrict" : "Restrict"}</span>
@@ -192,7 +200,7 @@ export default function ProgramEditor() {
         ))}
       </div>
 
-      {editorOpen ? (
+      {!isSaedAdmin && editorOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setEditorOpen(false)}>
           <article className="detail-modal course-editor-modal" role="dialog" aria-modal="true" aria-labelledby="course-editor-title" onClick={(event) => event.stopPropagation()}>
             <div className="detail-modal-heading">

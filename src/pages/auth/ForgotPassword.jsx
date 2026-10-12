@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
-import {FormField, SubmitButton} from "components/forms/FormField.jsx";
+import { FormField, SubmitButton, SuggestPasswordButton } from "components/forms/FormField.jsx";
 import AuthError from "components/auth/AuthError.jsx";
 import useAuthForm from "hooks/useAuthForm.js";
 
@@ -272,8 +272,9 @@ export default function ForgotPassword() {
       )}
 
       {step === STEPS.RESET && (
-        <form className="auth-form" onSubmit={handleResetPassword}>
+        <form className="auth-form" onSubmit={handleResetPassword} method="POST">
           <FormField
+            id="reset-password"
             label="New Password"
             name="password"
             type="password"
@@ -285,8 +286,10 @@ export default function ForgotPassword() {
             placeholder="Create new password"
             minLength={8}
             required
+            action={<SuggestPasswordButton onGenerate={(pwd) => { update("password", pwd); update("confirmPassword", pwd); }} />}
           />
           <FormField
+            id="reset-confirm-password"
             label="Confirm New Password"
             name="confirmPassword"
             type="password"

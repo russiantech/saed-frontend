@@ -93,14 +93,6 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const requestPasswordReset = useCallback(async (payload) => {
-    return api("/auth/forgot-password/", { method: "POST", body: payload });
-  }, []);
-
-  const confirmPasswordReset = useCallback(async (payload) => {
-    return api("/auth/reset-password/", { method: "POST", body: payload });
-  }, []);
-
   const isAuthenticated = user !== null;
 
   const value = {
@@ -111,8 +103,6 @@ export function AuthProvider({ children }) {
     refreshUser,
     login,
     logout,
-    requestPasswordReset,
-    confirmPasswordReset,
   };
 
   if (loading) {

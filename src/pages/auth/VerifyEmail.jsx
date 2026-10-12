@@ -8,6 +8,20 @@ import { SubmitButton } from "components/forms/FormField.jsx";
 
 const CODE_LENGTH = 6;
 
+function getHomePathForUser(user) {
+  if (!user) return "/login";
+  if (user.role === "trainer") {
+    if (!user.isAuthorized || !user.isActive) {
+      return "/app/inactive-account";
+    }
+    return "/app/dashboard";
+  }
+  if (user.role === "dunis_admin") {
+    return "/app/dunis-admin";
+  }
+  return "/app/dashboard";
+}
+
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -126,7 +140,8 @@ export default function VerifyEmail() {
       if (data.user) {
         setUser(data.user);
         setStep("verified");
-        setTimeout(() => navigate("/app/dashboard", { replace: true }), 1500);
+        const destination = getHomePathForUser(data.user);
+        setTimeout(() => navigate(destination, { replace: true }), 1000);
       }
     } catch (err) {
       if (err.data?.fields) {

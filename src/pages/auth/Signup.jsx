@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
-import { RoleSelector, FormField, FormRow, SubmitButton, StepIndicator, TermsCheckbox } from "components/forms/FormField.jsx";
+import { RoleSelector, FormField, FormRow, SubmitButton, StepIndicator, TermsCheckbox, SuggestPasswordButton } from "components/forms/FormField.jsx";
 import useAuthForm from "hooks/useAuthForm.js";
 import useToggleArray from "hooks/useToggleArray.js";
 import { validateFullName, validateEmail, validatePhone, validateUsername, validatePassword, validateNyscCode, validateRequired } from "constants/validators.js";
@@ -138,11 +138,7 @@ export default function Signup() {
 
                 clearTimeout(timeoutId);
 
-                if (!data.user) {
-                    throw new Error("Invalid response from server. Please try again.");
-                }
-
-                navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+                navigate(`/verify-email?email=${encodeURIComponent(data.email || formData.email)}`);
             } else {
                 const normalizedStateCode = (formData.nyscStateCode || "").trim().toUpperCase();
                 const data = await api("/auth/signup/", {
@@ -218,11 +214,17 @@ export default function Signup() {
 }
 
 function PersonalInfo({ form, fields, update }) {
+    function handleSuggestPassword(pwd) {
+        update("password", pwd);
+        update("confirmPassword", pwd);
+    }
+
     return (
         <>
             <div className="form-section-title">PERSONAL INFORMATION</div>
 
             <FormField
+                id="signup-fullname"
                 label="Full Name"
                 name="fullName"
                 autoComplete="name"
@@ -233,6 +235,7 @@ function PersonalInfo({ form, fields, update }) {
                 required
             />
             <FormField
+                id="signup-username"
                 label="Username"
                 name="username"
                 autoComplete="username"
@@ -245,6 +248,7 @@ function PersonalInfo({ form, fields, update }) {
 
             <FormRow>
                 <FormField
+                    id="signup-email"
                     label="Email Address"
                     name="email"
                     type="email"
@@ -256,6 +260,7 @@ function PersonalInfo({ form, fields, update }) {
                     required
                 />
                 <FormField
+                    id="signup-phone"
                     label="Phone Number"
                     name="phone"
                     type="phone"
@@ -271,6 +276,7 @@ function PersonalInfo({ form, fields, update }) {
             <div className="form-section-title">SECURITY</div>
             <FormRow>
                 <FormField
+                    id="signup-password"
                     label="Password"
                     name="password"
                     type="password"
@@ -282,8 +288,10 @@ function PersonalInfo({ form, fields, update }) {
                     placeholder="Create a password"
                     minLength={8}
                     required
+                    action={<SuggestPasswordButton onGenerate={handleSuggestPassword} />}
                 />
                 <FormField
+                    id="signup-confirm-password"
                     label="Confirm Password"
                     name="confirmPassword"
                     type="password"

@@ -29,13 +29,13 @@ src/
 │   ├── forms/             FormField, FormRow, SubmitButton, RoleSelector, StepIndicator, TermsCheckbox
 │   └── ui/                DarkToggle
 ├── pages/
-│   ├── auth/              Login, Signup, ForgotPassword, VerifyEmail, InactiveAccount, TrainerSignupSuccess
-│   ├── dashboard/         Dashboard, AdminDashboard
-│   ├── admin/             ManageUsers, ManageApplications, ProgramEditor, AdminCourses, DunisAdmin
-│   ├── corper/            Applications, FindTrainers, ConnectTrainer, MyTrainers, TraineeFastTrack
-│   ├── trainer/           MyCorpers, CourseManagement, CourseDetail, FastTrackVideos, CorperProfile
+│   ├── auth/              Login, Signup, AdminSignup, ForgotPassword, VerifyEmail, InactiveAccount
+│   ├── dashboard/         Dashboard
+│   ├── admin/             ManageUsers, ManageApplications, ProgramEditor, DunisAdmin
+│   ├── corper/            Applications, FindTrainers, ConnectTrainer, MyTrainers, TraineeFastTrack, PaymentCallback
+│   ├── trainer/           MyCorpers, CourseManagement, CourseDetail, CorperProfile
 │   ├── public/            Home, Activities, ActivityDetail, Opportunities, Programs, ProgramDetail
-│   ├── forms/             SaedQuestionForm, DunisComplaintForm
+│   ├── forms/             SupportComplaintForm
 │   └── profile/           Notifications, EditProfile, Profile
 ├── hooks/
 │   ├── useAuthForm.js     Form state management hook
@@ -58,41 +58,46 @@ src/
 | Route | Access | Page |
 |-------|--------|------|
 | `/` | Public | Home |
-| `/login` | Public | Login (all roles) |
-| `/signup` | Public | Corps member signup (2-step wizard) |
-| `/signup/corps-member` | Public | Corps member signup |
-| `/signup/trainer` | Public | Trainer signup |
+| `/login` | Public | Login (requires verified email) |
+| `/signup` | Public | Corps member & trainer signup |
+| `/verify-email` | Public | 6-digit email OTP verification & auto-login |
+| `/admin-signup` | Public | Admin signup (requires secret key) |
 | `/programs` | Public | Program browsing |
 | `/activities` | Public | Camp activities |
-| `/forgot` | Public | Password reset |
+| `/forgot` | Public | Password reset (3-step code flow) |
 | `/app` | Authenticated | Dashboard |
 | `/app/programs` | Authenticated | Programs (apply or view) |
 | `/app/applications` | Corps Member | My applications |
 | `/app/manage-applications` | Admin/Trainer | Review applications |
-| `/app/program-editor` | Admin | Create/edit programs |
+| `/app/program-editor` | Admin | Course moderation (SAED Admin) / creation & editing (DUNIS Admin) |
 | `/app/users` | Admin | User management |
 | `/app/course-management` | Trainer | Course management |
 | `/app/my-corpers` | Trainer | Connected corps members |
+| `/app/dunis-admin` | DUNIS Admin | Payments & Fast Track administration |
 | `/app/notifications` | Authenticated | Notifications |
 | `/app/edit-profile` | Authenticated | Edit profile |
 
 ## Auth Flow
 
 1. App loads → `GET /api/auth/me/` restores session
-2. Login → `POST /api/auth/login/` with email + password (no role selector)
-3. Step 1 validates personal info + checks availability via `POST /api/auth/validate-signup/`
-4. Step 2 collects role-specific info → `POST /api/auth/signup/` or `POST /api/auth/trainer-signup/`
+2. Login → `POST /api/auth/login/` with email + password (unverified users directed to `/verify-email`)
+3. Signup (Corper, Trainer, Admin) → Dispatches 6-digit OTP verification code to registered email
+4. Verification → Submitting 6-digit code at `/verify-email` verifies email, logs in session, and routes directly to role home:
+   - Corper → `/app/dashboard`
+   - Trainer → `/app/inactive-account` (under review) or `/app/dashboard` (active)
+   - SAED Admin → `/app/dashboard`
+   - DUNIS Admin → `/app/dunis-admin`
 5. Protected routes redirect to `/login` if unauthenticated
-6. Role-based guards redirect unauthorized users to appropriate pages
+6. Role-based guards redirect unauthorized users to appropriate role destination
 
 ## Roles
 
 | Role | Screens |
 |------|---------|
-| Corps Member | Dashboard, Programs, Applications, Find Trainers, Fast Track |
-| Trainer | Dashboard, Course Management, My Corpers, Fast Track Videos |
-| SAED Admin | All trainer screens + Program Editor, User Management, Manage Applications |
-| DUNIS Admin | Dashboard + DUNIS Admin panel |
+| Corps Member | Dashboard, Programs, Applications, Find Trainers, Fast Track, My Trainers, My Courses |
+| Trainer | Dashboard, Course Management, My Corpers, Manage Applications |
+| SAED Admin | Dashboard, User Management, Manage Applications, Program Editor (moderate/restrict only), Admin Courses, Refunds |
+| DUNIS Admin | All admin screens + DUNIS Admin panel (payments, Fast Track activation, user activation, course creation/editing) |
 
 ## Commands
 
