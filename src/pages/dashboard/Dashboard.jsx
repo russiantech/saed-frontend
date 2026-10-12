@@ -16,11 +16,13 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
+import { useRealtime } from "../../lib/realtime.jsx";
 import DunisAdmin from "../admin/DunisAdmin.jsx";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { subscribe } = useRealtime();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [messageType, setMessageType] = useState("");
@@ -52,10 +54,19 @@ export default function Dashboard() {
         showMsg(err.message, "error");
       });
 
+    const unsub = subscribe(() => {
+      if (!cancelled) {
+        api("/dashboard/").then((res) => {
+          if (!cancelled) setData(res);
+        }).catch(() => {});
+      }
+    });
+
     return () => {
       cancelled = true;
+      if (unsub) unsub();
     };
-  }, [navigate, isAuthenticated]);
+  }, [navigate, isAuthenticated, subscribe]);
 
   if (error) {
     return (

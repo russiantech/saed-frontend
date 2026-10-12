@@ -4,9 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
+import { useRealtime } from "../../lib/realtime.jsx";
 
 export default function MyTrainers() {
   const { user } = useAuth();
+  const { connectionsMap } = useRealtime();
   const navigate = useNavigate();
   const [allTrainers, setAllTrainers] = useState([]);
   const [connectedIds, setConnectedIds] = useState(new Map());
@@ -18,6 +20,18 @@ export default function MyTrainers() {
 
   const skill = user?.skillInterest || "";
   const lga = user?.lgaOfDeployment || "";
+
+  const getTrainerStatus = (trainerId) => {
+    if (connectionsMap && connectionsMap[trainerId] !== undefined) {
+      return connectionsMap[trainerId];
+    }
+    return connectedIds.get(trainerId);
+  };
+
+  const isConnectedOrPending = (trainerId) => {
+    const st = getTrainerStatus(trainerId);
+    return st === "active" || st === "pending";
+  };
 
   useEffect(() => {
     async function load() {
@@ -42,12 +56,12 @@ export default function MyTrainers() {
   const sortedTrainers = useMemo(() => {
     const sorted = [...allTrainers];
     sorted.sort((a, b) => {
-      const aConn = connectedIds.has(a.id) ? 0 : 1;
-      const bConn = connectedIds.has(b.id) ? 0 : 1;
+      const aConn = isConnectedOrPending(a.id) ? 0 : 1;
+      const bConn = isConnectedOrPending(b.id) ? 0 : 1;
       return aConn - bConn;
     });
     return sorted;
-  }, [allTrainers, connectedIds]);
+  }, [allTrainers, connectedIds, connectionsMap]);
 
   const filtered = useMemo(() => {
     if (!search) return sortedTrainers;
@@ -108,9 +122,9 @@ export default function MyTrainers() {
                   </div>
                 </div>
                 <div className="trainer-row-actions">
-                  {connectedIds.has(trainer.id) ? (
-                    <span className={`status-pill ${connectedIds.get(trainer.id) === "active" ? "status-approved" : "status-pending"}`}>
-                      {connectedIds.get(trainer.id) === "active" ? <><CheckCircle size={14} /> Connected</> : "Pending"}
+                  {isConnectedOrPending(trainer.id) ? (
+                    <span className={`status-pill ${getTrainerStatus(trainer.id) === "active" ? "status-approved" : "status-pending"}`}>
+                      {getTrainerStatus(trainer.id) === "active" ? <><CheckCircle size={14} /> Connected</> : "Pending"}
                     </span>
                   ) : (
                     <Link to={`/app/connect-trainer/${trainer.id}`} className="primary-button small">

@@ -4,10 +4,12 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
+import { useRealtime } from "../../lib/realtime.jsx";
 
 export default function ConnectTrainer() {
   const { trainerId } = useParams();
   const { user, refreshUser } = useAuth();
+  const { connectionsMap, triggerSync } = useRealtime();
   const navigate = useNavigate();
   const [trainer, setTrainer] = useState(null);
   const [courses, setCourses] = useState([]);
@@ -21,6 +23,11 @@ export default function ConnectTrainer() {
   const [payAmount, setPayAmount] = useState(null);
   const [payCourseTitle, setPayCourseTitle] = useState("");
   const [verifying, setVerifying] = useState(false);
+
+  const tId = parseInt(trainerId, 10);
+  const effectiveStatus = (connectionsMap && connectionsMap[tId] !== undefined)
+    ? (connectionsMap[tId] === "none" ? null : connectionsMap[tId])
+    : connectionStatus;
 
   function showMsg(text, type) {
     setError(text);
@@ -55,6 +62,7 @@ export default function ConnectTrainer() {
     try {
       await api("/connect/", { method: "POST", body: { trainerId: parseInt(trainerId) } });
       setConnectionStatus("pending");
+      triggerSync();
     } catch (err) {
       showMsg(err.message || "Failed to send connection request.", "error");
     } finally {
@@ -162,16 +170,16 @@ export default function ConnectTrainer() {
           <p>{trainer.email}</p>
         </div>
 
-        {connectionStatus === null ? (
+        {effectiveStatus === null ? (
           <button className="primary-button connect-button" onClick={handleConnect} disabled={connecting}>
             <UserPlus size={16} /> {connecting ? "Sending Request..." : "Connect with Trainer"}
           </button>
-        ) : connectionStatus === "pending" ? (
+        ) : effectiveStatus === "pending" ? (
           <div className="connection-status pending">
             <span className="status-pill status-pending">Connection Request Pending</span>
             <p>Your request has been sent. The trainer will review and approve it.</p>
           </div>
-        ) : connectionStatus === "active" ? (
+        ) : effectiveStatus === "active" ? (
           <div className="connection-status active">
             <span className="status-pill status-approved"><CheckCircle size={14} /> Connected</span>
             <p>You are connected with this trainer.</p>

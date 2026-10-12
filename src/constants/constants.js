@@ -33,7 +33,7 @@ export const EXPERIENCE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
 export const VALIDATION = {
   EMAIL: /^\S+@\S+\.\S+$/,
   PHONE: /^[0-9]{10}$/,
-  NYSC_CODE: /^[A-Z]{2}\/\d{2}[A-Z]\/\d{4}$/,
+  NYSC_CODE: /^[A-Za-z]{2}\/\d{2}[A-Za-z]\/\d{4}$/,
   MIN_PASSWORD: 8,
 };
 

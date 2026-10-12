@@ -1,91 +1,21 @@
-import { BookOpen, ClipboardList, LayoutDashboard, LogOut, Menu, Settings, UserCheck, Users, X, Video, CreditCard, Bell, ChevronRight } from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { BookOpen, ClipboardList, LayoutDashboard, LogOut, Menu, Settings, UserCheck, Users, X, Video, CreditCard } from "lucide-react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 
-import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import DarkToggle from "../ui/DarkToggle.jsx";
 
 export default function AppShell() {
-  const { user, loading, logout, isAuthenticated } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [navOpen, setNavOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const bellRef = useRef(null);
-
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const data = await api("/notifications/");
-      setNotifications(data.notifications || []);
-    } catch (err) {
-      // 401s are handled globally by AuthProvider; silence everything here
-      // so a transient network error doesn't spam the console.
-    }
-  }, []);
-
-  // Initial fetch — only once the session is confirmed.
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    fetchNotifications();
-  }, [isAuthenticated, fetchNotifications]);
-
-  // Refresh on navigation — only when authenticated.
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    fetchNotifications();
-  }, [isAuthenticated, location.pathname, fetchNotifications]);
-
-  useEffect(() => {
-    if (!showNotifications) return;
-    function handleClickOutside(e) {
-      if (bellRef.current && !bellRef.current.contains(e.target)) {
-        setShowNotifications(false);
-      }
-    }
-    setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-    }, 0);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [showNotifications]);
 
   useEffect(() => {
     if (user && user.role === "trainer" && (!user.isAuthorized || !user.isActive)) {
       navigate("/app/inactive-account", { replace: true });
     }
   }, [user, navigate]);
-
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
-
-  function toggleNotifications() {
-    setShowNotifications((prev) => {
-      if (!prev) fetchNotifications();
-      return !prev;
-    });
-  }
-
-  async function markRead(id) {
-    try {
-      await api(`/notifications/${id}/read/`, { method: "POST" });
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
-    } catch {
-      // ignore
-    }
-  }
-
-  async function markAllRead() {
-    try {
-      await api("/notifications/read-all/", { method: "POST" });
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch {
-      // ignore
-    }
-  }
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -206,35 +136,6 @@ export default function AppShell() {
             <h1>Welcome, {user.fullName}</h1>
           </div>
           <div className="app-header-actions">
-            <div ref={bellRef} style={{ position: "relative" }}>
-              <div className="notification-bell" onClick={toggleNotifications}>
-                <Bell size={20} />
-                {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
-              </div>
-              {showNotifications && (
-              <div className="notification-dropdown">
-                {notifications.length === 0 ? (
-                  <div className="notification-empty">No notifications</div>
-                ) : (
-                  <>
-                    {unreadCount > 0 && (
-                      <div className="notification-mark-all" onClick={markAllRead}>Mark all as read</div>
-                    )}
-                    {notifications.slice(0, 10).map((n) => (
-                      <div key={n.id} className={`notification-item ${n.isRead ? "read" : "unread"}`} onClick={() => markRead(n.id)}>
-                        <strong>{n.title}</strong>
-                        <p>{n.message}</p>
-                        <span className="notification-time">{new Date(n.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    ))}
-                    <div className="notification-show-all" onClick={() => { setShowNotifications(false); navigate("/app/notifications"); }}>
-                      Show all <ChevronRight size={14} />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-            </div>
             <DarkToggle />
             <div className="profile-pill">{user.stateOfDeployment || "SAED IMS"}</div>
           </div>

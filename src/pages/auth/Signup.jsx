@@ -21,6 +21,12 @@ const INITIAL_FORM = {
     lgaOfDeployment: "",
     skillInterest: "",
     skillInterests: [],
+    specialization: "",
+    yearsExperience: "",
+    bio: "",
+    companyName: "",
+    numberTrained: "",
+    partnershipLetter: null,
 };
 
 export default function Signup() {
@@ -102,15 +108,24 @@ export default function Signup() {
             if (isTrainer) {
                 const fd = new FormData();
 
-                Object.entries(formData).forEach(([key, value]) => {
-                    if (key === "partnerLgas") {
-                        fd.append(key, JSON.stringify(partnerLgas));
-                    } else if (key === "partnershipLetter" && value instanceof File) {
-                        fd.append(key, value);
-                    } else if (value !== null && value !== undefined && value !== "") {
-                        fd.append(key, value);
-                    }
-                });
+                fd.append("fullName", formData.fullName || "");
+                fd.append("username", formData.username || formData.email || "");
+                fd.append("email", formData.email || "");
+                fd.append("phone", formData.phone || "");
+                fd.append("password", formData.password || "");
+                if (formData.specialization) fd.append("specialization", formData.specialization);
+                if (formData.yearsExperience !== undefined && formData.yearsExperience !== "") {
+                    fd.append("yearsExperience", formData.yearsExperience);
+                }
+                if (formData.companyName) fd.append("companyName", formData.companyName);
+                if (formData.bio) fd.append("bio", formData.bio);
+                if (formData.numberTrained !== undefined && formData.numberTrained !== "") {
+                    fd.append("numberTrained", formData.numberTrained);
+                }
+                if (formData.partnershipLetter instanceof File) {
+                    fd.append("partnershipLetter", formData.partnershipLetter);
+                }
+                fd.append("partnerLgas", JSON.stringify(partnerLgas));
 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -129,10 +144,12 @@ export default function Signup() {
 
                 navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
             } else {
+                const normalizedStateCode = (formData.nyscStateCode || "").trim().toUpperCase();
                 const data = await api("/auth/signup/", {
                     method: "POST",
                     body: {
                         ...formData,
+                        nyscStateCode: normalizedStateCode,
                         role: "corps_member",
                         stateOfDeployment: "Lagos",
                         skillInterests: formData.skillInterests || [],
@@ -208,6 +225,7 @@ function PersonalInfo({ form, fields, update }) {
             <FormField
                 label="Full Name"
                 name="fullName"
+                autoComplete="name"
                 value={form.fullName}
                 onChange={update}
                 error={fields.fullName}
@@ -217,6 +235,7 @@ function PersonalInfo({ form, fields, update }) {
             <FormField
                 label="Username"
                 name="username"
+                autoComplete="username"
                 value={form.username}
                 onChange={update}
                 error={fields.username}
@@ -229,6 +248,7 @@ function PersonalInfo({ form, fields, update }) {
                     label="Email Address"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     value={form.email}
                     onChange={update}
                     error={fields.email}
@@ -239,6 +259,7 @@ function PersonalInfo({ form, fields, update }) {
                     label="Phone Number"
                     name="phone"
                     type="phone"
+                    autoComplete="tel"
                     value={form.phone}
                     onChange={update}
                     error={fields.phone}
@@ -253,6 +274,8 @@ function PersonalInfo({ form, fields, update }) {
                     label="Password"
                     name="password"
                     type="password"
+                    autoComplete="new-password"
+                    passwordrules="minlength: 8;"
                     value={form.password}
                     onChange={update}
                     error={fields.password}
@@ -264,6 +287,8 @@ function PersonalInfo({ form, fields, update }) {
                     label="Confirm Password"
                     name="confirmPassword"
                     type="password"
+                    autoComplete="new-password"
+                    passwordrules="minlength: 8;"
                     value={form.confirmPassword}
                     onChange={update}
                     error={fields.confirmPassword}
@@ -301,6 +326,10 @@ function CorpsStep2({ form, fields, update }) {
                 name="nyscStateCode"
                 value={form.nyscStateCode}
                 onChange={update}
+                onBlur={(e) => {
+                    const val = e.target.value;
+                    if (val) update("nyscStateCode", val.trim().toUpperCase());
+                }}
                 error={fields.nyscStateCode}
                 placeholder="LA/26B/0123"
                 required

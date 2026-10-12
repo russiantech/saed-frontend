@@ -112,6 +112,7 @@ export default function Login() {
         <FormField
           label="Username or Email"
           name="email"
+          autoComplete="username"
           value={form.email}
           onChange={update}
           error={fields.email}
@@ -123,6 +124,7 @@ export default function Login() {
           label="Password"
           name="password"
           type="password"
+          autoComplete="current-password"
           value={form.password}
           onChange={update}
           error={fields.password}

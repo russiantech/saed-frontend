@@ -14,6 +14,7 @@ const INITIAL_FORM = {
     phone: "",
     password: "",
     confirmPassword: "",
+    secret: "",
 };
 
 export default function AdminSignup() {
@@ -21,9 +22,11 @@ export default function AdminSignup() {
     const location = useLocation();
     const form = useAuthForm(INITIAL_FORM);
     const adminRole = location.pathname === "/x9k2m-admin" ? "saed_admin" : "dunis_admin";
+    const isAdminRole = adminRole === "saed_admin";
 
     function validate() {
         const errors = {};
+        if (!form.form.secret) errors.secret = "Admin security key is required.";
         const nameErr = validateFullName(form.form.fullName);
         if (nameErr) errors.fullName = nameErr;
         const usernameErr = validateUsername(form.form.username);
@@ -56,6 +59,7 @@ export default function AdminSignup() {
                     phone: form.form.phone,
                     password: form.form.password,
                     role: adminRole,
+                    secret: form.form.secret,
                 },
             });
 
@@ -70,11 +74,12 @@ export default function AdminSignup() {
     }
 
     return (
-        <AuthLayout title={isAdminRole ? "SAED Admin Setup" : "Dunis Admin Setup"} subtitle="Create a hidden admin account">
+        <AuthLayout title={isAdminRole ? "SAED Admin Setup" : "Dunis Admin Setup"} subtitle="Create an authorized admin account">
             <form className="auth-form" onSubmit={handleSubmit}>
                 <FormField
                     label="Full Name"
                     name="fullName"
+                    autoComplete="name"
                     value={form.form.fullName}
                     onChange={form.update}
                     error={form.fields.fullName}
@@ -84,6 +89,7 @@ export default function AdminSignup() {
                 <FormField
                     label="Username"
                     name="username"
+                    autoComplete="username"
                     value={form.form.username}
                     onChange={form.update}
                     error={form.fields.username}
@@ -95,6 +101,7 @@ export default function AdminSignup() {
                         label="Email Address"
                         name="email"
                         type="email"
+                        autoComplete="email"
                         value={form.form.email}
                         onChange={form.update}
                         error={form.fields.email}
@@ -105,6 +112,7 @@ export default function AdminSignup() {
                         label="Phone Number"
                         name="phone"
                         type="phone"
+                        autoComplete="tel"
                         value={form.form.phone}
                         onChange={form.update}
                         error={form.fields.phone}
@@ -116,6 +124,8 @@ export default function AdminSignup() {
                         label="Password"
                         name="password"
                         type="password"
+                        autoComplete="new-password"
+                        passwordrules="minlength: 8;"
                         value={form.form.password}
                         onChange={form.update}
                         error={form.fields.password}
@@ -127,6 +137,8 @@ export default function AdminSignup() {
                         label="Confirm Password"
                         name="confirmPassword"
                         type="password"
+                        autoComplete="new-password"
+                        passwordrules="minlength: 8;"
                         value={form.form.confirmPassword}
                         onChange={form.update}
                         error={form.fields.confirmPassword}
@@ -137,6 +149,18 @@ export default function AdminSignup() {
                 <p className="password-hint">
                     Password must be at least 8 characters
                 </p>
+
+                <FormField
+                    label="Admin Security Key"
+                    name="secret"
+                    type="password"
+                    autoComplete="off"
+                    value={form.form.secret}
+                    onChange={form.update}
+                    error={form.fields.secret}
+                    placeholder="Enter system setup security key"
+                    required
+                />
 
                 <AuthError message={form.error} />
 

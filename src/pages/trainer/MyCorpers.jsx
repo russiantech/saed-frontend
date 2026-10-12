@@ -3,11 +3,13 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
+import { useRealtime } from "../../lib/realtime.jsx";
 
 const PAGE_SIZE = 10;
 
 export default function MyCorpers() {
   const navigate = useNavigate();
+  const { connections, triggerSync } = useRealtime();
   const [corpers, setCorpers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,6 +22,13 @@ export default function MyCorpers() {
     setError(text);
     setMessageType(type || "");
   }
+
+  useEffect(() => {
+    if (connections !== null && connections !== undefined) {
+      setCorpers(connections);
+      setLoading(false);
+    }
+  }, [connections]);
 
   useEffect(() => {
     api("/trainer/corpers/")
@@ -46,6 +55,7 @@ export default function MyCorpers() {
     try {
       await api(`/connections/${conn.id}/approve/`, { method: "POST" });
       setCorpers((prev) => prev.map((c) => c.id === conn.id ? { ...c, status: "active" } : c));
+      triggerSync();
       showMsg(`Approved ${conn.corpsMember?.fullName}.`, "success");
     } catch (err) {
       showMsg(err.message, "error");
@@ -60,6 +70,7 @@ export default function MyCorpers() {
     try {
       await api(`/connections/${conn.id}/reject/`, { method: "POST" });
       setCorpers((prev) => prev.map((c) => c.id === conn.id ? { ...c, status: "cancelled" } : c));
+      triggerSync();
       showMsg(`Declined ${conn.corpsMember?.fullName}.`, "success");
     } catch (err) {
       showMsg(err.message, "error");

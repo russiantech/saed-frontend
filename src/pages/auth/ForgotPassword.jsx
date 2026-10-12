@@ -277,6 +277,8 @@ export default function ForgotPassword() {
             label="New Password"
             name="password"
             type="password"
+            autoComplete="new-password"
+            passwordrules="minlength: 8;"
             value={form.password}
             onChange={update}
             error={fields.password}
@@ -288,6 +290,8 @@ export default function ForgotPassword() {
             label="Confirm New Password"
             name="confirmPassword"
             type="password"
+            autoComplete="new-password"
+            passwordrules="minlength: 8;"
             value={form.confirmPassword}
             onChange={update}
             error={fields.confirmPassword}

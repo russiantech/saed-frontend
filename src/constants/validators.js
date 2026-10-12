@@ -37,7 +37,8 @@ export function validatePassword(password, confirmPassword) {
 }
 
 export function validateNyscCode(code) {
-  if (!VALIDATION.NYSC_CODE.test(code)) return MESSAGES.NYSC_FORMAT;
+  if (!code?.trim()) return "NYSC state code is required.";
+  if (!VALIDATION.NYSC_CODE.test(code.trim())) return MESSAGES.NYSC_FORMAT;
   return null;
 }
 

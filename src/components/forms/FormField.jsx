@@ -5,6 +5,7 @@ import { useState } from "react";
 export function FormField({
   label,
   name,
+  id,
   type = "text",
   value,
   onChange,
@@ -15,20 +16,25 @@ export function FormField({
   rows = 3,
   accept = null,
   minLength,
+  autoComplete,
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const inputId = id || name;
 
   const inputProps = {
+    id: inputId,
+    name,
     value,
     onChange: (e) => onChange(name, e.target.type === "checkbox" ? e.target.checked : e.target.value),
     placeholder,
     required,
+    autoComplete,
     ...props,
   };
 
   return (
-    <label>
+    <label htmlFor={inputId}>
       {label} {required && "*"}
       {type === "password" ? (
         <div className="password-input-wrap">
@@ -41,6 +47,7 @@ export function FormField({
             type="button"
             className="password-eye-button"
             onClick={() => setShowPassword((s) => !s)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -59,17 +66,20 @@ export function FormField({
       ) : type === "textarea" ? (
         <textarea {...inputProps} rows={rows} />
       ) : type === "file" ? (
-        <input type="file" accept={accept} onChange={(e) => onChange(name, e.target.files?.[0] || null)} />
+        <input type="file" id={inputId} name={name} accept={accept} onChange={(e) => onChange(name, e.target.files?.[0] || null)} />
       ) : type === "checkbox" ? (
-        <input type="checkbox" checked={value} onChange={(e) => onChange(name, e.target.checked)} />
+        <input type="checkbox" id={inputId} name={name} checked={value} onChange={(e) => onChange(name, e.target.checked)} />
       ) : type === "phone" ? (
         <div className="phone-input-wrap">
           <span className="phone-prefix">+234</span>
           <input
+            id={inputId}
+            name={name}
             type="tel"
-            value={(value || "").replace(/\D/g, "").replace(/^234/, "").slice(0, 10)}
+            autoComplete={autoComplete || "tel-national"}
+            value={(value || "").replace(/\D/g, "").replace(/^234/, "").replace(/^0/, "").slice(0, 10)}
             onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, "").replace(/^234/, "");
+              const digits = e.target.value.replace(/\D/g, "").replace(/^234/, "").replace(/^0/, "");
               if (digits.length <= 10) onChange(name, digits);
             }}
             placeholder={placeholder || "8012345678"}

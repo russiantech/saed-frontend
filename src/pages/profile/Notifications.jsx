@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
+import { useRealtime } from "../../lib/realtime.jsx";
 
 export default function Notifications() {
   const navigate = useNavigate();
+  const { triggerSync, subscribe } = useRealtime();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,12 +31,21 @@ export default function Notifications() {
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const unsub = subscribe((data) => {
+      if (data?.type === "notification" || data?.unreadNotificationsCount !== undefined) {
+        load();
+      }
+    });
+    return unsub;
+  }, [subscribe]);
 
   async function markRead(id) {
     try {
       await api(`/notifications/${id}/read/`, { method: "POST" });
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+      triggerSync();
     } catch (err) {
       showMsg(err.message || "Failed to mark notification.", "error");
     }
@@ -44,6 +55,7 @@ export default function Notifications() {
     try {
       await api("/notifications/read-all/", { method: "POST" });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      triggerSync();
     } catch (err) {
       showMsg(err.message || "Failed to mark notifications.", "error");
     }

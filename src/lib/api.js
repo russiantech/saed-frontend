@@ -206,6 +206,7 @@ export async function api(path, options = {}) {
       credentials: "include",
       headers,
       body,
+      signal: options.signal,
     });
 
     let { data, text } = await parseResponse(response);
@@ -220,6 +221,7 @@ export async function api(path, options = {}) {
         credentials: "include",
         headers: { ...headers, "X-CSRFToken": freshToken },
         body,
+        signal: options.signal,
       });
 
       ({ data, text } = await parseResponse(response));

@@ -3,16 +3,23 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { api } from "../../lib/api.js";
+import { useRealtime } from "../../lib/realtime.jsx";
 
 export default function CorperProfile() {
   const { corperId } = useParams();
   const navigate = useNavigate();
+  const { connectionsMap, triggerSync } = useRealtime();
   const [corper, setCorper] = useState(null);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [messageType, setMessageType] = useState("");
   const [actionId, setActionId] = useState(null);
+
+  const cId = parseInt(corperId, 10);
+  const liveStatus = (connectionsMap && connectionsMap[cId] !== undefined)
+    ? connectionsMap[cId]
+    : corper?.connectionStatus;
 
   function showMsg(text, type) {
     setError(text);
@@ -41,6 +48,7 @@ export default function CorperProfile() {
     try {
       await api(`/connections/${corper.connectionId}/approve/`, { method: "POST" });
       setCorper((prev) => ({ ...prev, connectionStatus: "active" }));
+      triggerSync();
       showMsg("Connection approved.", "success");
     } catch (err) {
       showMsg(err.message, "error");
@@ -55,6 +63,7 @@ export default function CorperProfile() {
     try {
       await api(`/connections/${corper.connectionId}/reject/`, { method: "POST" });
       setCorper((prev) => ({ ...prev, connectionStatus: "cancelled" }));
+      triggerSync();
       showMsg("Connection declined.", "success");
     } catch (err) {
       showMsg(err.message, "error");
@@ -66,7 +75,11 @@ export default function CorperProfile() {
   async function handleEnrollmentAction(enrollmentId, action) {
     setActionId(enrollmentId);
     try {
-      await api(`/trainer/enrollments/${enrollmentId}/${action}/`, { method: "POST" });
+      const statusMap = { confirm: "approved", reject: "declined" };
+      await api(`/manage/applications/${enrollmentId}/`, {
+        method: "PATCH",
+        body: { status: statusMap[action] || action },
+      });
       setCourses((prev) =>
         prev.map((c) =>
           c.enrollmentId === enrollmentId
@@ -74,6 +87,7 @@ export default function CorperProfile() {
             : c
         )
       );
+      triggerSync();
       showMsg(`Enrollment ${action === "confirm" ? "confirmed" : "rejected"}.`, "success");
     } catch (err) {
       showMsg(err.message, "error");
@@ -117,12 +131,12 @@ export default function CorperProfile() {
             <div className="view-field"><span>Skill Interest</span><strong>{corper.skillInterest || "—"}</strong></div>
             <div className="view-field"><span>State Code</span><strong>{corper.nyscStateCode || "—"}</strong></div>
             <div className="view-field"><span>Connection Status</span>
-              <span className={`status-pill status-${corper.connectionStatus === "active" ? "approved" : corper.connectionStatus === "pending" ? "pending" : "declined"}`}>
-                {corper.connectionStatus}
+              <span className={`status-pill status-${liveStatus === "active" ? "approved" : liveStatus === "pending" ? "pending" : "declined"}`}>
+                {liveStatus}
               </span>
             </div>
           </div>
-          {corper.connectionStatus === "pending" && (
+          {liveStatus === "pending" && (
             <div className="corper-profile-actions">
               <button className="primary-button" disabled={actionId === corper.connectionId} onClick={handleApprove} type="button">
                 <CheckCircle size={16} /> Approve
