@@ -112,6 +112,7 @@ createRoot(document.getElementById("root")).render(
           {/* Auth routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/trainer-signup" element={<Navigate to="/signup?role=trainer" replace />} />
           <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/admin-signup" element={<AdminSignup />} />

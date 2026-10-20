@@ -899,13 +899,48 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .enrollment-management .management-row { grid-template-columns: 1fr 1fr 1fr; }
 .management-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 0.6fr 1.5fr;
+  grid-template-columns: 1.5fr 1fr 0.8fr 1.1fr 2.2fr;
   align-items: center;
   gap: 14px;
   padding: 14px;
   border: 1px solid var(--surface-border);
   border-radius: 14px;
   background: var(--surface);
+}
+.trainer-management-table .management-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 1fr) minmax(90px, 0.7fr) minmax(120px, 1fr) minmax(260px, 2fr);
+  align-items: center;
+  gap: 12px;
+}
+.trainer-management-table .management-row .trainer-name-col,
+.trainer-management-table .management-row .trainer-name-col strong,
+.trainer-management-table .management-row .trainer-name-col span,
+.trainer-management-table .management-row.table-head .head-name {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+.trainer-management-table .management-row .trainer-spec-col,
+.trainer-management-table .management-row.table-head .head-spec {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+.trainer-management-table .management-row.table-head .head-actions {
+  text-align: right !important;
+  padding-right: 8px;
+}
+.trainer-management-table .management-row .action-buttons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  min-width: 0 !important;
+}
+.trainer-management-table .management-row .action-buttons .icon-action {
+  padding: 0 8px;
+  min-height: 30px;
+  font-size: 12px;
 }
 .management-row.table-head { background: var(--surface-soft); color: var(--muted); font-size: 13px; font-weight: 900; text-transform: uppercase; text-align: center; }
 .management-row strong, .management-row span, .management-row > div { display: block; text-align: center; }
@@ -2140,11 +2175,23 @@ span.status-pill,
 .inactive-account-card h2 { margin: 0 0 8px; color: var(--heading); }
 .inactive-account-card p { margin: 0 0 16px; color: var(--muted); line-height: 1.6; }
 .inactive-account-icon { display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; background: #fef3c7; color: #d97706; margin-bottom: 16px; }
+.inactive-account-icon--warning { background: #fef3c7; color: #d97706; }
+.inactive-account-icon--success { background: #dcfce7; color: #15803d; }
+.inactive-account-icon--danger { background: #fee2e2; color: #b91c1c; }
 .inactive-message-box { padding: 16px; margin-bottom: 16px; border-radius: 12px; background: #fff7ed; text-align: center; }
+.inactive-message-box--warning { background: #fffbeb; border: 1px solid #fde68a; }
+.inactive-message-box--success { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.inactive-message-box--danger { background: #fef2f2; border: 1px solid #fecaca; }
+.dark .inactive-account-icon--warning { background: rgba(217, 119, 6, 0.2); color: #fbbf24; }
+.dark .inactive-account-icon--success { background: rgba(21, 128, 61, 0.2); color: #4ade80; }
+.dark .inactive-account-icon--danger { background: rgba(185, 28, 28, 0.2); color: #f87171; }
+.dark .inactive-message-box--warning { background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.2); }
+.dark .inactive-message-box--success { background: rgba(21, 128, 61, 0.08); border-color: rgba(21, 128, 61, 0.2); }
+.dark .inactive-message-box--danger { background: rgba(185, 28, 28, 0.08); border-color: rgba(185, 28, 28, 0.2); }
 .inactive-message-box--centered { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; }
 .inactive-message-box p { margin: 0; }
 .inactive-small-print { font-size: 13px; color: var(--muted); margin-top: 12px !important; }
-.inactive-account-actions { margin-top: 20px; }
+.inactive-account-actions { margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 12px; }
 .pay-button { margin-top: 12px; }
 .inactive-account-card form { text-align: left; }
 .inactive-account-card form label { display: block; margin-bottom: 16px; font-weight: 600; color: var(--heading); font-size: 14px; }
@@ -2873,5 +2920,159 @@ span.status-pill,
     padding-top: 0;
     padding-bottom: 0;
     margin-bottom: -10px;
+  }
+}
+
+/* Certificate Styles */
+.certificate-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.certificate-modal-wrapper {
+  background: var(--surface);
+  border-radius: 16px;
+  max-width: 860px;
+  width: 100%;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.certificate-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--surface-soft, #f8fafc);
+  border-bottom: 1px solid var(--surface-border);
+}
+.certificate-frame {
+  margin: 24px;
+  padding: 32px;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 8px double #008751;
+  border-radius: 12px;
+  position: relative;
+  text-align: center;
+  box-shadow: inset 0 0 0 2px #d4af37;
+  font-family: 'Times New Roman', Georgia, serif;
+}
+.certificate-frame h2 {
+  font-size: 26px;
+  color: #008751;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 8px 0;
+  font-weight: 800;
+}
+.certificate-frame h4 {
+  font-size: 13px;
+  color: #4b5563;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+.certificate-title-banner {
+  font-size: 22px;
+  font-weight: bold;
+  color: #996515;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin: 16px 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 0;
+}
+.cert-student-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+  margin: 14px 0 6px;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-color: #008751;
+}
+.cert-course-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #008751;
+  margin: 12px 0 6px;
+}
+.cert-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0 32px;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, sans-serif;
+  text-align: left;
+  border: 1px dashed #cbd5e1;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+.cert-signatures {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 40px;
+  padding-top: 20px;
+}
+.cert-sig-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 180px;
+}
+.cert-sig-line {
+  width: 160px;
+  border-bottom: 1.5px solid #334155;
+  margin-bottom: 6px;
+}
+.cert-seal {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px dashed #d4af37;
+  background: #fefce8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #854d0e;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.2;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .certificate-print-area, .certificate-print-area * {
+    visibility: visible;
+  }
+  .certificate-print-area {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 30px;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+  .certificate-modal-actions, .back-link, nav, header {
+    display: none !important;
   }
 }

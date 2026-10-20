@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Shield, ShieldCheck } from "lucide-react";
 
 import { api } from "lib/api.js";
@@ -26,14 +26,29 @@ const ADMIN_ROLES = [
 
 export default function AdminSignup() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const form = useAuthForm(INITIAL_FORM);
 
     const [adminRole, setAdminRole] = useState("dunis_admin");
+    const [resendStatus, setResendStatus] = useState("");
+    const [resending, setResending] = useState(false);
     const isDunis = adminRole === "dunis_admin";
+
+    useEffect(() => {
+        const emailParam = searchParams.get("email");
+        const secretParam = searchParams.get("secret");
+        const roleParam = searchParams.get("role");
+
+        if (emailParam) form.update("email", emailParam);
+        if (secretParam) form.update("secret", secretParam);
+        if (roleParam && (roleParam === "saed_admin" || roleParam === "dunis_admin")) {
+            setAdminRole(roleParam);
+        }
+    }, [searchParams]);
 
     function validate() {
         const errors = {};
-        if (!form.form.secret) errors.secret = "Admin security key is required.";
+        if (!form.form.secret) errors.secret = "20-character admin secret key is required.";
         const nameErr = validateFullName(form.form.fullName);
         if (nameErr) errors.fullName = nameErr;
         const usernameErr = validateUsername(form.form.username);
@@ -54,6 +69,26 @@ export default function AdminSignup() {
         form.update("confirmPassword", pwd);
     }
 
+    async function handleResendKey() {
+        if (!form.form.email) {
+            form.setSubmitError(new Error("Please enter your email address to resend the secret key."));
+            return;
+        }
+        setResending(true);
+        setResendStatus("");
+        try {
+            const data = await api("/auth/resend-admin-key/", {
+                method: "POST",
+                body: { email: form.form.email.trim() },
+            });
+            setResendStatus(data.message || "A new 20-character secret key has been sent to your email.");
+        } catch (err) {
+            form.setSubmitError(err);
+        } finally {
+            setResending(false);
+        }
+    }
+
     async function handleSubmit(event) {
         event.preventDefault();
         const errors = validate();
@@ -71,11 +106,17 @@ export default function AdminSignup() {
                     phone: form.form.phone,
                     password: form.form.password,
                     role: adminRole,
-                    secret: form.form.secret,
+                    secret: form.form.secret.trim(),
                 },
             });
 
-            navigate(`/verify-email?email=${encodeURIComponent(data.email || form.form.email.trim())}`);
+            if (data.verified) {
+                navigate("/login", {
+                    state: { message: "Admin account verified and created successfully! Please log in." }
+                });
+            } else {
+                navigate(`/verify-email?email=${encodeURIComponent(data.email || form.form.email.trim())}`);
+            }
         } catch (err) {
             form.setSubmitError(err);
         } finally {
@@ -187,15 +228,31 @@ export default function AdminSignup() {
 
                 <FormField
                     id="admin-security-key"
-                    label="Admin Security Key"
+                    label="Admin Secret Key (20 characters from your invitation email)"
                     name="secret"
-                    type="security-key"
+                    type="text"
                     value={form.form.secret}
                     onChange={form.update}
                     error={form.fields.secret}
-                    placeholder="Enter system setup security key"
+                    placeholder="e.g. 7X9mK2pRt4vW8yBnL6qJ"
                     required
                 />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-12px", marginBottom: "16px", fontSize: "12px" }}>
+                    <span style={{ color: "var(--muted)" }}>Key expires in 10 minutes</span>
+                    <button
+                        type="button"
+                        onClick={handleResendKey}
+                        disabled={resending}
+                        style={{ background: "none", border: "none", color: "var(--primary, #0f6b45)", cursor: "pointer", fontWeight: "600", textDecoration: "underline", padding: 0 }}
+                    >
+                        {resending ? "Sending..." : "Resend 20-Character Key"}
+                    </button>
+                </div>
+                {resendStatus && (
+                    <div style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.25)", color: "#065f46", fontSize: "12px", marginBottom: "16px" }}>
+                        {resendStatus}
+                    </div>
+                )}
 
                 <AuthError message={form.error} />
 

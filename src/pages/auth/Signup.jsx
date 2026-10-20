@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
 import AuthError from "components/auth/AuthError.jsx";
@@ -31,7 +31,8 @@ const INITIAL_FORM = {
 
 export default function Signup() {
     const navigate = useNavigate();
-    const [role, setRole] = useState("corps_member");
+    const [searchParams] = useSearchParams();
+    const [role, setRole] = useState(() => searchParams.get("role") === "trainer" ? "trainer" : "corps_member");
     const [step, setStep] = useState(1);
     const [agree, setAgree] = useState(false);
 

@@ -7,7 +7,10 @@ import {
   Eye, Edit, 
   Search,
   RefreshCw,
-
+  UserPlus,
+  Clock,
+  Check,
+  Copy,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -52,6 +55,68 @@ export default function ManageUsers() {
   const [editFields, setEditFields] = useState({});
   const [editPartnershipLetter, setEditPartnershipLetter] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteTab, setInviteTab] = useState("invite");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("saed_admin");
+  const [inviteSubmitting, setInviteSubmitting] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+  const [inviteSuccess, setInviteSuccess] = useState(null);
+  const [invitations, setInvitations] = useState([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(false);
+  const [revokingId, setRevokingId] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  async function fetchInvitations() {
+    setLoadingInvitations(true);
+    try {
+      const res = await api("/manage/admin-invitations/");
+      setInvitations(res.invitations || []);
+    } catch (err) {
+      console.error("Failed to load invitations", err);
+    } finally {
+      setLoadingInvitations(false);
+    }
+  }
+
+  async function handleSendInvite(e) {
+    e.preventDefault();
+    setInviteError("");
+    setInviteSuccess(null);
+    if (!inviteEmail.trim()) {
+      setInviteError("Please enter an email address.");
+      return;
+    }
+    setInviteSubmitting(true);
+    try {
+      const res = await api("/manage/admin-invitations/", {
+        method: "POST",
+        body: { email: inviteEmail.trim(), role: inviteRole },
+      });
+      setInviteSuccess(res.invitation);
+      setInviteEmail("");
+      fetchInvitations();
+    } catch (err) {
+      setInviteError(err.message || "Failed to dispatch invitation.");
+    } finally {
+      setInviteSubmitting(false);
+    }
+  }
+
+  async function handleRevokeInvite(invitationId) {
+    if (!window.confirm("Are you sure you want to revoke this admin invitation?")) return;
+    setRevokingId(invitationId);
+    try {
+      await api(`/manage/admin-invitations/${invitationId}/`, { method: "DELETE" });
+      fetchInvitations();
+      showMsg("Admin invitation revoked.", "success");
+    } catch (err) {
+      showMsg(err.message || "Failed to revoke invitation.", "error");
+    } finally {
+      setRevokingId(null);
+    }
+  }
 
   function toggleSort(field) {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -180,6 +245,22 @@ export default function ManageUsers() {
           <h2>Trainer Management</h2>
           <p>Review, approve, decline, or remove trainer registrations.</p>
         </div>
+        {currentUser?.role === "dunis_admin" && (
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => {
+                setShowInviteModal(true);
+                fetchInvitations();
+              }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+            >
+              <UserPlus size={16} />
+              <span>Invite Admin</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {message && (
@@ -204,21 +285,21 @@ export default function ManageUsers() {
             <Search size={16} />
             <input type="text" placeholder="Search trainers..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <div className="management-table">
+          <div className="management-table trainer-management-table">
           <div className="management-row table-head">
-            <span className="sortable" onClick={() => toggleSort("fullName")}>Name {sortField === "fullName" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
-            <span className="sortable" onClick={() => toggleSort("specialization")}>Specialization {sortField === "specialization" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
-            <span className="sortable" onClick={() => toggleSort("isActive")}>Status {sortField === "isActive" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
-            <span className="sortable" onClick={() => toggleSort("authorizationStatus")}>Authorization {sortField === "authorizationStatus" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
-            <span>Actions</span>
+            <span className="sortable head-name" onClick={() => toggleSort("fullName")}>Name {sortField === "fullName" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
+            <span className="sortable head-spec" onClick={() => toggleSort("specialization")}>Specialization {sortField === "specialization" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
+            <span className="sortable head-status" onClick={() => toggleSort("isActive")}>Status {sortField === "isActive" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
+            <span className="sortable head-auth" onClick={() => toggleSort("authorizationStatus")}>Authorization {sortField === "authorizationStatus" ? (sortDir === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : ""}</span>
+            <span className="head-actions">Actions</span>
           </div>
           {paginatedUsers.map((user) => {
             const authStatus = user.authorizationStatus;
             const isSelf = user.id === currentUser?.id;
             return (
             <div className="management-row" key={user.id}>
-              <div><strong>{user.fullName}</strong><span>{user.email}</span></div>
-              <span>{user.specialization || "—"}</span>
+              <div className="trainer-name-col"><strong>{user.fullName}</strong><span>{user.email}</span></div>
+              <span className="trainer-spec-col">{user.specialization || "—"}</span>
               <span className={`status-pill status-${user.isActive ? "approved" : "declined"}`}>{user.isActive ? "active" : "inactive"}</span>
               <span className={`status-pill status-${authStatus === "approved" ? "approved" : authStatus === "declined" ? "declined" : authStatus === "removed" ? "declined" : "pending"}`}>
                 {statusLabels[authStatus] || "Pending"}
@@ -455,6 +536,188 @@ export default function ManageUsers() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showInviteModal && (
+        <div className="modal-overlay" onClick={() => { setShowInviteModal(false); setInviteSuccess(null); setInviteError(""); }}>
+          <div className="modal-content modal-trainer-form" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "600px" }}>
+            <div className="modal-header">
+              <h2>Administrator Invitations</h2>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => { setShowInviteModal(false); setInviteSuccess(null); setInviteError(""); }}
+              >
+                <X size={24} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", gap: "8px", padding: "0 24px", borderBottom: "1px solid var(--surface-border)" }}>
+              <button
+                type="button"
+                className={`filter-tab ${inviteTab === "invite" ? "active" : ""}`}
+                onClick={() => { setInviteTab("invite"); setInviteError(""); }}
+                style={{ borderRadius: "8px 8px 0 0" }}
+              >
+                <UserPlus size={14} style={{ marginRight: 6 }} /> Send Invitation
+              </button>
+              <button
+                type="button"
+                className={`filter-tab ${inviteTab === "pending" ? "active" : ""}`}
+                onClick={() => { setInviteTab("pending"); fetchInvitations(); }}
+                style={{ borderRadius: "8px 8px 0 0" }}
+              >
+                <Clock size={14} style={{ marginRight: 6 }} /> Invitations History ({invitations.length})
+              </button>
+            </div>
+
+            {inviteTab === "invite" ? (
+              <form onSubmit={handleSendInvite} style={{ padding: "20px 24px" }}>
+                <p style={{ margin: "0 0 16px", color: "var(--muted)", fontSize: "14px", lineHeight: "1.5" }}>
+                  Generate and dispatch an official NYSC SAED invitation to an intended administrator. A <strong>20-character single-use secret key</strong> valid for <strong>10 minutes</strong> will be generated and emailed directly with a 1-click registration link.
+                </p>
+
+                {inviteError && (
+                  <div className="inline-message inline-message--error" style={{ marginBottom: "16px" }}>
+                    <span>{inviteError}</span>
+                  </div>
+                )}
+
+                {inviteSuccess && (
+                  <div style={{
+                    background: "rgba(16, 185, 129, 0.08)",
+                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                    borderRadius: "10px",
+                    padding: "16px",
+                    marginBottom: "20px"
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#10b981", fontWeight: 700, marginBottom: "8px" }}>
+                      <Check size={18} />
+                      <span>Invitation Sent Successfully!</span>
+                    </div>
+                    <p style={{ margin: "0 0 12px", fontSize: "13px", color: "var(--text)" }}>
+                      An official email with instructions has been dispatched to <strong>{inviteSuccess.email}</strong>. The key expires in <strong>10 minutes</strong>.
+                    </p>
+                    <div style={{ background: "var(--surface)", padding: "10px", borderRadius: "8px", border: "1px solid var(--surface-border)", marginBottom: "10px" }}>
+                      <div style={{ fontSize: "11px", textTransform: "uppercase", color: "var(--muted)", letterSpacing: "0.5px" }}>Generated 20-Character Key</div>
+                      <code style={{ fontSize: "16px", fontWeight: "700", letterSpacing: "2px", color: "var(--brand)" }}>
+                        {inviteSuccess.secretKey}
+                      </code>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        type="button"
+                        className="outline-button"
+                        style={{ fontSize: "12px", padding: "6px 12px" }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(inviteSuccess.signupUrl);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2500);
+                        }}
+                      >
+                        {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied Signup URL!" : "Copy Signup URL"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="modal-form-section" style={{ padding: 0, border: "none" }}>
+                  <div className="form-grid-1" style={{ display: "grid", gap: "16px" }}>
+                    <label>Intended Admin Email *
+                      <input
+                        type="email"
+                        required
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        placeholder="e.g. director.saed@nysc.gov.ng"
+                      />
+                    </label>
+
+                    <label>Admin Role *
+                      <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
+                        <option value="saed_admin">SAED Administrator (State/Zonal Admin)</option>
+                        <option value="dunis_admin">DUNIS Administrator (System Superadmin)</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="modal-actions" style={{ padding: "20px 0 0", marginTop: "16px" }}>
+                  <button type="button" className="outline-button" onClick={() => setShowInviteModal(false)}>
+                    Close
+                  </button>
+                  <button type="submit" className="primary-button" disabled={inviteSubmitting}>
+                    {inviteSubmitting ? "Generating & Sending..." : "Send 20-Character Key & Invitation"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div style={{ padding: "20px 24px" }}>
+                {loadingInvitations ? (
+                  <div className="empty-state">Loading invitations history...</div>
+                ) : invitations.length === 0 ? (
+                  <div className="empty-state">No admin invitations have been generated yet.</div>
+                ) : (
+                  <div style={{ display: "grid", gap: "10px", maxHeight: "400px", overflowY: "auto" }}>
+                    {invitations.map((inv) => (
+                      <div
+                        key={inv.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          background: "var(--surface-soft)",
+                          border: "1px solid var(--surface-border)",
+                          gap: "12px",
+                        }}
+                      >
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            <strong style={{ fontSize: "14px" }}>{inv.email}</strong>
+                            <span className="status-pill status-approved" style={{ fontSize: "11px", padding: "2px 8px" }}>
+                              {inv.roleDisplay || (inv.role === "dunis_admin" ? "DUNIS Admin" : "SAED Admin")}
+                            </span>
+                            {inv.isUsed ? (
+                              <span className="status-pill status-approved" style={{ fontSize: "11px", padding: "2px 8px" }}>Registered</span>
+                            ) : inv.isExpired ? (
+                              <span className="status-pill status-declined" style={{ fontSize: "11px", padding: "2px 8px" }}>Expired</span>
+                            ) : (
+                              <span className="status-pill status-pending" style={{ fontSize: "11px", padding: "2px 8px" }}>Pending (Active)</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
+                            {inv.invitedBy ? `Invited by ${inv.invitedBy} • ` : ""}Created: {new Date(inv.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Expires: {new Date(inv.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+
+                        {!inv.isUsed && (
+                          <button
+                            type="button"
+                            className="icon-action"
+                            style={{ color: "#ef4444" }}
+                            title="Revoke Invitation"
+                            disabled={revokingId === inv.id}
+                            onClick={() => handleRevokeInvite(inv.id)}
+                          >
+                            <Trash2 size={16} />
+                            <span>{revokingId === inv.id ? "Revoking..." : "Revoke"}</span>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="modal-actions" style={{ padding: "16px 0 0", marginTop: "16px" }}>
+                  <button type="button" className="outline-button" onClick={() => setShowInviteModal(false)}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

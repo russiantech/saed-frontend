@@ -12,7 +12,7 @@ export default function AppShell() {
   const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
-    if (user && user.role === "trainer" && (!user.isAuthorized || !user.isActive)) {
+    if (user && user.role === "trainer" && (!user.isAuthorized || !user.isActive || !user.hasPaid)) {
       navigate("/app/inactive-account", { replace: true });
     }
   }, [user, navigate]);
@@ -26,7 +26,7 @@ export default function AppShell() {
 
   const isAdmin = user.role === "saed_admin" || user.role === "dunis_admin";
   const isTrainer = user.role === "trainer";
-  const isInactiveTrainer = isTrainer && (!user.isAuthorized || !user.isActive);
+  const isInactiveTrainer = isTrainer && (!user.isAuthorized || !user.isActive || !user.hasPaid);
   const isCorpsMember = user.role === "corps_member";
   const isDunisAdmin = user.role === "dunis_admin";
 

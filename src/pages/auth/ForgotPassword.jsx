@@ -127,10 +127,13 @@ export default function ForgotPassword() {
     if (!codeStr || codeStr.length !== CODE_LENGTH) return;
     startSubmit();
     try {
-      await api("/auth/verify-reset-code/", {
+      const res = await api("/auth/verify-reset-code/", {
         method: "POST",
         body: { email: form.email, code: codeStr, token: resetToken },
       });
+      if (res?.token) {
+        setResetToken(res.token);
+      }
       setStep(STEPS.RESET);
       clearErrors();
     } catch (err) {
