@@ -1,0 +1,29 @@
+.tr-page{display:grid;gap:16px}
+.tr-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.tr-head h2{margin:0}
+.tr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.tr-card{display:flex;flex-direction:column;gap:8px;padding:16px;border:1px solid var(--border);border-radius:14px}
+.tr-card h3{margin:0;font-size:16px}.tr-card p{margin:0;font-size:13px;color:var(--muted)}
+.tr-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.tr-form label{display:grid;gap:4px;font-size:13px}
+.tr-form .wide{grid-column:1/-1}
+.tr-form input,.tr-form select,.tr-form textarea{width:100%}
+.tr-err{color:#c53030;font-size:12px}
+.tr-row{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:12px;flex-wrap:wrap}
+.tr-row-main{display:grid;gap:2px;min-width:0}.tr-row-main small{color:var(--muted)}
+.tr-actions{display:flex;gap:6px;flex-wrap:wrap}
+.tr-badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:var(--surface-soft)}
+.tr-badge--ok{background:#e6f4ea;color:#0b6b3a;border-color:#b7e0c3}
+.tr-badge--lock{background:#fff6e0;color:#8a5a00;border-color:#f0d9a0}
+.dark .tr-badge--ok{background:#12301f;color:#7fd8a0;border-color:#1f5a38}
+.dark .tr-badge--lock{background:#3a2e12;color:#f0c870;border-color:#6a5420}
+.tr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.tr-stat{padding:14px;border:1px solid var(--border);border-radius:12px;display:grid;gap:2px}
+.tr-stat strong{font-size:20px}.tr-stat span{font-size:12px;color:var(--muted)}
+.tr-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:1000;padding:16px}
+.tr-modal>div{background:var(--surface,#fff);color:inherit;border-radius:16px;padding:20px;max-width:640px;width:100%;max-height:90vh;overflow:auto}
+.tr-progress{height:8px;border-radius:999px;background:var(--surface-soft);overflow:hidden}
+.tr-progress>span{display:block;height:100%;background:#0b6b3a}
+.tr-table{width:100%;border-collapse:collapse;font-size:13px}
+.tr-table th,.tr-table td{text-align:left;padding:8px;border-bottom:1px solid var(--border)}
+.tr-table-wrap{overflow:auto}

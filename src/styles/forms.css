@@ -1,0 +1,111 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Unified form & control system — loaded LAST so every form in the app
+   (auth, modals, tables, trainer/corper/admin pages) looks and behaves the same.
+   Tokens: height 46px · radius 12px · 16px text on phones (no iOS zoom) · 44px touch targets
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --field-h: 46px;
+  --field-radius: 12px;
+  --field-pad: 0 14px;
+  --field-border: var(--surface-border, #dfe8e2);
+  --field-focus: var(--brand, #0f6b45);
+  --field-ring: rgba(15, 107, 69, .16);
+}
+.dark { --field-ring: rgba(126, 224, 176, .22); }
+
+/* text-like controls ------------------------------------------------------ */
+body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not(.search-box input):not(.phone-input-wrap input),
+body select:not(.select-wrapper select),
+body textarea {
+  width: 100%;
+  min-height: var(--field-h);
+  padding: var(--field-pad);
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  background: var(--input-bg, #fff);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.4;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+body textarea { padding: 12px 14px; min-height: 110px; resize: vertical; }
+body select:not(.select-wrapper select) {
+  appearance: none;
+  padding-right: 38px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23788' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+body input::placeholder, body textarea::placeholder { color: var(--muted); opacity: .8; }
+body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+body select:focus, body textarea:focus {
+  border-color: var(--field-focus);
+  box-shadow: 0 0 0 4px var(--field-ring);
+}
+body input:disabled, body select:disabled, body textarea:disabled { opacity: .6; cursor: not-allowed; background: var(--surface-soft); }
+body input[aria-invalid="true"], body .has-error input, body .has-error select, body .has-error textarea { border-color: var(--danger-fg, #a32920); }
+input[type="date"], input[type="time"], input[type="datetime-local"] { min-width: 0; }
+
+/* checkbox / radio -------------------------------------------------------- */
+body input[type="checkbox"], body input[type="radio"] { accent-color: var(--brand, #0f6b45); width: 18px; height: 18px; flex: none; }
+
+/* native file inputs (when not using LetterField) ---------------------------- */
+body input[type="file"] {
+  width: 100%; padding: 10px; border: 1.5px dashed var(--field-border); border-radius: var(--field-radius);
+  background: var(--input-bg, #fff); color: var(--text); font: inherit; font-size: 14px;
+}
+body input[type="file"]::file-selector-button {
+  margin-right: 12px; padding: 8px 14px; border: 0; border-radius: 8px; background: var(--brand, #0f6b45); color: #fff; font-weight: 600; cursor: pointer;
+}
+
+/* labels, hints, errors --------------------------------------------------- */
+.tr-form label, .cp-filters label, .ad-filters label, .management-form label, .modal-form-section label,
+.edit-profile-section label, .auth-form label, .field-label {
+  display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text);
+}
+.field-label { margin: 0; }
+.form-hint { font-size: 12px; color: var(--muted); }
+.field-error, .tr-err { margin: 0; color: var(--danger-fg, #a32920); font-size: 12.5px; font-weight: 600; }
+.auth-form .field-error { margin-top: 0; }
+
+/* buttons ------------------------------------------------------------------ */
+.primary-button, .ghost-button, .danger-button, .nav-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 0 18px; border-radius: var(--field-radius);
+  font: inherit; font-size: 14px; font-weight: 700; line-height: 1; text-decoration: none; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, transform .05s ease, opacity .15s ease;
+}
+.primary-button { border: 1px solid transparent; background: var(--primary, #145f3f); color: var(--primary-fg, #fff); box-shadow: none; }
+.primary-button:hover { background: var(--primary-hover, #0d4d32); }
+.ghost-button { border: 1px solid var(--field-border); background: transparent; color: var(--text); }
+.ghost-button:hover { background: var(--hover); border-color: var(--field-focus); }
+.danger-button { border: 1px solid var(--danger-fg, #dc3545); background: transparent; color: var(--danger-fg, #dc3545); }
+.danger-button:hover { background: var(--danger-fg, #dc3545); color: #fff; }
+.primary-button:active, .ghost-button:active, .danger-button:active { transform: translateY(1px); }
+.primary-button:disabled, .ghost-button:disabled, .danger-button:disabled { opacity: .55; cursor: not-allowed; }
+.primary-button:focus-visible, .ghost-button:focus-visible, .danger-button:focus-visible { outline: 2px solid var(--field-focus); outline-offset: 2px; }
+.primary-button.small, .ghost-button.small { min-height: 36px; padding: 0 12px; font-size: 13px; }
+.password-eye-button, .inline-message-close { min-height: 0; }
+
+/* responsive ---------------------------------------------------------------- */
+@media (max-width: 640px) {
+  body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not(.search-box input):not(.phone-input-wrap input),
+  body select, body textarea { font-size: 16px; }          /* prevents iOS zoom-on-focus */
+  .tr-form, .cp-filters, .ad-filters { grid-template-columns: 1fr !important; }
+  .tr-actions, .modal-actions { flex-wrap: wrap; }
+  .tr-actions > .primary-button, .tr-actions > .ghost-button, .modal-actions > button { flex: 1 1 auto; }
+  .tr-modal > div { padding: 16px; max-height: 94vh; }
+  .edit-profile-section { padding: 18px 16px; }
+}
+
+/* dark sidebar: controls keep light text (must follow the generic button rules) */
+.sidebar .logout-button, .sidebar .ghost-button { color: #fff; border-color: rgba(255,255,255,.35); }
+.sidebar .logout-button:hover, .sidebar .ghost-button:hover { background: rgba(255,255,255,.1); border-color: #fff; }
+
+/* Users table has five columns (name, specialization, status, authorization, actions) */
+.management-row.users-row { grid-template-columns: minmax(150px, 1.4fr) minmax(90px, 1fr) minmax(70px, .6fr) minmax(100px, .8fr) minmax(190px, 1.5fr); }
+.management-row .action-buttons { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+@media (max-width: 960px) { .management-row.users-row { grid-template-columns: 1fr; } .management-row.users-row.table-head { display: none; } }

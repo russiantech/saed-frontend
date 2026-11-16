@@ -1,0 +1,170 @@
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "lib/auth.jsx";
+import AuthLayout from "components/auth/AuthLayout.jsx";
+import { FormField, SubmitButton } from "components/forms/FormField.jsx";
+import AuthError from "components/auth/AuthError.jsx";
+import useAuthForm from "hooks/useAuthForm.js";
+
+export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { login } = useAuth();
+
+  const {
+    form,
+    fields,
+    error,
+    submitting,
+    update,
+    setFieldErrors,
+    startSubmit,
+    endSubmit,
+    setSubmitError,
+  } = useAuthForm({
+    email: "",
+    password: "",
+    remember: false,
+  });
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    if (submitting) {
+      return;
+    }
+
+    const validationErrors = {};
+
+    if (!form.email.trim()) {
+      validationErrors.email =
+        "Username or email is required.";
+    }
+
+    if (!form.password) {
+      validationErrors.password =
+        "Password is required.";
+    }
+
+    setFieldErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    startSubmit();
+
+    try {
+      const user = await login({
+        email: form.email.trim(),
+        password: form.password,
+        remember: form.remember,
+      });
+
+      if (!user) {
+        throw new Error(
+          "Authentication failed. No user data was returned."
+        );
+      }
+
+      if (
+        user.role === "trainer" &&
+        (!user.isAuthorized || !user.isActive)
+      ) {
+        navigate("/app/inactive-account", {
+            replace: true,
+          });
+
+        return;
+      }
+
+      const destination =
+        location.state?.redirectTo ||
+        (user.role === "dunis_admin"
+          ? "/app/dunis-admin"
+          : "/app/dashboard");
+
+      navigate(destination, {
+        replace: true,
+      });
+    } catch (err) {
+      if (err.status === 403 && err.data?.email_not_verified) {
+        navigate(`/verify-email?email=${encodeURIComponent(err.data.email || form.email.trim())}`, { replace: true });
+        return;
+      }
+      setSubmitError(err);
+    } finally {
+      endSubmit();
+    }
+  }
+
+  return (
+    <AuthLayout
+      title="Welcome Back"
+      subtitle="Login to access your account"
+    >
+      <form
+        className="auth-form"
+        onSubmit={handleSubmit}
+        noValidate
+      >
+        <FormField
+          label="Username or Email"
+          name="email"
+          value={form.email}
+          onChange={update}
+          error={fields.email}
+          placeholder="Enter your username or email"
+          required
+        />
+
+        <FormField
+          label="Password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={update}
+          error={fields.password}
+          placeholder="Enter your password"
+          required
+        />
+
+        <div className="form-row">
+          <div className="remember-label">
+            <label className="checkbox-clickable">
+              <input
+                type="checkbox"
+                checked={form.remember}
+                onChange={(e) =>
+                  update(
+                    "remember",
+                    e.target.checked
+                  )
+                }
+              />
+              <span className="checkbox-custom"></span>
+            </label>
+            Remember me
+          </div>
+
+          <Link to="/forgot">
+            Forgot Password?
+          </Link>
+        </div>
+
+        <AuthError message={error} />
+
+        <SubmitButton loading={submitting}>
+          Login →
+        </SubmitButton>
+      </form>
+
+      <p className="auth-switch">
+        Don&apos;t have an account?{" "}
+        <Link to="/signup">
+          Sign Up
+        </Link>
+      </p>
+    </AuthLayout>
+  );
+}
