@@ -24,7 +24,7 @@ test("admin sees camps with usage counts and can add one", async () => {
   fireEvent.click(screen.getByRole("button", { name: /add camp/i }));
   const dialog = screen.getByRole("dialog");
   fireEvent.change(dialog.querySelector("input[placeholder^='e.g. Lagos']"), { target: { value: "Ogun Camp" } });
-  fireEvent.change(dialog.querySelector("select"), { target: { value: "Ogun" } });
+  fireEvent.change(dialog.querySelectorAll("select")[1], { target: { value: "Ogun" } }); // [0] is the stream
   const dates = dialog.querySelectorAll("input[type=date]");
   fireEvent.change(dates[0], { target: { value: "2026-12-01" } });
   fireEvent.change(dates[1], { target: { value: "2026-12-21" } });
@@ -40,7 +40,7 @@ test("end date before start date is rejected client-side", async () => {
   fireEvent.click(await screen.findByRole("button", { name: /add camp/i }));
   const dialog = screen.getByRole("dialog");
   fireEvent.change(dialog.querySelector("input[placeholder^='e.g. Lagos']"), { target: { value: "X" } });
-  fireEvent.change(dialog.querySelector("select"), { target: { value: "Ogun" } });
+  fireEvent.change(dialog.querySelectorAll("select")[1], { target: { value: "Ogun" } }); // [0] is the stream
   const dates = dialog.querySelectorAll("input[type=date]");
   fireEvent.change(dates[0], { target: { value: "2026-12-21" } });
   fireEvent.change(dates[1], { target: { value: "2026-12-01" } });

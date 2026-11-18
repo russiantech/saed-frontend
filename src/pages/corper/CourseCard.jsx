@@ -9,6 +9,7 @@ export default function CourseCard({ course: c, footer, base = "/app/courses" })
       <div className="cp-badges">
         <span className={`cp-badge ${c.courseType === "in_camp" ? "cp-badge--warn" : ""}`}>{typeLabel(c.courseType)}</span>
         {c.categoryLabel && <span className="cp-badge">{c.categoryLabel}</span>}
+        {c.approvalStatus && c.approvalStatus !== "approved" && <span className="cp-badge cp-badge--warn">{c.approvalStatus === "declined" ? "Declined" : "Pending review"}</span>}
         {c.matchesMySkills && <span className="cp-badge cp-badge--ok">Your skill set</span>}
         {c.isEnrolled &&<span className="cp-badge cp-badge--ok">Enrolled</span>}
         {c.isPublished === false && <span className="cp-badge">Draft</span>}

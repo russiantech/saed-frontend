@@ -3,13 +3,15 @@ import { Pencil, Plus, Power, Trash2 } from "lucide-react";
 
 import { api } from "lib/api.js";
 import { STATES } from "data/nigerianStates.js";
+import useStreams from "hooks/useStreams.js";
 import "styles/trainer.css";
 
-const EMPTY = { name: "", state: "", location: "", startDate: "", endDate: "", deactivationGraceDays: 7, isActive: true };
+const EMPTY = { streamId: "", name: "", state: "", location: "", startDate: "", endDate: "", deactivationGraceDays: 7, isActive: true };
 
 const fmt = (d) => (d ? new Date(`${d}T00:00:00`).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" }) : "—");
 
 export default function OrientationCamps() {
+  const { streams } = useStreams();
   const [camps, setCamps] = useState(null);
   const [form, setForm] = useState(null);     // null = closed
   const [editingId, setEditingId] = useState(null);
@@ -33,7 +35,7 @@ export default function OrientationCamps() {
   function openNew() { setEditingId(null); setForm({ ...EMPTY }); setError(""); }
   function openEdit(c) {
     setEditingId(c.id);
-    setForm({ name: c.name, state: c.state, location: c.location || "", startDate: c.startDate || "", endDate: c.endDate || "",
+    setForm({ streamId: c.streamId ? String(c.streamId) : "", name: c.name, state: c.state, location: c.location || "", startDate: c.startDate || "", endDate: c.endDate || "",
               deactivationGraceDays: c.deactivationGraceDays ?? 7, isActive: c.isActive });
     setError("");
   }
@@ -44,7 +46,7 @@ export default function OrientationCamps() {
     if (form.endDate && form.startDate && form.endDate < form.startDate) { setError("The end date must be on or after the start date."); return; }
     setBusy(true);
     try {
-      const body = { ...form, deactivationGraceDays: Number(form.deactivationGraceDays) };
+      const body = { ...form, streamId: form.streamId ? Number(form.streamId) : null, deactivationGraceDays: Number(form.deactivationGraceDays) };
       if (editingId) await api(`/manage/orientation-camps/${editingId}/`, { method: "PATCH", body });
       else await api("/manage/orientation-camps/", { method: "POST", body });
       setNotice(editingId ? "Camp updated." : "Camp added.");
@@ -92,11 +94,12 @@ export default function OrientationCamps() {
       ) : (
         <div className="tr-table-wrap">
           <table className="tr-table">
-            <thead><tr><th>Camp</th><th>State</th><th>Dates</th><th>Grace</th><th>Courses</th><th>Corps members</th><th>Status</th><th aria-label="Actions" /></tr></thead>
+            <thead><tr><th>Camp</th><th>Stream</th><th>State</th><th>Dates</th><th>Grace</th><th>Courses</th><th>Corps members</th><th>Status</th><th aria-label="Actions" /></tr></thead>
             <tbody>
               {camps.map((c) => (
                 <tr key={c.id}>
                   <td><strong>{c.name}</strong>{c.location && <><br /><small className="form-hint">{c.location}</small></>}</td>
+                  <td>{c.streamName || "—"}</td>
                   <td>{c.state}</td>
                   <td>{fmt(c.startDate)} – {fmt(c.endDate)}</td>
                   <td>{c.deactivationGraceDays} d</td>
@@ -124,6 +127,13 @@ export default function OrientationCamps() {
             <form onSubmit={save} className="tr-form" style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
               <label style={{ gridColumn: "1 / -1" }}>Camp name *
                 <input value={form.name} onChange={set("name")} required maxLength={200} placeholder="e.g. Lagos Orientation Camp — Batch C 2026" />
+              </label>
+              <label style={{ gridColumn: "1 / -1" }}>Stream
+                <select value={form.streamId} onChange={set("streamId")}>
+                  <option value="">No stream</option>
+                  {(streams || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+                <span className="form-hint">Corps members choose a stream first, then one of its camps.</span>
               </label>
               <label>State *
                 <select value={form.state} onChange={set("state")} required>

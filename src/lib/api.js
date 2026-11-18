@@ -1,6 +1,6 @@
 // src/lib/api.js — session + CSRF aware API client.
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 let csrfToken = "";
 let csrfFetchPromise = null;

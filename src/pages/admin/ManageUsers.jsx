@@ -39,6 +39,9 @@ export default function ManageUsers() {
   const [messageType, setMessageType] = useState("");
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  // Post-Camp trainers are approved here; In-Camp trainers belong to a stream and are managed under In-Camp Trainers.
+  const [track, setTrack] = useState("post_camp");
+  const [streamFilter, setStreamFilter] = useState("");
   const [sortField, setSortField] = useState("fullName");
   const [sortDir, setSortDir] = useState("asc");
   const [search, setSearch] = useState("");
@@ -138,7 +141,14 @@ export default function ManageUsers() {
     } catch (err) { showMsg(err.message, "error"); }
   }
 
-  const trainers = users.filter((u) => u.role === "trainer");
+  const streamOptions = useMemo(() => {
+    const seen = new Map();
+    users.forEach((u) => (u.streams || []).forEach((s) => seen.set(s.streamId, s.streamName)));
+    return [...seen.entries()].map(([id, name]) => ({ id, name }));
+  }, [users]);
+  const trainers = users.filter((u) => u.role === "trainer"
+    && (track === "all" || (u.accountMode === "in_camp" ? "in_camp" : "post_camp") === track)
+    && (!streamFilter || (u.streams || []).some((s) => String(s.streamId) === streamFilter)));
   // All branches key off authorizationStatus -- the single source of
   // truth -- rather than mixing in the derived isAuthorized flag, so the
   // filter-tab counts and the actual filtered list can never disagree.
@@ -167,7 +177,7 @@ export default function ManageUsers() {
     return sortedUsers.slice(start, start + PAGE_SIZE);
   }, [sortedUsers, page]);
 
-  useEffect(() => { setPage(1); }, [filter, search]);
+  useEffect(() => { setPage(1); }, [filter, search, track, streamFilter]);
 
   const statusLabels = { pending: "Pending Review", approved: "Approved", declined: "Declined", removed: "Removed" };
 
@@ -186,6 +196,22 @@ export default function ManageUsers() {
           <button type="button" className="inline-message-close" onClick={() => showMsg("")}><X size={16} /></button>
         </div>
       )}
+
+      <div className="tr-filters">
+        <label>Programme
+          <select value={track} onChange={(e) => { setTrack(e.target.value); if (e.target.value === "post_camp") setStreamFilter(""); }} aria-label="Filter by programme">
+            <option value="post_camp">Post-Camp</option><option value="in_camp">In-Camp</option><option value="all">Both</option>
+          </select>
+        </label>
+        {track !== "post_camp" && (
+          <label>Stream
+            <select value={streamFilter} onChange={(e) => setStreamFilter(e.target.value)} aria-label="Filter by stream">
+              <option value="">All streams</option>
+              {streamOptions.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+          </label>
+        )}
+      </div>
 
       <div className="filter-tabs">
         {["all", "approved", "pending", "declined", "removed"].map((f) => (

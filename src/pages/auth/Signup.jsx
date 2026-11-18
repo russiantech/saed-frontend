@@ -23,13 +23,20 @@ const INITIAL_FORM = {
     lgaOfDeployment: "",
     skillInterest: "",
     skillInterests: [],
-    accountMode: "post_camp",
+    streamId: "",
     orientationCampId: "",
     ppa: "",
 };
 
-export default function Signup() {
+/**
+ * One form component, two separate programmes. `track` decides which one:
+ *  - "in_camp":   corps members attending an orientation-camp stream (stream + camp, no LGA/PPA, no trainers)
+ *  - "post_camp": corps members and trainers after camp (LGA/PPA, trainer partnership letter)
+ * The two share only the building blocks (fields, password rules, layout); their data and rules are separate.
+ */
+export default function Signup({ track = "post_camp" }) {
     const navigate = useNavigate();
+    const inCamp = track === "in_camp";
     const [role, setRole] = useState("corps_member");
     const [step, setStep] = useState(1);
     const [agree, setAgree] = useState(false);
@@ -37,7 +44,7 @@ export default function Signup() {
     const { form: formData, fields, error, submitting, update, setFieldErrors, startSubmit, endSubmit, setSubmitError } = useAuthForm(INITIAL_FORM);
     const [partnerLgas, toggleLga] = useToggleArray();
 
-    const isTrainer = role === "trainer";
+    const isTrainer = !inCamp && role === "trainer";
 
     function validateStep1() {
         const errors = {};
@@ -62,7 +69,7 @@ export default function Signup() {
         const errors = {};
         const codeErr = validateNyscCode(formData.nyscStateCode);
         if (codeErr) errors.nyscStateCode = codeErr;
-        // LGA optional at signup (can be completed after camp placement)
+        if (inCamp && !formData.streamId) errors.streamId = "Choose the stream you are attending.";
         if (!formData.skillInterests || formData.skillInterests.length === 0) {
             errors.skillInterest = MESSAGES.SKILL_REQUIRED;
         }
@@ -137,13 +144,13 @@ export default function Signup() {
                     body: {
                         ...formData,
                         role: "corps_member",
-                        stateOfDeployment: "Lagos",
                         skillInterests: formData.skillInterests || [],
-                        // Single account — camp vs post-camp is course activity, not a separate signup
-                        accountMode: "both",
-                        orientationCampId: formData.orientationCampId || null,
-                        ppa: formData.ppa || "",
-                        lgaOfDeployment: formData.lgaOfDeployment || "",
+                        ...(inCamp
+                            ? { accountMode: "in_camp", streamId: Number(formData.streamId),
+                                orientationCampId: formData.orientationCampId || null }
+                            : { accountMode: "post_camp", stateOfDeployment: "Lagos",
+                                ppa: formData.ppa || "", lgaOfDeployment: formData.lgaOfDeployment || "",
+                                orientationCampId: undefined, streamId: undefined }),
                     },
                 });
                 navigate(`/verify-email?email=${encodeURIComponent(data.email || formData.email)}`);
@@ -162,16 +169,20 @@ export default function Signup() {
     }
 
     const subtitle = step === 1
-        ? "Choose your role and enter your personal details"
+        ? (inCamp ? "In-Camp SAED — enter your personal details" : "Choose your role and enter your personal details")
         : isTrainer
             ? "Complete your trainer profile"
             : "Select your skills and deployment info";
 
     return (
-        <AuthLayout title="Create Your Account" subtitle={subtitle} onBack={() => step === 2 ? setStep(1) : navigate(-1)}>
+        <AuthLayout title={inCamp ? "In-Camp SAED Sign-up" : "Post-Camp SAED Sign-up"} subtitle={subtitle}
+            onBack={() => step === 2 ? setStep(1) : navigate(-1)}>
+            <p className={`track-chip track-chip--${inCamp ? "in" : "post"}`}>
+                {inCamp ? "In-Camp · orientation camp stream" : "Post-Camp · after orientation camp"}
+            </p>
             <StepIndicator current={step} total={2} />
 
-            {step === 1 && (
+            {!inCamp && step === 1 && (
                 <RoleSelector
                     value={role}
                     onChange={(r) => setRole(r)}
@@ -183,6 +194,8 @@ export default function Signup() {
                     <PersonalInfo form={formData} fields={fields} update={update} />
                 ) : isTrainer ? (
                     <TrainerStep2 form={formData} fields={fields} update={update} lgas={partnerLgas} toggleLga={toggleLga} />
+                ) : inCamp ? (
+                    <InCampStep2 form={formData} fields={fields} update={update} />
                 ) : (
                     <CorpsStep2 form={formData} fields={fields} update={update} />
                 )}
@@ -203,6 +216,8 @@ export default function Signup() {
 
             <p className="auth-switch">
                 Already have an account? <Link to="/login">Login here</Link>
+                {" · "}
+                {inCamp ? <Link to="/signup/post-camp">Post-Camp sign-up</Link> : <Link to="/signup/in-camp">In-Camp sign-up</Link>}
             </p>
         </AuthLayout>
     );
@@ -321,15 +336,7 @@ function PersonalInfo({ form, fields, update }) {
     );
 }
 
-function CorpsStep2({ form, fields, update }) {
-    const [camps, setCamps] = useState([]);
-
-    useEffect(() => {
-        api("/orientation-camps/")
-            .then((res) => setCamps(res.camps || []))
-            .catch(() => setCamps([]));
-    }, []);
-
+function SkillPicker({ form, fields, update }) {
     function toggleSkill(skill) {
         const current = form.skillInterests || [];
         const next = current.includes(skill)
@@ -345,11 +352,75 @@ function CorpsStep2({ form, fields, update }) {
 
     return (
         <>
-            <div className="form-section-title">DEPLOYMENT & SKILLS</div>
-            <p className="section-hint">
-                One account for orientation camp and after camp. LGA helps match trainers; you can add it later.
-            </p>
+            <div className="form-section-title">SELECT YOUR SKILL INTEREST</div>
+            <p className="section-hint">Choose one or more skill areas (required)</p>
+            <div className="skill-grid">
+                {SKILL_AREAS.map((skill) => (
+                    <button
+                        key={skill}
+                        type="button"
+                        className={`skill-card ${(form.skillInterests || []).includes(skill) ? "selected" : ""}`}
+                        onClick={() => toggleSkill(skill)}
+                    >
+                        {skill}
+                    </button>
+                ))}
+            </div>
+            {fields.skillInterest && (
+                <span className="field-error">{fields.skillInterest}</span>
+            )}
+        </>
+    );
+}
 
+function InCampStep2({ form, fields, update }) {
+    const [streams, setStreams] = useState(null);
+
+    useEffect(() => {
+        api("/streams/").then((res) => setStreams(res.streams || [])).catch(() => setStreams([]));
+    }, []);
+
+    const chosen = (streams || []).find((x) => String(x.id) === String(form.streamId));
+    const fmt = (d) => new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+    return (
+        <>
+            <div className="form-section-title">YOUR STREAM</div>
+            <p className="section-hint">
+                In-Camp accounts last for the duration of your stream. When it ends the account is deactivated.
+            </p>
+            {streams && streams.length === 0 ? (
+                <div className="inline-message inline-message--error">
+                    No stream is open for sign-up right now. Please check back when SAED admin opens your stream.
+                </div>
+            ) : (
+                <FormField
+                    label="Stream"
+                    name="streamId"
+                    type="select"
+                    value={form.streamId}
+                    onChange={(k, v) => { update(k, v); update("orientationCampId", ""); }}
+                    error={fields.streamId}
+                    placeholder={streams ? "Select your stream" : "Loading streams…"}
+                    options={(streams || []).map((x) => ({ value: String(x.id), label: `${x.name} · ${fmt(x.startDate)} – ${fmt(x.endDate)}` }))}
+                    required
+                />
+            )}
+            {chosen && <p className="section-hint">Your account will be active until {fmt(chosen.deactivationDate)}.</p>}
+
+            <FormField
+                label="Orientation camp (optional)"
+                name="orientationCampId"
+                type="select"
+                value={form.orientationCampId}
+                onChange={update}
+                error={fields.orientationCampId}
+                placeholder={chosen ? "Select your camp" : "Choose a stream first"}
+                options={(chosen?.camps || []).map((c) => ({ value: String(c.id), label: `${c.name} (${c.state})` }))}
+                disabled={!chosen}
+            />
+
+            <div className="form-section-title">NYSC DETAILS</div>
             <FormField
                 label="State Code"
                 name="nyscStateCode"
@@ -360,15 +431,27 @@ function CorpsStep2({ form, fields, update }) {
                 required
             />
 
+            <SkillPicker form={form} fields={fields} update={update} />
+        </>
+    );
+}
+
+function CorpsStep2({ form, fields, update }) {
+    return (
+        <>
+            <div className="form-section-title">DEPLOYMENT & SKILLS</div>
+            <p className="section-hint">
+                Post-Camp SAED: LGA helps match you with nearby trainers; you can add it later.
+            </p>
+
             <FormField
-                label="Orientation camp (optional)"
-                name="orientationCampId"
-                type="select"
-                value={form.orientationCampId}
+                label="State Code"
+                name="nyscStateCode"
+                value={form.nyscStateCode}
                 onChange={update}
-                error={fields.orientationCampId}
-                placeholder="Select if you are in orientation camp"
-                options={camps.map((c) => ({ value: String(c.id), label: `${c.name} (${c.state})` }))}
+                error={fields.nyscStateCode}
+                placeholder="LA/26B/0123"
+                required
             />
 
             <FormField
@@ -391,23 +474,7 @@ function CorpsStep2({ form, fields, update }) {
                 placeholder="Optional — helps match nearby trainers"
             />
 
-            <div className="form-section-title">SELECT YOUR SKILL INTEREST</div>
-            <p className="section-hint">Choose one or more skill areas (required)</p>
-            <div className="skill-grid">
-                {SKILL_AREAS.map((skill) => (
-                    <button
-                        key={skill}
-                        type="button"
-                        className={`skill-card ${(form.skillInterests || []).includes(skill) ? "selected" : ""}`}
-                        onClick={() => toggleSkill(skill)}
-                    >
-                        {skill}
-                    </button>
-                ))}
-            </div>
-            {fields.skillInterest && (
-                <span className="field-error">{fields.skillInterest}</span>
-            )}
+            <SkillPicker form={form} fields={fields} update={update} />
         </>
     );
 }

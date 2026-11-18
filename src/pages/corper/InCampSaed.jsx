@@ -52,7 +52,7 @@ export default function InCampSaed() {
     <div className="cp-page">
       <div className="cp-head"><h2>In-Camp SAED</h2>
         {data?.orientationCamp && <span className="cp-badge">{data.orientationCamp.name}</span>}
-        {isTrainer && <button className="primary-button" onClick={() => navigate("/app/my-courses?new=in_camp")}>New In-Camp course</button>}</div>
+        {isTrainer && <button className="primary-button" onClick={() => navigate("/app/my-courses?new=in_camp")}>Propose a course</button>}</div>
       {isTrainer && <p className="cp-sub">Your In-Camp courses, shown exactly as corps members see them. Schedule sessions by giving lessons a date and time inside each course.</p>}
       {error && <div className="inline-message inline-message--error" role="alert">{error}</div>}
       {data && data.accessActive === false && (
@@ -92,7 +92,7 @@ export default function InCampSaed() {
               <p>There are currently no In-Camp courses listed under this skill set. Try another skill set or clear the filters.</p>
             </div>
           )}
-          {!data.noSkillMatch && data.courses.length === 0 && !data.selectedSkill && <div className="empty-state"><h3>No In-Camp courses yet</h3><p>{isTrainer ? "Create an In-Camp course to see it here." : "Check back soon or try other filters."}</p></div>}
+          {!data.noSkillMatch && data.courses.length === 0 && !data.selectedSkill && <div className="empty-state"><h3>No In-Camp courses yet</h3><p>{isTrainer ? "Propose a course for your stream to see it here." : "Check back soon or try other filters."}</p></div>}
           {data.skillMode === "mine" && !data.noSkillMatch && data.courses.length > 0 && (
             <p className="cp-sub" role="status">Showing courses under your skill set ({mySkillNames}) first.</p>
           )}

@@ -3,11 +3,13 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 
 import AppShell from "./components/layout/AppShell.jsx";
+import { trackOf } from "./lib/track.js";
 import { AuthProvider, useAuth } from "./lib/auth.jsx";
 
 // Auth pages
 import Login from "./pages/auth/Login.jsx";
 import Signup from "./pages/auth/Signup.jsx";
+import SignupChooser from "./pages/auth/SignupChooser.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import VerifyEmail from "./pages/auth/VerifyEmail.jsx";
 import InactiveAccountPage from "./pages/corper/InactiveAccountPage.jsx";
@@ -50,6 +52,10 @@ import ProgramEditor from "./pages/admin/ProgramEditor.jsx";
 import AdminCourses from "./pages/admin/AdminCourses.jsx";
 import DunisAdmin from "./pages/admin/DunisAdmin.jsx";
 import OrientationCamps from "./pages/admin/OrientationCamps.jsx";
+import Streams from "./pages/admin/Streams.jsx";
+import StreamTrainers from "./pages/admin/StreamTrainers.jsx";
+import Proposals from "./pages/admin/Proposals.jsx";
+import Reports from "./pages/admin/Reports.jsx";
 
 // Form pages
 import SaedQuestionForm from "./pages/forms/SaedQuestionForm.jsx";
@@ -61,6 +67,7 @@ import EditProfile from "./pages/profile/EditProfile.jsx";
 import Profile from "./pages/profile/Profile.jsx";
 
 import "./styles.css";
+import "./styles/tracks.css";
 import "./styles/forms.css"; // keep last: unified form/control system
 
 // Apply saved or system preference theme immediately
@@ -96,7 +103,7 @@ function ScrollToTop() {
   return null;
 }
 
-function ProtectedRoute({ children, roles }) {
+function ProtectedRoute({ children, roles, track }) {
   const { user, loading } = useAuth();
 
   if (loading) return <div className="screen-loader">Loading SAED IMS...</div>;
@@ -104,6 +111,9 @@ function ProtectedRoute({ children, roles }) {
   if (roles && !roles.includes(user.role)) {
     return <Navigate to={homePathForRole(user.role)} replace />;
   }
+  // In-Camp and Post-Camp are separate programmes: an account only reaches its own pages.
+  const mine = trackOf(user);
+  if (track && mine && mine !== track) return <Navigate to="/app/dashboard" replace />;
   return children;
 }
 
@@ -123,7 +133,9 @@ createRoot(document.getElementById("root")).render(
 
           {/* Auth routes */}
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/signup" element={<SignupChooser />} />
+          <Route path="/signup/in-camp" element={<Signup track="in_camp" />} />
+          <Route path="/signup/post-camp" element={<Signup track="post_camp" />} />
           <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/trainer-signup-success" element={<TrainerSignupSuccess />} />
@@ -181,11 +193,11 @@ createRoot(document.getElementById("root")).render(
             <Route path="dashboard" element={<Dashboard />} />
 
             {/* Corps member routes */}
-            <Route path="courses" element={<ProtectedRoute roles={["corps_member"]}><Courses /></ProtectedRoute>} />
-            <Route path="incamp" element={<ProtectedRoute roles={["corps_member", "trainer"]}><InCampSaed /></ProtectedRoute>} />
+            <Route path="courses" element={<ProtectedRoute roles={["corps_member"]} track="post_camp"><Courses /></ProtectedRoute>} />
+            <Route path="incamp" element={<ProtectedRoute roles={["corps_member", "trainer"]} track="in_camp"><InCampSaed /></ProtectedRoute>} />
             <Route path="my-enrollments" element={<ProtectedRoute roles={["corps_member"]}><MyEnrollments /></ProtectedRoute>} />
-            <Route path="trainers" element={<ProtectedRoute roles={["corps_member"]}><Trainers /></ProtectedRoute>} />
-            <Route path="trainers/:trainerId" element={<ProtectedRoute roles={["corps_member"]}><Trainers /></ProtectedRoute>} />
+            <Route path="trainers" element={<ProtectedRoute roles={["corps_member"]} track="post_camp"><Trainers /></ProtectedRoute>} />
+            <Route path="trainers/:trainerId" element={<ProtectedRoute roles={["corps_member"]} track="post_camp"><Trainers /></ProtectedRoute>} />
 
             {/* Trainer routes */}
             <Route path="my-courses" element={<ProtectedRoute roles={["trainer"]}><MyCourses /></ProtectedRoute>} />
@@ -193,7 +205,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="incamp-sessions" element={<Navigate to="/app/incamp" replace />} />
             <Route path="corps-members" element={<ProtectedRoute roles={["trainer"]}><CorpsMembers /></ProtectedRoute>} />
             <Route path="corps-members/:corperId" element={<ProtectedRoute roles={["trainer"]}><CorperProfile /></ProtectedRoute>} />
-            <Route path="earnings" element={<ProtectedRoute roles={["trainer"]}><Earnings /></ProtectedRoute>} />
+            <Route path="earnings" element={<ProtectedRoute roles={["trainer"]} track="post_camp"><Earnings /></ProtectedRoute>} />
 
             {/* Admin routes inside app */}
             <Route path="manage-applications" element={<ProtectedRoute roles={["saed_admin", "dunis_admin", "trainer"]}><ManageApplications /></ProtectedRoute>} />
@@ -211,6 +223,10 @@ createRoot(document.getElementById("root")).render(
             <Route path="my-corpers" element={<Navigate to="/app/corps-members" replace />} />
             <Route path="trainee-fast-track" element={<Navigate to="/app/courses" replace />} />
             <Route path="camps" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><OrientationCamps /></ProtectedRoute>} />
+            <Route path="streams" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><Streams /></ProtectedRoute>} />
+            <Route path="stream-trainers" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><StreamTrainers /></ProtectedRoute>} />
+            <Route path="proposals" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><Proposals /></ProtectedRoute>} />
+            <Route path="reports" element={<ProtectedRoute roles={["saed_admin", "dunis_admin"]}><Reports /></ProtectedRoute>} />
             <Route path="orientation-camps" element={<Navigate to="/app/camps" replace />} />
 
             {/* Shared routes */}

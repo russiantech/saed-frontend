@@ -14,7 +14,7 @@ export default function Home() {
             <p>Explore SAED courses, career resources, and opportunities designed to help corps members succeed beyond service year.</p>
             <div className="hero-actions">
               <Link className="primary-button" to="/signup">Get Started</Link>
-              <Link className="secondary-button" to="/programs">Explore Courses</Link>
+              <Link className="secondary-button" to="/signup/in-camp">In-Camp SAED</Link>
             </div>
           </div>
         </div>

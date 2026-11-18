@@ -5,6 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import { naira } from "../../lib/payments.js";
+import { isInCamp } from "../../lib/track.js";
+import InCampDashboard from "./InCampDashboard.jsx";
 
 const Stat = ({ icon: Icon, label, value, to }) => {
   const body = (<article className="stat-card"><Icon size={22} /><span>{label}</span><strong>{value}</strong></article>);
@@ -17,7 +19,13 @@ const Actions = ({ items }) => (
   </section>
 );
 
+/** In-Camp and Post-Camp accounts get different dashboards; everyone else gets the Post-Camp/admin one. */
 export default function Dashboard() {
+  const { user } = useAuth();
+  return isInCamp(user) ? <InCampDashboard /> : <PostCampDashboard />;
+}
+
+function PostCampDashboard() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [data, setData] = useState(null);

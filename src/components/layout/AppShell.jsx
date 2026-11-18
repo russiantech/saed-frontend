@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardList, LayoutDashboard, LogOut, Menu, UserCheck, Users, X, CreditCard, Bell, ChevronRight, Tent, Wallet, UserCircle, GraduationCap } from "lucide-react";
+import { BarChart3, BookOpen, CalendarRange, ClipboardCheck, ClipboardList, LayoutDashboard, LogOut, Menu, UserCheck, Users, X, CreditCard, Bell, ChevronRight, Tent, Wallet, UserCircle, GraduationCap } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 
@@ -6,6 +6,9 @@ import { api } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import DarkToggle from "../ui/DarkToggle.jsx";
 import BrandLogo from "../ui/BrandLogo.jsx";
+import StreamBanner from "../ui/StreamBanner.jsx";
+import StreamExpired from "../../pages/dashboard/StreamExpired.jsx";
+import { trackOf } from "../../lib/track.js";
 
 export default function AppShell() {
   const { user, loading, logout, isAuthenticated } = useAuth();
@@ -98,27 +101,50 @@ export default function AppShell() {
   const D = { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true };
   const N = { to: "/app/notifications", label: "Notifications", icon: Bell };
   const P = { to: "/app/profile", label: "Profile", icon: UserCircle };
+  const track = trackOf(user);
+  const lifecycle = user.lifecycle;
+  const inCamp = track === "in_camp";
+  const section = (title, items) => items.map((it, i) => (i === 0 ? { ...it, section: title } : it));
+  // In-Camp and Post-Camp accounts get different, clearly labelled portals.
   const navItems = isCorpsMember
-    ? [D,
-       { to: "/app/courses", label: "Courses", icon: BookOpen },
-       { to: "/app/incamp", label: "In-Camp SAED", icon: Tent },
-       { to: "/app/my-enrollments", label: "My Enrollments", icon: GraduationCap },
-       { to: "/app/trainers", label: "Trainers", icon: Users },
-       P, N]
+    ? (inCamp
+      ? [D,
+         { to: "/app/incamp", label: "In-Camp SAED", icon: Tent },
+         { to: "/app/my-enrollments", label: "My Learning", icon: GraduationCap },
+         P, N]
+      : [D,
+         { to: "/app/courses", label: "Courses", icon: BookOpen },
+         { to: "/app/my-enrollments", label: "My Enrollments", icon: GraduationCap },
+         { to: "/app/trainers", label: "Trainers", icon: Users },
+         P, N])
     : isTrainer
-    ? [D,
-       { to: "/app/my-courses", label: "My Courses", icon: BookOpen },
-       { to: "/app/incamp", label: "In-Camp SAED", icon: Tent },
-       { to: "/app/corps-members", label: "Corps Members", icon: UserCheck },
-       { to: "/app/earnings", label: "Earnings", icon: Wallet },
-       P, N]
+    ? (inCamp
+      ? [D,
+         { to: "/app/incamp", label: "In-Camp Courses", icon: Tent },
+         { to: "/app/my-courses", label: "My Proposals", icon: ClipboardCheck },
+         { to: "/app/corps-members", label: "Learners", icon: UserCheck },
+         P, N]
+      : [D,
+         { to: "/app/my-courses", label: "My Courses", icon: BookOpen },
+         { to: "/app/corps-members", label: "Corps Members", icon: UserCheck },
+         { to: "/app/earnings", label: "Earnings", icon: Wallet },
+         P, N])
     : [D,
-       { to: "/app/users", label: "Users", icon: Users },
-       { to: "/app/admin-courses", label: "Courses", icon: BookOpen },
-       { to: "/app/camps", label: "SAED Camps", icon: Tent },
-       { to: "/app/manage-applications", label: "Enrollments", icon: ClipboardList },
-       ...(isDunisAdmin ? [{ to: "/app/dunis-admin", label: "Payments & Fees", icon: CreditCard }] : []),
+       ...section("In-Camp SAED", [
+         { to: "/app/streams", label: "Streams", icon: CalendarRange },
+         { to: "/app/stream-trainers", label: "In-Camp Trainers", icon: UserCheck },
+         { to: "/app/proposals", label: "Proposals", icon: ClipboardCheck },
+         { to: "/app/camps", label: "SAED Camps", icon: Tent },
+         { to: "/app/reports", label: "Reports", icon: BarChart3 }]),
+       ...section("Post-Camp SAED", [
+         { to: "/app/admin-courses", label: "Courses", icon: BookOpen },
+         { to: "/app/manage-applications", label: "Enrollments", icon: ClipboardList }]),
+       ...section("Platform", [
+         { to: "/app/users", label: "Users", icon: Users },
+         ...(isDunisAdmin ? [{ to: "/app/dunis-admin", label: "Payments & Fees", icon: CreditCard }] : [])]),
        P, N];
+  const stateOnly = ["/app/profile", "/app/edit-profile", "/app/notifications"];
+  const showExpired = inCamp && lifecycle && !lifecycle.isActive && !stateOnly.some((p) => location.pathname.startsWith(p));
 
   async function handleLogout() {
     try {
@@ -154,10 +180,13 @@ export default function AppShell() {
           {navOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         <nav>
-          {navItems.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={end} onClick={closeNav}>
-              <Icon size={18} /> {label}
-            </NavLink>
+          {navItems.map(({ to, label, icon: Icon, end, section: heading }) => (
+            <div key={to} className="nav-item-wrap">
+              {heading && <span className="nav-section">{heading}</span>}
+              <NavLink to={to} end={end} onClick={closeNav}>
+                <Icon size={18} /> {label}
+              </NavLink>
+            </div>
           ))}
         </nav>
         <button className="ghost-button logout-button" onClick={handleLogout}>
@@ -167,7 +196,10 @@ export default function AppShell() {
       <main className="app-main">
         <header className="app-header">
           <div>
-            <span className="eyebrow">{user.role?.replace("_", " ")}</span>
+            <span className="eyebrow">
+              {user.role?.replace("_", " ")}
+              {track && <span className={`track-chip track-chip--${inCamp ? "in" : "post"}`}>{inCamp ? "In-Camp" : "Post-Camp"}</span>}
+            </span>
             <h1>Welcome, {user.fullName}</h1>
           </div>
           <div className="app-header-actions">
@@ -204,7 +236,8 @@ export default function AppShell() {
             <div className="profile-pill">{user.stateOfDeployment || "SAED IMS"}</div>
           </div>
         </header>
-        <Outlet />
+        {inCamp && !showExpired && location.pathname !== "/app/dashboard" && <StreamBanner lifecycle={lifecycle} />}
+        {showExpired ? <StreamExpired lifecycle={lifecycle} role={user.role} /> : <Outlet />}
       </main>
     </div>
   );

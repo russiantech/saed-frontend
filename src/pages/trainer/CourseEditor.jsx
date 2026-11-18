@@ -85,17 +85,28 @@ export default function CourseEditor() {
           <h2 style={{ margin: "4px 0 0" }}>{course.title}</h2>
           <div className="tr-actions" style={{ marginTop: 6 }}>
             <span className="tr-badge">{course.courseType === "in_camp" ? "In-Camp" : "Post-Camp"}</span>
-            <span className={`tr-badge ${course.isPublished ? "tr-badge--ok" : ""}`}>{course.isPublished ? "Published" : "Draft"}</span>
+            {course.courseType === "in_camp" && course.stream && <span className="tr-badge">{course.stream.name}</span>}
+            {course.courseType === "in_camp" && course.approvalStatus !== "approved"
+              ? <span className={`tr-badge ${course.approvalStatus === "declined" ? "tr-badge--lock" : ""}`}>{course.approvalStatus === "declined" ? "Declined" : "Pending SAED review"}</span>
+              : <span className={`tr-badge ${course.isPublished ? "tr-badge--ok" : ""}`}>{course.isPublished ? "Published" : "Draft"}</span>}
             <span className="tr-badge"><Users size={11} /> {course.enrolledCount}/{course.maxStudents}</span>
           </div>
         </div>
         <div className="tr-actions">
           <Link className="ghost-button" to={`/app/courses/${course.id}`}>Preview as student</Link>
-          <button className="ghost-button" onClick={togglePublish}>{course.isPublished ? "Unpublish" : "Publish"}</button>
+          {(course.courseType !== "in_camp" || course.approvalStatus === "approved") && (
+            <button className="ghost-button" onClick={togglePublish}>{course.isPublished ? "Unpublish" : "Publish"}</button>
+          )}
           <button className="ghost-button" onClick={removeCourse}><Trash2 size={14} /> Delete</button>
         </div>
       </div>
 
+      {course.courseType === "in_camp" && course.approvalStatus === "pending" && (
+        <div className="inline-message" role="status">This proposal is waiting for SAED admin. You can keep adding lessons; it opens to corps members once approved.</div>
+      )}
+      {course.courseType === "in_camp" && course.approvalStatus === "declined" && (
+        <div className="inline-message inline-message--error" role="status">Declined by SAED admin: {course.reviewNote || "no reason given"}. Edit the course to resubmit it.</div>
+      )}
       {notice && <div className={`inline-message inline-message--${notice.type}`} role="status">{notice.text}</div>}
 
       {requests.length > 0 && (

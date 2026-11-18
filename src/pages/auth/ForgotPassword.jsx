@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { api } from "lib/api.js";
 import AuthLayout from "components/auth/AuthLayout.jsx";
@@ -16,6 +16,7 @@ const STEPS = {
 };
 
 export default function ForgotPassword() {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState(STEPS.EMAIL);
   const [digits, setDigits] = useState(Array(CODE_LENGTH).fill(""));
   const [resetToken, setResetToken] = useState("");
@@ -34,7 +35,7 @@ export default function ForgotPassword() {
     endSubmit,
     setSubmitError,
     clearErrors,
-  } = useAuthForm({ email: "" });
+  } = useAuthForm({ email: searchParams.get("email") || "" });
 
   const startCooldown = useCallback(() => {
     setResendCooldown(60);
