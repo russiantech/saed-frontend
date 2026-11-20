@@ -5,5 +5,5 @@
 //   • Frontend and API on different hosts (typical cPanel setup):  "https://saed-api.example.com/api"
 //   • Same host, /api proxied to the backend (nginx/Docker):        leave empty ("")
 window.__SAED_CONFIG__ = {
-  API_URL: ""
+  API_URL: "https://saed-api.simplylovely.ng/api"
 };
