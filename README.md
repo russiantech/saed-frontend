@@ -1,213 +1,89 @@
-# SAED Learning Platform — Backend
+# SAED web app — frontend (React + Vite)
 
-**Django REST API** powering the Skills Acquisition & Entrepreneurship Development (SAED) platform for NYSC corps members, trainers, and SAED / Dunis administrators.
+The browser app for the NYSC SAED learning platform. It is a static single-page application that talks to the
+**SAED API** (separate repository, `saed-backend`) over HTTPS.
 
-**Version:** 2.5.0  
-**Stack:** Python 3.12+, Django, Django REST Framework, PostgreSQL / SQLite, Paystack, private media storage
+| | |
+|---|---|
+| Version | **2.5.0** |
+| Stack | React 19 · Vite 8 · React Router 7 · Vitest · pdf.js (in-app PDF viewing) |
+| Node | **22.13+** (pdf.js requires it) |
+| Needs | `saed-backend` ≥ 2.5.0 (see compatibility) |
 
----
+## Contents
+1. [Quick start](#1-quick-start) · 2. [Pointing the app at the API](#2-pointing-the-app-at-the-api-important)
+3. [Deploying](#3-deploying) · 4. [What the app contains](#4-what-the-app-contains)
+5. [Tests, lint, build](#5-tests-lint-build) · 6. [Compatibility](#6-compatibility-with-the-backend) · 7. [Troubleshooting](#7-troubleshooting)
 
-## Overview
-
-The backend provides a secure, role-based API that supports two completely separate experiences:
-
-| Track        | Who it is for                          | Key behaviour |
-|--------------|----------------------------------------|---------------|
-| **In-Camp**  | Corps members & trainers during orientation camp | Time-bound by **Streams** (up to 6 per year). Accounts auto-deactivate after the stream ends (+ optional grace period). No LGA/PPA required at sign-up. |
-| **Post-Camp**| Corps members & trainers after camp    | Ongoing access. Full location (state, LGA, PPA) used for discovery and matching. |
-
-Accounts belong to **exactly one** track. Crossing tracks returns `403`. Admins see both.
-
-### Core concepts
-
-- **Streams** — SAED Admin creates streams (year + number 1–6, start/end dates, grace days). All In-Camp life-cycles, camps, courses, trainers and reports are scoped to a stream.
-- **Courses → Lessons** — Flat structure. A lesson is free unless locked with a price. No modules, no course-level price, no Fast Track.
-- **Payments** — Unified ledger (trainer activation, video upload fee, lesson access). Paystack verified server-side; signed idempotent webhook; bank-transfer confirmation by trainers.
-- **Private media** — Lesson videos/documents and partnership letters live in private storage and are streamed only after entitlement checks (HTTP Range supported).
-
----
-
-## Repository layout
-
+## 1. Quick start
+```bash
+npm install
+cp .env.example .env          # VITE_API_URL=/api  and  VITE_BACKEND_URL=http://127.0.0.1:8002
+npm run dev                   # http://localhost:3002   (/api and /media are proxied to the backend on :8002)
 ```
-backend/
-├── saed/                 # Main Django app
-│   ├── models/           # Stream, StreamMembership, Course, Lesson, Payment, Profile, …
-│   ├── views/            # Role-aware viewsets and function views
-│   ├── services/         # Paystack, deactivation, proposals, reports
-│   ├── serializers/
-│   ├── permissions/
-│   ├── management/commands/  # deactivate_incamp, move_partnership_letters, export_openapi
-│   └── tests/
-├── config/               # Reference settings, URLs, WSGI (harness for running/tests)
-├── manage.py
-├── requirements.txt
-└── .env.example
-```
+Start the API from the backend repo first (`python manage.py runserver 127.0.0.1:8002`).
 
----
+## 2. Pointing the app at the API (important)
+The browser needs the API's **full address** whenever the app and the API are on different hosts. If it is left as the
+default `/api`, requests go to the *web app's own host* (`https://app.example.com/api/...`) which has no API — the typical
+"works locally, not in production" failure (sign-in appears to succeed but no session is created).
 
-## Quick start (local)
+The address is resolved in this order:
 
-**Requirements:** Python 3.12+, pip, virtualenv. PostgreSQL optional (SQLite is the default).
+1. **`config.js`** next to `index.html` — `window.__SAED_CONFIG__ = { API_URL: "https://saed-api.example.com/api" }`.
+   Editable **after** the build, no rebuild needed. This is the recommended way on cPanel/static hosting.
+2. **`VITE_API_URL`** at build time (`.env.production` or CI variable).
+3. **`/api`** — same origin (dev server, or nginx proxying `/api` to the backend).
+
+`https://saed-api.example.com` (host only) is accepted and `/api` is appended.
+
+**Self-check:** if the API cannot be reached the app shows a red banner at the top —
+*"The app is calling its own website instead of the SAED server…"* (address misconfigured) or
+*"The app cannot reach the SAED server right now"* (server down / blocked by CORS) — together with the address it is using.
+
+**Cookies:** sign-in is a cookie session set by the API. The app and API should be on the **same site**
+(`saed.example.com` + `saed-api.example.com`). On unrelated domains browsers may drop the cookie; the backend then needs
+`CROSS_SITE_COOKIES=1` and some browsers still refuse. See `docs/DEPLOYMENT.md` §3.
+
+## 3. Deploying
+| Target | Guide |
+|---|---|
+| **cPanel / any static host (Apache)** | `docs/DEPLOYMENT.md` §1 — upload the contents of `build/`, edit `config.js` |
+| Docker / nginx | `docs/DEPLOYMENT.md` §2 — `docker compose up --build` (image reads `API_URL` / `API_UPSTREAM` at start) |
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
-
-pip install -r requirements.txt
-cp .env.example .env               # Set DJANGO_DEBUG=1 for local work
-python manage.py migrate
-python manage.py runserver 127.0.0.1:8002
+npm ci && npm run build        # output: build/   (index.html, assets/, config.js, .htaccess, icons)
 ```
+Deploy order for upgrades: backend first (`migrate`), then this app.
 
-API base: `http://127.0.0.1:8002/api/`  
-Interactive docs (when `API_DOCS=public`): `http://127.0.0.1:8002/docs/`
+## 4. What the app contains
+Two clearly separated experiences share one codebase (details in `docs/ARCHITECTURE.md`):
 
-### Database
+* **In-Camp SAED** — own sign-up (`/signup/in-camp`: stream, camp, skills; **no LGA/PPA**), own dashboard with the stream window and days left, own course catalogue (skill-set filter, own-skills-first), course proposals for trainers, and an "access ended" page once the stream is over.
+* **Post-Camp SAED** — own sign-up (`/signup/post-camp`), courses, trainers discovery, earnings; unchanged behaviour.
+* **Admin** — sidebar grouped *In-Camp SAED / Post-Camp SAED / Platform*: Streams, In-Camp Trainers (CRUD, re-activate, invite), Proposals (approve/decline), Reports (per stream, CSV), Camps, Users (filter by stream/programme), Courses, Dunis payments & fees.
+* The public home page's second call-to-action is **In-Camp SAED** and goes to the In-Camp sign-up.
+* Documents and letters are rendered **inside** the app (no downloads); video is streamed from the API.
 
-| Engine     | `DATABASE_URL`                          |
-|------------|-----------------------------------------|
-| SQLite     | `sqlite:///db.sqlite3` (default)        |
-| PostgreSQL | `postgres://user:pass@host:5432/saed`   |
-
-The same code, migrations and test suite run on both. Use PostgreSQL for concurrent production traffic.
-
-### Environment
-
-All settings are environment-driven. See `.env.example` for the full list. Critical variables:
-
-- `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` (required when `DJANGO_DEBUG` is off)
-- `FRONTEND_URL`, `BACKEND_URL`, `CORS_*`, `CSRF_TRUSTED_ORIGINS`
-- `PRIVATE_MEDIA_ROOT` (lesson files & letters — never expose publicly)
-- `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`
-- `REDIS_URL` (recommended when running multiple workers)
-- `API_DOCS` = `public` | `staff` | `off`
-
----
-
-## Authentication & roles
-
-- **Session-cookie authentication.** `POST /api/auth/login/` sets the session cookie.
-- **All unsafe methods** (POST/PUT/PATCH/DELETE) require the `X-CSRFToken` header. Obtain it from `GET /api/csrf/`.
-- Roles: `corps_member`, `trainer`, `saed_admin`, `dunis_admin`.
-
-| Role          | Typical capabilities |
-|---------------|----------------------|
-| Corps member  | Enrol, learn, connect to trainers, pay for premium lessons |
-| Trainer       | Create/manage own courses & lessons, confirm bank transfers, view earnings |
-| SAED Admin    | Streams, In-Camp trainers (CRUD + invite/reactivate), proposals, reports, users, camps |
-| Dunis Admin   | Everything SAED Admin can do + platform fees, payment mismatch review, refunds |
-
----
-
-## Streams & In-Camp life-cycle (v2.5)
-
-1. **SAED Admin** creates a Stream (`year` + `number` 1–6, `startDate` / `endDate`, optional `deactivationGraceDays`).
-2. Orientation camps and In-Camp courses are attached to a stream.
-3. **In-Camp trainers** are created only by admin (stream, name, email, phone, optional password). An invitation email is sent with a set-password link. Full CRUD + deactivate / reactivate / re-invite.
-4. **Corps members** sign up via the In-Camp flow (stream required, camp optional, **no LGA/PPA**).
-5. While the stream is active the portal shows the window and days remaining.
-6. After `endDate` + grace the account is deactivated. The dashboard becomes an “ended” page; most other endpoints return `403 stream_expired`. Profile, notifications and complaints remain reachable.
-7. A trainer admitted to a new stream can be **re-activated**.
-8. Daily job (or manual trigger): `python manage.py deactivate_incamp` or `POST /api/admin/run-stream-expiry/`.
-
-Expiry is also enforced live from the dates, so access is cut off on time even if the job has not yet run.
-
-### Proposals
-
-In-Camp trainers submit what they will teach for the stream. The course stays hidden until a SAED Admin **approves** (publishes) or **declines** (with a note). Editing a declined proposal resubmits it.
-
-### Reports
-
-`GET /api/reports/streams/` (and CSV export) — per-stream and yearly summaries of corps members, trainers, courses, enrolments, skills, camps, top courses. Post-Camp is reported separately.
-
----
-
-## Payments (summary)
-
-- Amounts are in **kobo**. The server verifies against the amount *it requested* (not the final Paystack amount that may include customer-borne fees).
-- Real mismatches are flagged `amount_mismatch` for Dunis Admin review; the user is told the payment is under review and has not lost money.
-- Webhook: `POST /api/webhooks/paystack/` — HMAC-SHA512 signature, idempotent by event id.
-- Video upload fee (default ₦2,000, once per lesson) is paid by the **trainer** and can be disabled by Dunis Admin.
-
----
-
-## Media & security
-
-- Lesson media and partnership letters are stored under `PRIVATE_MEDIA_ROOT`.
-- Streaming endpoint: `GET /api/lessons/{id}/media/{kind}/` — entitlement checked on every request, supports Range.
-- Partnership letters: `GET /api/users/{id}/partnership-letter/` (owner + admins only).
-- Never serve `PRIVATE_MEDIA_ROOT` from the web server.
-
----
-
-## API documentation
-
-Generated from the live URLconf (a test fails if a route is undocumented).
-
-| URL                     | Description                          |
-|-------------------------|--------------------------------------|
-| `/api/docs/`            | Swagger UI (CSRF header auto-added)  |
-| `/api/redoc/`           | ReDoc                                |
-| `/api/openapi.json`     | OpenAPI 3.1 document                 |
-| `docs/API.md`           | Human-readable offline copy          |
-
-Regenerate offline docs:
-
+## 5. Tests, lint, build
 ```bash
-python manage.py export_openapi
+npm run lint && npm test && npm run build
 ```
+40 unit/component tests (Vitest + Testing Library): tracks and navigation, sign-up flows, camps admin, In-Camp filters, API-address resolution and health detection.
 
----
+## 6. Compatibility with the backend
+| Frontend | Backend | |
+|---|---|---|
+| **2.5.x** | **2.5.x** | current |
+| 2.5.x | 2.4.x | not compatible (no streams/tracks endpoints) |
+| 2.4.x | 2.5.x | not compatible (sign-up contract changed) |
 
-## Health & ops
-
-- `GET /api/health/` — liveness
-- `GET /api/health/ready/` — database + private media writable (returns 503 when not ready)
-- Auth endpoints are throttled (`AUTH_THROTTLE_RATE`, default 30/min per IP).
-- Production checklist, Docker Compose, nginx notes and migration guides live in the root `docs/` folder of the monorepo / product documentation.
-
-### Scheduled job (required for clean expiry records)
-
-```bash
-# cron or Task Scheduler — daily
-python manage.py deactivate_incamp
-```
-
----
-
-## Tests
-
-```bash
-python manage.py check
-python manage.py test                 # full suite (SQLite)
-DATABASE_URL=postgres://... python manage.py test
-```
-
-Current coverage includes streams/tracks/life-cycle, proposals, reports, payments, webhook races, private media streaming, and query-budget regressions.
-
----
-
-## Integrating into an existing Django project
-
-1. Copy the `saed/` package.
-2. Ensure your settings contain the items documented in `config/settings.py` (INSTALLED_APPS, SessionAuthentication, FRONTEND_URL, PRIVATE_MEDIA_ROOT, PAYSTACK_*, email, CORS/CSRF, etc.).
-3. Include the routes: `path("api/", include("saed.urls"))`.
-4. Run migrations and the daily deactivation job.
-
----
-
-## Related documentation
-
-- [API.md](../docs/API.md) — full endpoint reference
-- [CHANGES.md](../docs/CHANGES.md) — version history
-- [MIGRATION.md](../docs/MIGRATION.md) — schema & data migration notes
-- [TESTING.md](../docs/TESTING.md) — payment & content testing guide
-- [IN_CAMP_SAED.md](../docs/IN_CAMP_SAED.md) — non-technical summary of the In-Camp / Streams update
-
----
-
-**License:** Proprietary  
-**Maintainers:** SAED / Dunis platform team
+## 7. Troubleshooting
+| Symptom | Cause / fix |
+|---|---|
+| Red banner "calling its own website" | `API_URL` empty or wrong → set it in `config.js` (or rebuild with `VITE_API_URL`) |
+| Browser console shows `POST https://<app-host>/api/auth/login/` | same cause — the request is going to the web host |
+| "Your sign-in session could not be established" | API cookie not stored: wrong API address, or app and API on different sites (backend `docs/DEPLOYMENT.md` §2) |
+| Refreshing `/login` or `/app/...` gives 404 | host lacks the SPA fallback: keep `.htaccess` (Apache) or add `try_files $uri /index.html` (nginx) |
+| CORS error in the console | add the app origin to `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS` on the API |
+| Old version after deploy | browsers cached `index.html`; keep `.htaccess` (sends `no-cache` for it and `config.js`) |

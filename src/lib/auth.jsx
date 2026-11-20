@@ -7,6 +7,7 @@ import {
   useCallback,
 } from "react";
 import { api, onAuthError, suppressAuthErrors, primeCsrfToken } from "./api.js";
+import { isCrossOriginApi } from "./config.js";
 
 const AuthContext = createContext(null);
 
@@ -76,7 +77,9 @@ export function AuthProvider({ children }) {
     const confirmedUser = session?.user ?? null;
     if (!confirmedUser) {
       throw new Error(
-        "Your sign-in session could not be established. Please check that cookies are enabled and try again."
+        isCrossOriginApi()
+          ? "Your sign-in session could not be established because your browser is blocking cookies from the SAED server. Allow cookies for this site (or try another browser) and try again; if it keeps happening, contact support."
+          : "Your sign-in session could not be established. Please check that cookies are enabled and try again."
       );
     }
 

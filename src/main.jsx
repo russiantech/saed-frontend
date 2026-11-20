@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "
 import AppShell from "./components/layout/AppShell.jsx";
 import { trackOf } from "./lib/track.js";
 import { AuthProvider, useAuth } from "./lib/auth.jsx";
+import ApiStatusBanner from "./components/ui/ApiStatusBanner.jsx";
 
 // Auth pages
 import Login from "./pages/auth/Login.jsx";
@@ -121,6 +122,7 @@ createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <ScrollToTop />
+      <ApiStatusBanner />
       <AuthProvider>
         <Routes>
           {/* Public routes */}

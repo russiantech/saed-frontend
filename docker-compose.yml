@@ -1,0 +1,16 @@
+# Web app only (nginx serving the built SPA). The API is a separate deployment.
+#   Same origin  : API_UPSTREAM=https://saed-api.example.com   (nginx proxies /api to it; leave API_URL empty)
+#   Direct calls : API_URL=https://saed-api.example.com/api    (browser calls the API itself; needs CORS on the API)
+#   docker compose up --build   ->  http://localhost:8080
+services:
+  web:
+    build:
+      context: .
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    ports: ["8080:80"]
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:8002}
+      API_URL: ${API_URL:-}
+      DNS_RESOLVER: ${DNS_RESOLVER:-127.0.0.11}
+    extra_hosts: ["host.docker.internal:host-gateway"]
