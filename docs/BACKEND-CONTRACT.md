@@ -12,3 +12,5 @@ Full reference: the backend repo's `docs/API.md` / `/api/docs/`. This page lists
 * **Sign-up:** `POST /auth/signup/` with `accountMode` = `in_camp` (+ `streamId`, optional `campId`, skills; no LGA/PPA) or `post_camp` (state/LGA/PPA). Trainers: `POST /auth/trainer-signup/`.
 * **Health probe used by the banner:** `GET /health/` → `{"status":"ok"}`.
 * **Media:** lesson media URLs come from the API (short-lived signed links); the app fetches them with credentials and renders them in-page.
+
+* **Letter/profile paths:** `partnershipLetter` is **relative to the API host** (`/api/users/<id>/partnership-letter/`); `profilePicture` and lesson `url`s are absolute (built from the API's `BACKEND_URL`). The frontend resolves both with `resolveMediaUrl()`.

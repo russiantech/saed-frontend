@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, X, Camera, User, Briefcase, MapPin, FileText, Image } from "lucide-react";
 
-import { api } from "../../lib/api.js";
+import { api, resolveMediaUrl } from "../../lib/api.js";
 import { useAuth } from "../../lib/auth.jsx";
 import LetterField from "../../components/forms/LetterField.jsx";
 import { LAGOS_LGAS } from "../../data/nigerianStates.js";
@@ -191,7 +191,7 @@ export default function EditProfile() {
           <div className="edit-profile-avatar-section">
             <div className="edit-profile-avatar">
               {user?.profilePicture ? (
-                <img src={user.profilePicture} alt="Profile" />
+                <img src={resolveMediaUrl(user.profilePicture)} alt="Profile" />
               ) : (
                 <Camera size={32} />
               )}

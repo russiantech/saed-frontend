@@ -45,7 +45,6 @@ export default function LessonMedia({ lesson }) {
       {doc && doc.mode !== "external" && (
         <div className="docv--page" style={{ display: "flex", flexDirection: "column" }}>
           <DocumentViewer src={doc.url} title={doc.name || `${title} document`} />
-          <p style={{ fontSize: 12, color: "var(--muted)", margin: "6px 0 0" }}><FileText size={12} style={{ verticalAlign: "middle" }} /> Viewing inside the app.</p>
         </div>
       )}
 

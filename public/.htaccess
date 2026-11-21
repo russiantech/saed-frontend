@@ -9,8 +9,10 @@
   RewriteRule . /index.html [L]
 </IfModule>
 # Always re-check the deployment settings and the HTML shell; hashed assets can be cached for a year.
+AddType application/manifest+json .webmanifest
 <IfModule mod_headers.c>
-  <FilesMatch "^(config\.js|index\.html)$">
+  # the service worker, manifest, offline page, deployment settings and HTML shell must always be re-checked
+  <FilesMatch "^(config\.js|index\.html|sw\.js|manifest\.webmanifest|offline\.html)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
   <FilesMatch "\.(js|css|woff2?|png|jpg|svg|ico)$">

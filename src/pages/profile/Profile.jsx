@@ -2,6 +2,7 @@ import { Edit, Camera, User, Briefcase, MapPin, FileText, Shield, ArrowLeft } fr
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../../lib/auth.jsx";
+import { resolveMediaUrl } from "../../lib/api.js";
 import { LetterView } from "../../components/forms/LetterField.jsx";
 
 const AUTH_LABELS = { pending: "Pending Review", approved: "Approved", restricted: "Restricted" };
@@ -26,7 +27,7 @@ export default function Profile() {
         <div className="edit-profile-avatar-section">
           <div className="edit-profile-avatar">
             {user?.profilePicture ? (
-              <img src={user.profilePicture} alt="Profile" />
+              <img src={resolveMediaUrl(user.profilePicture)} alt="Profile" />
             ) : (
               <Camera size={32} />
             )}

@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "NYSC SAED Learning Platform",
+  "short_name": "SAED",
+  "description": "NYSC SAED: skills courses, In-Camp and Post-Camp programmes, trainers and corps members.",
+  "lang": "en-NG",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#0b6b3a",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/pwa-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "My dashboard", "short_name": "Dashboard", "url": "/app/dashboard?source=shortcut", "icons": [{ "src": "/pwa-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "In-Camp sign-up", "short_name": "In-Camp", "url": "/signup/in-camp?source=shortcut", "icons": [{ "src": "/pwa-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}

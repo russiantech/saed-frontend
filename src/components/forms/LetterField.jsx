@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Eye, FileText, Maximize2, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, Eye, FileText, Maximize2, Trash2, Upload, X } from "lucide-react";
 
 import DocumentViewer, { LazyDocumentModal as DocumentModal } from "components/ui/LazyDocumentViewer.jsx";
 import "styles/viewer.css";
@@ -17,9 +17,17 @@ export function validateLetter(file) {
 
 const kb = (n) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
-/** Read-only, in-app letter display (inline viewer + expand). Used when reviewing a trainer. */
+/** Read-only, in-app letter display. One viewer instance; "Expand" enlarges that same instance (no second download). */
 export function LetterView({ user, height = 420 }) {
-  const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!expanded) return undefined;
+    const onKey = (e) => { if (e.key === "Escape") setExpanded(false); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [expanded]);
   if (!user?.partnershipLetter) return <p className="form-hint">No partnership letter uploaded.</p>;
   if (user.partnershipLetterAvailable === false) {
     return <p className="form-hint letter-warn"><AlertTriangle size={14} /> The uploaded letter file is missing on the server. The trainer or an admin should upload it again.</p>;
@@ -27,11 +35,16 @@ export function LetterView({ user, height = 420 }) {
   if (user.partnershipLetterKind === "other") {
     return <p className="form-hint letter-warn"><AlertTriangle size={14} /> This letter is in an old format that cannot be shown in the app. Upload it again as a PDF or image.</p>;
   }
+  const title = user.partnershipLetterName || "Partnership letter";
   return (
-    <div className="letter-box">
-      <div style={{ height }}><DocumentViewer src={user.partnershipLetter} title={user.partnershipLetterName || "Partnership letter"} /></div>
-      <button type="button" className="ghost-button" onClick={() => setOpen(true)}><Maximize2 size={14} /> Expand</button>
-      <DocumentModal open={open} title={user.partnershipLetterName || "Partnership letter"} src={user.partnershipLetter} onClose={() => setOpen(false)} />
+    <div className={`letter-box ${expanded ? "letter-box--expanded" : ""}`} {...(expanded ? { role: "dialog", "aria-modal": "true", "aria-label": title } : {})}>
+      {expanded && <div className="letter-box-head"><strong>{title}</strong></div>}
+      <div style={expanded ? { flex: 1, minHeight: 0, display: "flex", flexDirection: "column" } : { height }}>
+        <DocumentViewer src={user.partnershipLetter} title={title} />
+      </div>
+      <button type="button" className="ghost-button" onClick={() => setExpanded((v) => !v)}>
+        {expanded ? <><X size={14} /> Close</> : <><Maximize2 size={14} /> Expand</>}
+      </button>
     </div>
   );
 }

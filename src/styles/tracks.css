@@ -59,3 +59,9 @@
 .rp-bar i { display: block; height: 100%; background: #1a5f2a; border-radius: 99px; }
 .rp-top li { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
 @media (max-width: 640px) { .rp-bars li { grid-template-columns: 1fr 1fr auto; } }
+
+/* PWA install / update bar */
+.pwa-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:1100;display:flex;align-items:center;gap:10px;max-width:min(560px,calc(100vw - 24px));padding:10px 12px;border-radius:14px;background:var(--surface,#fff);color:inherit;border:1px solid var(--border,#d8e2dc);box-shadow:0 8px 28px rgba(0,0,0,.18);font-size:.92rem}
+.pwa-bar span{flex:1;min-width:0}
+.pwa-bar .primary-button,.pwa-bar .ghost-button{padding:6px 12px;white-space:nowrap}
+@media print{.pwa-bar{display:none}}

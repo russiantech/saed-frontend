@@ -77,3 +77,17 @@ test("LetterView explains absent / missing letters without links", () => {
   expect(screen.getByText(/missing on the server/i)).toBeInTheDocument();
   expect(container.querySelector("a[href]")).toBeNull();
 });
+
+test("LetterView: expanding enlarges the SAME viewer - the letter is downloaded once, not twice", async () => {
+  const f = vi.spyOn(global, "fetch").mockResolvedValue(resp("", "image/png"));
+  const user = { partnershipLetter: "/api/users/1/partnership-letter/", partnershipLetterName: "slip.png", partnershipLetterAvailable: true, partnershipLetterKind: "image" };
+  const { container } = render(<LetterView user={user} />);
+  await waitFor(() => expect(container.querySelector("img")).toBeTruthy());
+  fireEvent.click(screen.getByRole("button", { name: /expand/i }));
+  expect(screen.getByRole("dialog")).toBeTruthy();
+  expect(document.querySelectorAll(".docv").length).toBe(1);        // one viewer, not inline + modal
+  expect(f).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: /close/i }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(f).toHaveBeenCalledTimes(1);
+});

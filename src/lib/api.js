@@ -1,7 +1,7 @@
 // src/lib/api.js — session + CSRF aware API client.
 
-import { API_BASE_URL } from "./config.js";
-export { API_BASE_URL };
+import { API_BASE_URL, resolveMediaUrl } from "./config.js";
+export { API_BASE_URL, resolveMediaUrl };
 
 let csrfToken = "";
 let csrfFetchPromise = null;
@@ -287,18 +287,6 @@ export async function uploadWithProgress(path, formData, onProgress) {
     xhr.send(formData);
   });
 }
-
-/** Media URLs from the API may carry the backend origin; behind the dev proxy / nginx we stay same-origin. */
-export function resolveMediaUrl(url) {
-  if (!url || !API_BASE_URL.startsWith("/") || !/^https?:\/\//i.test(url)) return url;
-  try {
-    const u = new URL(url);
-    return u.pathname + u.search;
-  } catch {
-    return url;
-  }
-}
-
 
 // Identical GETs that are already in flight share one network request (React StrictMode double-effects,
 // several components asking for the same resource, rapid navigation).

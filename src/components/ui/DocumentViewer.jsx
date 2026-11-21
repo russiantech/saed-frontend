@@ -117,10 +117,10 @@ export default function DocumentViewer({ src, title = "Document", onError }) {
   const [state, setState] = useState({ status: "loading" });
   const cleanup = useRef(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal) => {
     setState({ status: "loading" });
     try {
-      const res = await fetch(resolveMediaUrl(src), { credentials: "include" });
+      const res = await fetch(resolveMediaUrl(src), { credentials: "include", signal });
       if (!res.ok) {
         const msg = await readError(res);
         throw new Error(msg || (res.status === 404 ? "This file is not available." : "This file could not be opened."));
@@ -138,14 +138,19 @@ export default function DocumentViewer({ src, title = "Document", onError }) {
         throw new Error("This file format cannot be viewed in the app.");
       }
     } catch (e) {
+      if (e?.name === "AbortError") return;           // superseded by a newer load / unmounted: not an error
       setState({ status: "error", message: e.message || "This file could not be opened." });
       if (onError) onError(e);
     }
   }, [src, onError]);
 
   useEffect(() => {
-    load();
-    return () => { if (cleanup.current) { URL.revokeObjectURL(cleanup.current); cleanup.current = null; } };
+    const ctl = new AbortController();
+    load(ctl.signal);
+    return () => {
+      ctl.abort();
+      if (cleanup.current) { URL.revokeObjectURL(cleanup.current); cleanup.current = null; }
+    };
   }, [load]);
 
   const block = (e) => e.preventDefault();

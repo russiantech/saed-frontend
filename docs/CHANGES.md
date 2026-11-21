@@ -61,6 +61,13 @@ Dunis Admin has final authority on fees and disputed payments; SAED Admin keeps 
 * Frontend now requires Node ≥ 22.13 (pdfjs-dist 6.5.438 – the first release without the 2026 arbitrary-JS-execution advisory).
 
 
+## v2.5.1 — Environment-aware API address, installable app, media/letter fixes  *(frontend)*
+* **API address per environment:** `public/config.js` now maps host names to APIs (`API_URLS`, exact and `*.suffix` wildcards) so one build works for local, staging and production; `API_URL` remains as a hard override.
+* **PWA:** web manifest, icons (192/512/maskable), service worker (hashed assets cached; API, media, admin and cross-origin requests never cached), offline page, install banner (Android/Chrome/Edge + iOS hint), "new version — Refresh" bar, Apache/nginx cache headers. Verified in Chromium: zero installability errors.
+* **Letters fixed on separate hosts:** partnership letters are API-relative paths and were being fetched from the web host; all API-provided media/image URLs now resolve against the API origin (`resolveMediaUrl`).
+* **No duplicate rendering:** `LetterView` "Expand" enlarges the same viewer instead of mounting a second one (the letter was downloaded twice); superseded fetches are aborted; filler text under document viewers removed.
+* Tests: 58.
+
 ## v2.5.0 — Streams, two separate experiences, production fixes  *(frontend)*
 **Features**
 * **In-Camp vs Post-Camp:** separate sign-ups (`/signup` chooser, `/signup/in-camp`, `/signup/post-camp`), dashboards, navigation and route guards (`track`). In-Camp sign-up has **no LGA/PPA**; it picks an open stream (+ optional camp) and skills.
