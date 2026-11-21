@@ -7,6 +7,7 @@ import { useAuth } from "../../lib/auth.jsx";
 import DarkToggle from "../ui/DarkToggle.jsx";
 import BrandLogo from "../ui/BrandLogo.jsx";
 import StreamBanner from "../ui/StreamBanner.jsx";
+import InstallButton from "../ui/InstallButton.jsx";
 import StreamExpired from "../../pages/dashboard/StreamExpired.jsx";
 import { trackOf } from "../../lib/track.js";
 
@@ -189,6 +190,7 @@ export default function AppShell() {
             </div>
           ))}
         </nav>
+        <InstallButton className="install-button--sidebar" />
         <button className="ghost-button logout-button" onClick={handleLogout}>
           <LogOut size={18} /> Logout
         </button>

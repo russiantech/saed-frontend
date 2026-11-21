@@ -1,3 +1,4 @@
+import SafeImage from "components/ui/SafeImage.jsx";
 import { ArrowLeft, Compass } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
@@ -34,7 +35,7 @@ export default function ActivityDetail() {
         </Link>
 
         <div className="activity-detail-hero">
-          <img src={activity.image} alt={activity.title} />
+          <SafeImage src={activity.image} alt={activity.title} />
           <div className="activity-detail-hero-body">
             <h1>{activity.title}</h1>
             <p>{activity.description}</p>
@@ -45,7 +46,7 @@ export default function ActivityDetail() {
           <div className="activity-gallery" aria-label={`${activity.title} photo gallery`}>
             {activity.images.map((src, index) => (
               <figure className="activity-gallery-item" key={src}>
-                <img src={src} alt={`${activity.title} photo ${index + 1}`} loading="lazy" />
+                <SafeImage src={src} alt={`${activity.title} photo ${index + 1}`} loading="lazy" />
               </figure>
             ))}
           </div>

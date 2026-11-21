@@ -49,7 +49,7 @@ describe("service worker rules", () => {
   });
 
   it("handles navigations (offline page fallback) and hashed assets", () => {
-    const { listeners } = loadSw({ fetchImpl: () => Promise.resolve({ ok: true, clone: () => ({}) }) });
+    const { listeners } = loadSw({ fetchImpl: () => Promise.resolve({ ok: true, type: "basic", headers: { get: () => "application/javascript" }, clone: () => ({}) }) });
     const nav = fetchEvent("https://app.example.com/app/dashboard", { mode: "navigate" });
     listeners.fetch(nav);
     expect(nav.respondWith).toHaveBeenCalledTimes(1);

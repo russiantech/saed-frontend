@@ -48,19 +48,39 @@ export const onUpdateAvailable = (cb) => {
 };
 export const applyUpdate = (worker) => worker?.postMessage({ type: "SKIP_WAITING" });
 
-// Chrome/Edge/Android fire this when the app is installable; we keep it for our own button.
-export function listenForInstall(onChange) {
-  const before = (e) => { e.preventDefault(); deferredPrompt = e; onChange(true); };
-  const done = () => { deferredPrompt = null; onChange(false); };
-  window.addEventListener("beforeinstallprompt", before);
-  window.addEventListener("appinstalled", done);
-  return () => { window.removeEventListener("beforeinstallprompt", before); window.removeEventListener("appinstalled", done); };
+// ── Install state (shared by the banner and the permanent "Install app" buttons) ─────────────────────────────
+// Chrome/Edge/Android fire `beforeinstallprompt` once, early, when the app is installable. We capture it at start-up
+// (initInstall, called from main.jsx before React renders) so no component can miss it, and share it through a tiny store.
+let installed = isStandalone();
+const subscribers = new Set();
+const emit = () => subscribers.forEach((fn) => fn());
+let snapshot = { canPrompt: false, installed };
+const refresh = () => { snapshot = { canPrompt: Boolean(deferredPrompt), installed }; emit(); };
+
+export function initInstall() {
+  if (typeof window === "undefined") return;
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; refresh(); });
+  window.addEventListener("appinstalled", () => { deferredPrompt = null; installed = true; refresh(); });
+  window.matchMedia?.("(display-mode: standalone)")?.addEventListener?.("change", (e) => { installed = e.matches; refresh(); });
+}
+export const subscribeInstall = (fn) => { subscribers.add(fn); return () => subscribers.delete(fn); };
+export const getInstallSnapshot = () => snapshot;
+
+/** What to tell the user when the browser has no one-tap prompt (or it was already used/dismissed). */
+export function installHelp(ua = typeof navigator !== "undefined" ? navigator.userAgent : "") {
+  if (isIos(ua)) return { title: "Install on iPhone / iPad", steps: ["Tap the Share button in Safari (square with an arrow).", "Scroll down and tap “Add to Home Screen”.", "Tap Add. SAED opens like an app from your home screen."] };
+  if (/iphone|ipad|ipod/i.test(ua)) return { title: "Install on iPhone / iPad", steps: ["Open this page in Safari (other iOS browsers cannot install apps).", "Tap Share, then “Add to Home Screen”."] };
+  if (/android/i.test(ua)) return { title: "Install on Android", steps: ["Open the browser menu (⋮).", "Tap “Install app” (or “Add to Home screen”).", "Confirm. SAED appears with your other apps."] };
+  if (/firefox/i.test(ua)) return { title: "Install", steps: ["Desktop Firefox cannot install web apps. Open this site in Chrome or Edge to install it.", "On Android, Firefox: menu (⋮) → Install."] };
+  return { title: "Install on your computer", steps: ["Look for the install icon (a screen with a down arrow) at the right end of the address bar, or open the browser menu.", "Choose “Install SAED” (Chrome/Edge: ⋮ → Cast, save and share → Install page as app).", "SAED opens in its own window."] };
 }
 
 export async function promptInstall() {
   if (!deferredPrompt) return "unavailable";
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  return outcome;                                                             // "accepted" | "dismissed"
+  const evt = deferredPrompt;
+  deferredPrompt = null;                         // a prompt event can only be used once
+  refresh();
+  evt.prompt();
+  const { outcome } = await evt.userChoice;
+  return outcome;                                // "accepted" | "dismissed"
 }

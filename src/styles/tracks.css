@@ -65,3 +65,20 @@
 .pwa-bar span{flex:1;min-width:0}
 .pwa-bar .primary-button,.pwa-bar .ghost-button{padding:6px 12px;white-space:nowrap}
 @media print{.pwa-bar{display:none}}
+
+/* Permanent install button */
+.install-button{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border,#d8e2dc);background:transparent;color:inherit;border-radius:10px;padding:8px 12px;font:inherit;font-weight:600;cursor:pointer}
+.install-button:hover{background:rgba(11,107,58,.08)}
+.install-button--nav{padding:8px 10px}
+.install-button--menu{margin:6px 12px 10px;width:calc(100% - 24px);justify-content:center}
+.sidebar .install-button--sidebar{flex:none;width:100%;min-height:42px;justify-content:flex-start;padding:0 12px;border-color:rgba(255,255,255,.35);color:#fff;font-size:14px;font-weight:500}
+.sidebar .install-button--sidebar:hover{background:rgba(255,255,255,.1);border-color:#fff}
+.install-help{position:relative;max-width:440px;padding:22px 24px}
+.install-help h3{margin:0 0 10px}
+.install-help ol{margin:0;padding-left:20px;line-height:1.6}
+
+/* Placeholder shown when a static image is missing */
+.safe-image-fallback{display:grid;place-items:center;width:100%;height:100%;min-height:120px;padding:12px;box-sizing:border-box;background:linear-gradient(135deg,#e7f1ea,#cfe3d6);color:#1b4d33;font-weight:600;text-align:center;font-size:.9rem}
+.activity-card .safe-image-fallback{height:180px}
+@media (prefers-color-scheme:dark){.safe-image-fallback{background:linear-gradient(135deg,#1c2f25,#16241c);color:#a9cdb8}}
+:root[data-theme="dark"] .safe-image-fallback{background:linear-gradient(135deg,#1c2f25,#16241c);color:#a9cdb8}

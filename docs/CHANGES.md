@@ -61,6 +61,14 @@ Dunis Admin has final authority on fees and disputed payments; SAED Admin keeps 
 * Frontend now requires Node ≥ 22.13 (pdfjs-dist 6.5.438 – the first release without the 2026 arbitrary-JS-execution advisory).
 
 
+## v2.5.2 — Layout, steady install button, static-file and letter fixes  *(frontend)*
+* **Sidebar:** the menu list scrolls inside the sidebar and **Logout stays pinned** at the bottom. With the longer admin menu the old fixed-height sidebar overflowed on laptop-height screens, pushing Logout off the dark panel onto the white page.
+* **Install:** a permanent **Install app** button (public nav, mobile menu, sidebar) in addition to the one-off banner. One tap where the browser allows it; otherwise it shows the steps for the visitor's browser (iPhone, Android, Chrome/Edge, Firefox). Hidden only once installed.
+* **Static files:** the service worker no longer caches a web page under an image/script URL (a host that answers missing files with `index.html` could make photos stay "missing" even after uploading them); cache version bumped so any polluted cache is purged. `.htaccess` / nginx now return a real 404 for missing files and for `/api` etc. on the web host instead of `index.html`. Missing images show a placeholder instead of a broken icon. New `npm run check:assets` (runs before every build) lists referenced files that are not in `public/` - **the 63 camp-activity photos (`/activities/...`) were never in the delivered project and must be put into `public/activities/`** (see `STATIC-ASSETS.md`).
+* **Partnership letter:** a web page returned in place of the file (wrong server address) is explained instead of being dumped as raw HTML. The backend now sends the letter URL as an absolute API URL (backend 2.5.1), like all other media.
+* Users page programme filter label "Both" → "All programmes".
+* Tests: 66.
+
 ## v2.5.1 — Environment-aware API address, installable app, media/letter fixes  *(frontend)*
 * **API address per environment:** `public/config.js` now maps host names to APIs (`API_URLS`, exact and `*.suffix` wildcards) so one build works for local, staging and production; `API_URL` remains as a hard override.
 * **PWA:** web manifest, icons (192/512/maskable), service worker (hashed assets cached; API, media, admin and cross-origin requests never cached), offline page, install banner (Android/Chrome/Edge + iOS hint), "new version — Refresh" bar, Apache/nginx cache headers. Verified in Chromium: zero installability errors.

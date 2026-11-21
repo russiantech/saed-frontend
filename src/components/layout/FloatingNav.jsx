@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
+
+import InstallButton from "components/ui/InstallButton.jsx";
 import BrandLogo from "../ui/BrandLogo.jsx";
 import DarkToggle from "../ui/DarkToggle.jsx";
 
@@ -27,6 +29,7 @@ export default function FloatingNav() {
       </nav>
       <div className="nav-actions">
         <DarkToggle />
+        <InstallButton className="install-button--nav" compact label="Install app" />
         <Link className="nav-button" to="/login">Start SAED</Link>
         <button
           className="icon-only"
@@ -48,6 +51,7 @@ export default function FloatingNav() {
         <Link role="menuitem" to="/opportunities" onClick={() => setMobileOpen(false)}>
           Opportunities
         </Link>
+        <InstallButton className="install-button--menu" />
       </div>
     </header>
   );

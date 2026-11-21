@@ -29,7 +29,8 @@ Use host names on the **same site** for the app and the API, e.g. `https://saed.
 5. Test: open `https://saed.dunistech.ng/login` (a direct deep link must load — that is the `.htaccess` SPA fallback), sign in, open the browser's
    **Network** tab: requests must go to `saed-api.dunistech.ng/api/...`, **not** to `saed.dunistech.ng/api/...`.
 
-Upgrading: upload the new `build/` contents over the old ones but **keep your edited `config.js`** (or re-apply it).
+Upgrading: upload the new `build/` contents over the old ones. **Do not empty the web root first** unless `public/` holds every static file the site needs (see `STATIC-ASSETS.md`, e.g. the camp-activity photos).
+To remove a stale service worker cache after an upgrade, nothing is needed: the new `sw.js` purges old caches itself.
 
 ## 2. Docker / nginx
 ```bash
@@ -59,7 +60,8 @@ Sign-in is a cookie set by the API. Choose:
 - [ ] `config.js` contains the API address; no red banner on the home page
 - [ ] Network tab shows API calls going to the API host
 - [ ] Sign-up, e-mail verification, sign-in, sign-out work; refresh on `/app/dashboard` keeps you signed in
-- [ ] Deep links (`/login`, `/signup/in-camp`) load directly
+- [ ] Deep links (`/login`, `/signup/in-camp`) load directly; a missing file such as `/activities/nope.jpg` returns a real 404
+- [ ] Camp Activities page shows the photos (`npm run check:assets` reports none missing)
 - [ ] In-Camp sign-up lists the open streams (create one first as SAED admin: *Streams*)
 - [ ] Documents/videos open inside a course and the partnership letter opens in the profile (media is streamed from the API host)
 - [ ] PWA: on HTTPS, Chrome/Edge offers "Install"; DevTools → Application → Manifest shows no errors; with the network off, a reload shows "You're offline"

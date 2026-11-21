@@ -5,10 +5,13 @@
  *   - Page navigations are network-first; when offline the visitor gets /offline.html.
  *   - A new version waits until the user taps "Refresh" (the app posts SKIP_WAITING) so nobody loses work mid-form.
  */
-const VERSION = "saed-pwa-v2.5.1";
+const VERSION = "saed-pwa-v2.5.2";      // bumping this purges every older cache on activation
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 const PRECACHE = ["/offline.html", "/pwa-192.png", "/pwa-512.png", "/manifest.webmanifest"];
+// A response may only be stored if it really is the file: a host that answers missing files with index.html (SPA fallback,
+// HTTP 200) must never get its HTML cached under an image/script URL, or the file would stay "missing" after it is uploaded.
+const storable = (res) => res && res.ok && res.type !== "opaque" && !/text\/html/i.test((res.headers && res.headers.get("content-type")) || "");
 const NEVER = /^\/(api|media|admin|docs|redoc|static)\/|^\/(config\.js|sw\.js)$/;
 
 self.addEventListener("install", (event) => {
@@ -43,7 +46,7 @@ self.addEventListener("fetch", (event) => {
       const hit = await cache.match(req);
       if (hit) return hit;
       const res = await fetch(req);
-      if (res.ok) cache.put(req, res.clone());
+      if (storable(res)) cache.put(req, res.clone());
       return res;
     })());
     return;
@@ -53,7 +56,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith((async () => {
       const cache = await caches.open(SHELL);
       const hit = await cache.match(req);
-      const refresh = fetch(req).then((res) => { if (res.ok) cache.put(req, res.clone()); return res; }).catch(() => hit);
+      const refresh = fetch(req).then((res) => { if (storable(res)) cache.put(req, res.clone()); return res; }).catch(() => hit);
       return hit || refresh;
     })());
   }

@@ -5,7 +5,7 @@ The browser app for the NYSC SAED learning platform. It is a static single-page 
 
 | | |
 |---|---|
-| Version | **2.5.1** |
+| Version | **2.5.2** |
 | Stack | React 19 · Vite 8 · React Router 7 · Vitest · pdf.js (in-app PDF viewing) |
 | Node | **22.13+** (pdf.js requires it) |
 | Needs | `saed-backend` ≥ 2.5.0 (see compatibility) |
@@ -86,16 +86,21 @@ Two clearly separated experiences share one codebase (details in `docs/ARCHITECT
 * The public home page's second call-to-action is **In-Camp SAED** and goes to the In-Camp sign-up.
 * Documents and letters are rendered **inside** the app (no downloads); video is streamed from the API.
 
+## Static files (photos, icons)
+Anything the site serves itself lives in `public/` and is copied into `build/`. The 63 camp-activity photos (`/activities/...`) must be placed in
+`public/activities/` - they are not in this repository yet. `npm run check:assets` lists what is missing; the site shows placeholders meanwhile.
+See `docs/STATIC-ASSETS.md`.
+
 ## 5. Tests, lint, build
 ```bash
 npm run lint && npm test && npm run build
 ```
-58 unit/component tests (Vitest + Testing Library): tracks and navigation, sign-up flows, camps admin, In-Camp filters, per-environment API address, media/letter URL resolution, single-viewer letters, service-worker rules and manifest checks.
+66 unit/component tests (Vitest + Testing Library): tracks and navigation, sign-up flows, camps admin, In-Camp filters, per-environment API address, media/letter URL resolution, single-viewer letters, service-worker rules and manifest checks.
 
 ## 6. Compatibility with the backend
 | Frontend | Backend | |
 |---|---|---|
-| **2.5.x** (2.5.1 current) | **2.5.x** | current |
+| **2.5.x** (2.5.2 current) | **2.5.x** (2.5.1 current) | current |
 | 2.5.x | 2.4.x | not compatible (no streams/tracks endpoints) |
 | 2.4.x | 2.5.x | not compatible (sign-up contract changed) |
 
@@ -103,6 +108,7 @@ npm run lint && npm test && npm run build
 | Symptom | Cause / fix |
 |---|---|
 | Red banner "calling its own website" | no entry for this host name in `config.js` → add `"<host>": "https://<api>/api"` to `API_URLS` |
+| Camp Activities photos missing | the photos are not in `public/activities/` (see `docs/STATIC-ASSETS.md`); never empty the web root before uploading |
 | Letters or media do not open (works on localhost) | was calling the web host; fixed in 2.5.1 (media is resolved against the API origin) — check the API address as above |
 | Old version / old `config.js` after deploy | the service worker and `.htaccess` send `no-cache` for `config.js`, `sw.js`, `index.html`; if a host overrides this, hard-refresh once |
 | Browser console shows `POST https://<app-host>/api/auth/login/` | same cause — the request is going to the web host |

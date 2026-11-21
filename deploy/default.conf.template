@@ -36,5 +36,7 @@ server {
     # NOTE: lesson media is private and streamed by Django at /api/lessons/<id>/media/<kind>/.
     # /protected_media is deliberately NOT served by nginx.
 
+    # A missing file (image, script, ...) is a real 404, never the HTML page; only extension-less paths are app routes.
+    location ~* \.[a-z0-9]{1,6}$ { try_files $uri =404; }
     location / { try_files $uri /index.html; }
 }

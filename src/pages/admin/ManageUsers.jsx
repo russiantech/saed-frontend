@@ -200,7 +200,7 @@ export default function ManageUsers() {
       <div className="tr-filters">
         <label>Programme
           <select value={track} onChange={(e) => { setTrack(e.target.value); if (e.target.value === "post_camp") setStreamFilter(""); }} aria-label="Filter by programme">
-            <option value="post_camp">Post-Camp</option><option value="in_camp">In-Camp</option><option value="all">Both</option>
+            <option value="post_camp">Post-Camp</option><option value="in_camp">In-Camp</option><option value="all">All programmes</option>
           </select>
         </label>
         {track !== "post_camp" && (

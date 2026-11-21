@@ -3,7 +3,7 @@
 ```bash
 npm run lint && npm test && npm run build
 ```
-58 tests (Vitest + Testing Library, jsdom): `tracks` (chooser, per-track sign-up, nav, expired page), `camps`, In-Camp filters,
+66 tests (Vitest + Testing Library, jsdom): `tracks` (chooser, per-track sign-up, nav, expired page), `camps`, In-Camp filters,
 `config` (per-host API table, wildcards, cross-origin detection, health detection, media/letter URL resolution), `viewer` (letters rendered once), `pwa` (service-worker rules, manifest and icon files), plus the earlier suites.
 
 ## Manual smoke test against a real API

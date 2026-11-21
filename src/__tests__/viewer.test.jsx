@@ -91,3 +91,10 @@ test("LetterView: expanding enlarges the SAME viewer - the letter is downloaded 
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(f).toHaveBeenCalledTimes(1);
 });
+
+test("a web page returned instead of the file is explained, never dumped as text", async () => {
+  vi.spyOn(global, "fetch").mockResolvedValue(resp("<!doctype html><html><head></head><body>app</body></html>", "text/html; charset=utf-8"));
+  const { container } = render(<LetterView user={{ partnershipLetter: "/api/users/1/partnership-letter/", partnershipLetterAvailable: true, partnershipLetterKind: "pdf" }} />);
+  await waitFor(() => expect(screen.getByText(/returned a web page instead of the file/i)).toBeTruthy());
+  expect(container.querySelector("pre")).toBeNull();
+});

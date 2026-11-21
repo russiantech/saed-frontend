@@ -1,3 +1,4 @@
+import SafeImage from "components/ui/SafeImage.jsx";
 import { Link } from "react-router-dom";
 
 import activities from "../../data/activities";
@@ -18,7 +19,7 @@ export default function CampActivities() {
       <div className="activities-grid">
         {activities.map((a) => (
           <article key={a.id} className="activity-card">
-            <img src={a.image} alt={a.title} />
+            <SafeImage src={a.image} alt={a.title} />
             <div className="card-body">
               <h3>{a.title}</h3>
               <p>{firstSentence(a.description)}</p>

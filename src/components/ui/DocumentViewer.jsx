@@ -132,6 +132,9 @@ export default function DocumentViewer({ src, title = "Document", onError }) {
         const url = URL.createObjectURL(await res.blob());
         cleanup.current = url;
         setState({ status: "image", url });
+      } else if (type === "text/html" || type === "application/xhtml+xml") {
+        // A web page where a file was expected = the request reached the website instead of the API (wrong address / proxy).
+        throw new Error("The server returned a web page instead of the file. The app is probably contacting the wrong server address; please tell the administrator.");
       } else if (type.startsWith("text/")) {
         setState({ status: "text", text: (await res.text()).slice(0, 500000) });
       } else {

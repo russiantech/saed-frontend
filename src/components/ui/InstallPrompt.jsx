@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Download, RefreshCw, Share, X } from "lucide-react";
 
-import { applyUpdate, isIos, isStandalone, listenForInstall, onUpdateAvailable, promptInstall } from "lib/pwa.js";
+import useInstall from "hooks/useInstall.js";
+import { applyUpdate, isIos, onUpdateAvailable, promptInstall } from "lib/pwa.js";
 
 const KEY = "saed:install-dismissed";
 const DAYS = 14;
@@ -10,14 +11,13 @@ const dismissedRecently = () => {
 };
 const remember = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch { /* private mode */ } };
 
-/** Install banner (Android/desktop button, iOS "Add to Home Screen" hint) + "new version" notice. */
+/** One-off install banner (dismissable; the permanent <InstallButton/> stays available) + "new version" notice. */
 export default function InstallPrompt() {
-  const [canInstall, setCanInstall] = useState(false);
-  const [hidden, setHidden] = useState(() => isStandalone() || dismissedRecently());
+  const { canPrompt: canInstall, installed } = useInstall();
+  const [hidden, setHidden] = useState(dismissedRecently);
   const [update, setUpdate] = useState(null);
   const ios = isIos();
 
-  useEffect(() => listenForInstall(setCanInstall), []);
   useEffect(() => onUpdateAvailable(setUpdate), []);
 
   if (update) {
@@ -29,7 +29,7 @@ export default function InstallPrompt() {
       </div>
     );
   }
-  if (hidden || (!canInstall && !ios)) return null;
+  if (installed || hidden || (!canInstall && !ios)) return null;
   const close = () => { remember(); setHidden(true); };
   return (
     <div className="pwa-bar" role="region" aria-label="Install the app">

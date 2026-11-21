@@ -7,7 +7,7 @@ import { trackOf } from "./lib/track.js";
 import { AuthProvider, useAuth } from "./lib/auth.jsx";
 import ApiStatusBanner from "./components/ui/ApiStatusBanner.jsx";
 import InstallPrompt from "./components/ui/InstallPrompt.jsx";
-import { registerServiceWorker } from "./lib/pwa.js";
+import { initInstall, registerServiceWorker } from "./lib/pwa.js";
 
 // Auth pages
 import Login from "./pages/auth/Login.jsx";
@@ -249,4 +249,5 @@ createRoot(document.getElementById("root")).render(
   </React.StrictMode>,
 );
 
+initInstall();
 registerServiceWorker();

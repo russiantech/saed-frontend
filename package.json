@@ -1,6 +1,6 @@
 {
   "name": "saed-frontend",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -13,7 +13,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "check:assets": "node scripts/check-assets.mjs",
+    "prebuild": "node scripts/check-assets.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.70.0",

@@ -4,8 +4,13 @@
   RewriteEngine On
   RewriteBase /
   RewriteRule ^index\.html$ - [L]
+  # Backend-style paths must never be answered with the web page: a request that reaches this host by mistake
+  # (wrong API address) should fail loudly with 404, not return HTML that looks like a response.
+  RewriteRule ^(api|media|admin|docs|redoc|static)/ - [R=404,L]
+  # Missing files (images, scripts, ...) are real 404s too - only extension-less paths are app routes.
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !\.[A-Za-z0-9]{1,6}$
   RewriteRule . /index.html [L]
 </IfModule>
 # Always re-check the deployment settings and the HTML shell; hashed assets can be cached for a year.
